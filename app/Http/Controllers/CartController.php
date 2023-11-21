@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CreditSale;
 use App\Models\Customer;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class CartController extends Controller
             'cart'=> Cart::with(['cartItems.product', 'customer'])->firstOrCreate(),
             'total' => $cart->cartItems->reduce(fn ($acc, $item) => $acc + $item->quantity * $item->price, 0) ?? 0,
             'products' => Product::where('stock', '>', 0)->get(),
-            'customers' => Customer::all(),
+            'paymentMethods' => PaymentMethod::where('company_id', auth()->user()->company_id)->get(),
         ]);
     }
 
@@ -105,11 +106,11 @@ class CartController extends Controller
 
     public function sales(): Response
     {
-            $products_sold = OrderItem::with(['product'])->select('product_id', DB::raw('SUM(quantity)  as total_qty'), DB::raw('SUM(total)  as total_price'))
-                                  ->whereRelation('order', 'user_id', auth()->id())
-                                  ->whereDate('created_at', today())
-                                  ->orderByDesc('created_at')
-                                  ->groupBy(['product_id'])->get();
+        $products_sold = OrderItem::with(['product'])->select('product_id', DB::raw('SUM(quantity)  as total_qty'), DB::raw('SUM(total)  as total_price'))
+                                ->whereRelation('order', 'user_id', auth()->id())
+                                ->whereDate('created_at', today())
+                                ->orderByDesc('created_at')
+                                ->groupBy(['product_id'])->get();
 
         return Inertia::render('Sales/History', [
             'orders' => auth()->user()->orderItems()->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', today())->orderByDesc('created_at')->sum('total'),

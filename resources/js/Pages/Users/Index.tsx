@@ -38,6 +38,7 @@ const UsersIndex = ({ auth, users, branches }: PageProps<{ users: User[], branch
                                 <TableHead>NAME</TableHead>
                                 <TableHead>EMAIL</TableHead>
                                 <TableHead>PHONE</TableHead>
+                                <TableHead>ROLE</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -48,6 +49,7 @@ const UsersIndex = ({ auth, users, branches }: PageProps<{ users: User[], branch
                                         <TableCell>{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>{user.phone}</TableCell>
+                                        <TableCell>{user.role}</TableCell>
                                     </TableRow>
                                 ))}
                         </TableBody>

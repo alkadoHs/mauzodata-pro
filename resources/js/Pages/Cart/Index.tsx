@@ -1,4 +1,4 @@
-import { Customer, Product } from "@/lib/schemas";
+import { Customer, PaymentMethod, Product } from "@/lib/schemas";
 import { Cart, PageProps } from "@/types";
 import { Head, router, useForm } from "@inertiajs/react";
 import { toast } from "sonner";
@@ -25,17 +25,18 @@ const CartIndex = ({
     auth,
     cart,
     products,
-    customers,
+    paymentMethods,
     total,
 }: PageProps<{
     cart: Cart;
     products: Product[];
+    paymentMethods: PaymentMethod[];
     total: number;
-    customers: Customer[];
 }>) => {
     const { data, setData, post, processing, errors, reset } = useForm({
         status: "paid",
         paid: "0",
+        payment_method_id: "",
         print_invoice: true,
     });
 
@@ -122,6 +123,33 @@ const CartIndex = ({
                                     }
                                 />
                             </li> */}
+
+                            <li className="flex justify-between items-center gap-4 pt-4">
+                                <p>Payment Method </p>
+                                <Select
+                                    value={data.payment_method_id}
+                                    onValueChange={(value) =>
+                                        setData("payment_method_id", value)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {paymentMethods.map(
+                                            (paymentMethod, index) => (
+                                                <SelectItem
+                                                    key={paymentMethod.id}
+                                                    value={paymentMethod.id.toString()}
+                                                    className="uppercase"
+                                                >
+                                                    {paymentMethod.name}
+                                                </SelectItem>
+                                            )
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </li>
 
                             <li className="flex justify-between items-center gap-4 pt-4">
                                 <p>Satatus </p>

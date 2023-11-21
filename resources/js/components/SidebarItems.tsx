@@ -176,16 +176,16 @@ const SidebarItems = ({ user }: { user: User }) => {
                         <Users className="size-5" />
                         Employees
                     </Link>
+                    <Link
+                        as="button"
+                        href={route("stocktransfer.index")}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    >
+                        <BotIcon className="size-5" />
+                        Stock Transfers
+                    </Link>
                 </>
             )}
-            <Link
-                as="button"
-                href={route("stocktransfer.index")}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-            >
-                <BotIcon className="size-5" />
-                Stock Transfers
-            </Link>
             <Accordion
                 type="single"
                 collapsible
