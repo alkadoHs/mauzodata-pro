@@ -1,54 +1,50 @@
-import InputError from '@/Components/InputError'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import Authenticated from '@/Layouts/AuthenticatedLayout'
-import { PageProps } from '@/types'
-import { Head, useForm } from '@inertiajs/react'
-import { FormEventHandler } from 'react'
-import { toast } from 'sonner'
+import InputError from "@/Components/InputError";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
+import { PageProps } from "@/types";
+import { Head, useForm } from "@inertiajs/react";
+import { FormEventHandler } from "react";
+import { toast } from "sonner";
+import CreateBranch from "./Partials/CreateBranch";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Branch } from "@/lib/schemas";
+import { Heading4 } from "@/components/Typography/Heading4";
 
-const Index = ({auth}: PageProps) => {
-    const { data, setData, errors, post, processing, reset} = useForm({
-        name: ''
-    })
+const Index = ({ auth, branches }: PageProps<{ branches: Branch[] }>) => {
+    return (
+        <Authenticated user={auth.user}>
+            <Head title="branches" />
 
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault()
+            <section className="space-y-4">
+                <Heading4>Branches</Heading4>
+                <CreateBranch />
 
-        post(route('branches.store'), {
-            onSuccess: () => {
-                toast.success("Created")
-            }
-        })
+                <Table>
+                    <TableHeader>
+                        <TableHead>S/N</TableHead>
+                        <TableHead>NAME</TableHead>
+                    </TableHeader>
+                    <TableBody>
+                        {branches.map((branch, index) => (
+                            <TableRow key={branch.id}>
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{branch.name}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </section>
+        </Authenticated>
+    );
+};
 
-        reset()
-    }
-  return (
-      <Authenticated user={auth.user}>
-          <Head title="branches" />
-
-          <section>
-              <form onSubmit={submit} className='space-y-4'>
-                  <div className="gap-1.5">
-                      <Label htmlFor="name">Name</Label>
-                      <Input
-                          type="text"
-                          id="name"
-                          value={data.name}
-                          onChange={(e) => setData("name", e.target.value)}
-                          placeholder="Branch name"
-                      />
-                      <InputError message={errors.name} />
-                  </div>
-
-                  <div>
-                    <Button disabled={processing} type='submit'>Submit</Button>
-                  </div>
-              </form>
-          </section>
-      </Authenticated>
-  );
-}
-
-export default Index
+export default Index;

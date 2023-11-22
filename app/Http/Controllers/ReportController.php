@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
-use App\Models\ExpenseItem;
 use App\Models\NewStock;
-use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\StockTransfer;
 use App\Models\User;

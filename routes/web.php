@@ -10,6 +10,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NewStockController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
+use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -146,6 +147,13 @@ Route::middleware(['auth', 'verified'])->controller(StockTransferController::cla
    Route::post('/stock-tranfer', 'store')->name('stocktransfer.store');
    Route::patch('/stock-tranfer/{product}', 'update')->name('stocktransfer.update');
    Route::post('/stock-tranfer/{product}/confirm', 'confirm')->name('stocktransfer.confirm');
+});
+
+// payment methods
+Route::middleware(['auth', 'verified'])->controller(PaymentMethodController::class)->group(function () {
+    Route::get('/payments','index')->name('payments.index');
+    Route::post('/payments','store')->name('payments.store');
+    Route::delete('/payments/{paymentMethod}/delete', 'destroy')->name('payments.destroy');
 });
 
 require __DIR__.'/auth.php';

@@ -112,7 +112,7 @@ class CartController extends Controller
                                   ->groupBy(['product_id'])->get();
 
         return Inertia::render('Sales/History', [
-            'orders' => auth()->user()->orderItems()->where('status', 'paid')->whereDate('order_items.created_at', today())->orderByDesc('created_at')->sum('total'),
+            'orders' => auth()->user()->orderItems()->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', today())->orderByDesc('created_at')->sum('total'),
             'payments' => auth()->user()->creditSalePayments()->whereDate('created_at', today())->sum('amount'),
             'expenses' => auth()->user()->expenseItems()->whereDate('expense_items.created_at', today())->sum('cost'),
             'products_sold' => $products_sold

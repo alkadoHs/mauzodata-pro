@@ -53,6 +53,7 @@ export type Branch = {
 export type Order = {
     id: number;
     branch: Branch;
+    payment_method: PaymentMethod;
     user: User;
     customer: Customer;
     order_items: orderItem[];
@@ -176,7 +177,6 @@ export type product_sold = {
     total_profit: number;
 };
 
-
 export type VendorProduct = {
     id: number;
     user_id: number;
@@ -192,7 +192,7 @@ export type VendorProduct = {
     stock: number;
     sold: number;
     status: string;
-}
+};
 
 export type NewStock = {
     id: number;
@@ -201,4 +201,9 @@ export type NewStock = {
     stock: number;
     new_stock: number;
     created_at: string;
-}
+};
+
+export type PaymentMethod = {
+    id: number;
+    name: string;
+};

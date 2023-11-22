@@ -2,11 +2,15 @@ import {
     Home,
     ShoppingCart,
     Package,
-    Users, ShoppingBasket, Scale,
+    Users,
+    ShoppingBasket,
+    Scale,
     FileCheck2,
     BotIcon,
     SearchCheckIcon,
-    BookOpen
+    BookOpen,
+    Settings,
+    ArrowRight,
 } from "lucide-react";
 import {
     Accordion,
@@ -29,6 +33,45 @@ const SidebarItems = ({ user }: { user: User }) => {
                 <Home className="size-5" />
                 Dashboard
             </Link>
+            {user.role == "admin" && (
+                <>
+                    <Accordion
+                        type="single"
+                        collapsible
+                        className="w-full"
+                        // defaultValue="item-0"
+                    >
+                        <AccordionItem value="item-0" className="border-none">
+                            <AccordionTrigger className="py-1.5 my-1 text-muted-foreground">
+                                <div className="flex gap-2 items-center">
+                                    <Settings className="size-5" />
+                                    <p>Setup</p>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                                <div className="pl-2">
+                                    <Link
+                                        as="button"
+                                        href={route("branches.index")}
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                    >
+                                        <ArrowRight className="size-5" />
+                                        Branches
+                                    </Link>
+                                    <Link
+                                        as="button"
+                                        href={route("payments.index")}
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                    >
+                                        <ArrowRight className="size-5" />
+                                        Payment Methods
+                                    </Link>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                </>
+            )}
             <Accordion
                 type="single"
                 collapsible

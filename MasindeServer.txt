@@ -1,21 +1,21 @@
 
-sudo apt install php8.2-fpm php8.2-common php8.2-mysql php8.2-gmp php8.2-curl php8.2-intl php8.2-mbstring php8.2-xmlrpc php8.2-gd php8.2-xml php8.2-cli php8.2-zip
+sudo apt install php8.3-fpm php8.3-common php8.3-mysql php8.3-gmp php8.3-curl php8.3-intl php8.3-mbstring php8.3-xmlrpc php8.3-gd php8.3-xml php8.3-cli php8.3-zip
 
 
-sudo nano /etc/php/8.2/fpm/php.ini
+sudo nano /etc/php/8.3/fpm/php.ini
 
 cgi.fix_pathinfo=0
 
-sudo nano /etc/php/8.2/fpm/pool.d/www.conf
+sudo nano /etc/php/8.3/fpm/pool.d/www.conf
 
 
 server {
     listen 80;
     listen [::]:80;
 
-    server_name mauzodata.com www.mauzodata.com;
+    server_name masindestore.com www.masindestore.com;
 
-    root  /var/www/mauzodata.com/public;
+    root  /var/www/masindestore.com/public;
     index index.php index.html index.htm;
 
     location / {
@@ -26,7 +26,7 @@ server {
         include snippets/fastcgi-php.conf;
 
         # With php-fpm:
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
         # With php-cgi:
         # fastcgi_pass 127.0.0.1:9000;
     }
@@ -39,15 +39,15 @@ server {
     }
 }
 
-CREATE USER 'masinde'@'localhost' IDENTIFIED BY 'Salehe$255';
+CREATE USER 'masinde'@'localhost' IDENTIFIED BY 'masinde';
 
 //connect from any host
-CREATE USER 'salehe255'@'%' IDENTIFIED BY 'Salehe$255';
+CREATE USER 'masinde'@'%' IDENTIFIED BY 'masinde';
 
 GRANT ALL PRIVILEGES ON *.* TO 'masinde'@'localhost' WITH GRANT OPTION;
 
 
-sudo ln -s /etc/nginx/sites-available/mauzodata.com /etc/nginx/sites-enabled
+sudo ln -s /etc/nginx/sites-available/masindestore.com /etc/nginx/sites-enabled
 
 sudo chown -R root:root /var/www/masindestore.com/storage
 
@@ -55,7 +55,7 @@ sudo nano /etc/php/8.3/fpm/php.ini
 
 
 
-curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget libgbm-dev libxshmfence-dev
 sudo npm install --location=global --unsafe-perm puppeteer@^22
 sudo chmod -R o+rx /usr/lib/node_modules/puppeteer/.local-chromium

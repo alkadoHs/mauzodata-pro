@@ -20,7 +20,16 @@ class Order extends Model
 {
     use HasFactory, IsSearchable, HasFilters;
 
-    protected $fillable = ['user_id', 'branch_id', 'customer_id', 'paid', 'print_invoice', 'invoice_number'];
+    protected $fillable = [
+        'user_id',
+        'payment_method_id',
+        'branch_id',
+        'customer_id',
+        'paid',
+        'print_invoice',
+        'invoice_number',
+        'status'
+    ];
 
     protected array $filters = [
         CreatedABetweenFilter::class,
@@ -51,6 +60,11 @@ class Order extends Model
     public function creditSale(): HasOne
     {
         return $this->hasOne(CreditSale::class);
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
 

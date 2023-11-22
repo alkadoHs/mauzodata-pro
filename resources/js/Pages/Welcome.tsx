@@ -12,6 +12,8 @@ export default function Welcome({
             <Head title="Welcome" />
 
             <HomePage />
+
+            
         </>
     );
 }

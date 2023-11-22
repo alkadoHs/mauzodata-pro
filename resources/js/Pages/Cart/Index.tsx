@@ -127,6 +127,7 @@ const CartIndex = ({
                                 <p>Satatus </p>
                                 <Select
                                     defaultValue="paid"
+                                    value={data.status}
                                     onValueChange={(value) =>
                                         setData("status", value)
                                     }
