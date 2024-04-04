@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\ProductObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Lacodix\LaravelModelFilter\Traits\IsSearchable;
 
+#[ObservedBy(ProductObserver::class)]
 class Product extends Model
 {
     use HasFactory, IsSearchable;

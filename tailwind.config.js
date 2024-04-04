@@ -45,7 +45,7 @@ export default {
                 },
                 dark: {
                     colors: {
-                        background: "#0D001A",
+                        // background: "#0D001A",
                         foreground: "#ffffff",
                         primary: {
                             50: "#3B096C",

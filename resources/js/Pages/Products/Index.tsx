@@ -26,6 +26,7 @@ import { SearchIcon } from "@/Components/icons/SearchIcon";
 import { PlusIcon } from "@/Components/icons/PlusIcon";
 import { Plus } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
+import CreateProduct from "./partials/CreateProduct";
 
 export default function ProductIndex({
     auth,
@@ -100,6 +101,7 @@ export default function ProductIndex({
         if (value && value?.length > 1) {
             router.visit(route('products.index'), {
                 data: { search: value},
+                only: ['products'],
                 preserveScroll: true,
                 preserveState: true
             })
@@ -107,7 +109,10 @@ export default function ProductIndex({
     }, 1000);
 
     const onClear = React.useCallback(() => {
-        router.visit(route('products.index'))
+        router.visit(route('products.index'), {
+            preserveScroll: true,
+            preserveState: true,
+        })
     }, []);
 
     const topContent = React.useMemo(() => {
@@ -123,7 +128,7 @@ export default function ProductIndex({
                         onValueChange={onSearchChange}
                     />
 
-                    <Button color="primary" startContent={<Plus size={20} />} size={'md'}>Add New</Button>
+                    <CreateProduct />
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-default-400 text-small">
@@ -153,6 +158,7 @@ export default function ProductIndex({
                     selectionMode="single"
                     topContent={topContent}
                     topContentPlacement="outside"
+                    isHeaderSticky={true}
                     bottomContent={
                         <div className="flex w-full justify-end">
                             <Pagination
