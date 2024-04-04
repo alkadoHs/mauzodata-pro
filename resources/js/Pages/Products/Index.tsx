@@ -97,7 +97,7 @@ export default function ProductIndex({
     );
 
     const onSearchChange = useDebouncedCallback((value?: string) => {
-        if (value) {
+        if (value && value?.length > 1) {
             router.visit(route('products.index'), {
                 data: { search: value},
                 preserveScroll: true,
@@ -140,7 +140,7 @@ export default function ProductIndex({
                 </div>
             </div>
         );
-    }, [filterValue, onSearchChange, products.data.length]);
+    }, [onSearchChange, products.data.length]);
 
     return (
         <Authenticated user={auth.user}>
