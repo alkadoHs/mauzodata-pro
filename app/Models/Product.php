@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Lacodix\LaravelModelFilter\Traits\IsSearchable;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, IsSearchable;
 
     protected $fillable = [
         'branch_id',
@@ -24,6 +25,10 @@ class Product extends Model
         'whole_price',
         'expire_date',
         'barcode',
+    ];
+
+    protected array $searchable = [
+        'name',
     ];
 
     protected function name(): Attribute

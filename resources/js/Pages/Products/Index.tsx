@@ -25,6 +25,7 @@ import { DeleteIcon } from "@/Components/icons/DeleteIcon";
 import { SearchIcon } from "@/Components/icons/SearchIcon";
 import { PlusIcon } from "@/Components/icons/PlusIcon";
 import { Plus } from "lucide-react";
+import { useDebouncedCallback } from "use-debounce";
 
 export default function ProductIndex({
     auth,
@@ -95,16 +96,18 @@ export default function ProductIndex({
         []
     );
 
-    const onSearchChange = React.useCallback((value?: string) => {
+    const onSearchChange = useDebouncedCallback((value?: string) => {
         if (value) {
-            setFilterValue(value);
-        } else {
-            setFilterValue("");
+            router.visit(route('products.index'), {
+                data: { search: value},
+                preserveScroll: true,
+                preserveState: true
+            })
         }
-    }, []);
+    }, 1000);
 
     const onClear = React.useCallback(() => {
-        setFilterValue("");
+        router.visit(route('products.index'))
     }, []);
 
     const topContent = React.useMemo(() => {
@@ -116,7 +119,6 @@ export default function ProductIndex({
                         className="w-full sm:max-w-[44%]"
                         placeholder="Search by name..."
                         startContent={<SearchIcon />}
-                        value={filterValue}
                         onClear={() => onClear()}
                         onValueChange={onSearchChange}
                     />

@@ -15,8 +15,12 @@ class ProductController extends Controller
      */
     public function index(): Response
     {
+        $products = Product::paginate(25);
+        if(request()->get('search')) {
+            $products = Product::search(request()->get('search'))->paginate(25);
+        }
         return Inertia::render('Products/Index', [
-            'products' => Product::paginate(25),
+            'products' => $products,
         ]);
     }
 
