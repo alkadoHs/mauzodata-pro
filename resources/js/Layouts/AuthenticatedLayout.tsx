@@ -1,19 +1,10 @@
-import { useState, PropsWithChildren, ReactNode } from "react";
-import ApplicationLogo from "@/Components/ApplicationLogo";
-import { Link, router } from "@inertiajs/react";
+import { PropsWithChildren, ReactNode } from "react";
 import { User as AuthUser } from "@/types";
-import {
-    Avatar,
-    Button,
-    Card,
-    CardBody,
-    ScrollShadow,
-    User,
-} from "@nextui-org/react";
-import { Listbox, ListboxSection, ListboxItem } from "@nextui-org/react";
-import { ArrowBigDownDash, ArrowUpDownIcon, BookTextIcon, CircleAlert, CircleMinus, ClipboardListIcon, CopyCheckIcon, CreditCardIcon, DeleteIcon, FileEditIcon, FileLineChart, HomeIcon, Layers3Icon, ListTodo, PanelLeft, PanelRight, Settings, Users } from "lucide-react";
+import { Badge, Button, Card, CardBody } from "@nextui-org/react";
+import { PanelRight, ShoppingBagIcon } from "lucide-react";
 import UserProfile from "@/Components/UserProfile";
-import { cn } from "@/lib/utils";
+import Sidebar from "./Sidebar";
+import { Link } from "@inertiajs/react";
 
 export default function Authenticated({
     user,
@@ -25,142 +16,7 @@ export default function Authenticated({
 
     return (
         <div className="min-h-screen max-w-7xl mx-auto flex items-start">
-            <aside className="sticky top-0 min-h-dvh py-4 hidden md:block w-[320px] px-3 border-r border-default">
-                <section className="space-y-6">
-                    <User
-                        name="MDS"
-                        description="Branch you work on"
-                        classNames={{
-                            name: "font-bold text-lg text-primary",
-                        }}
-                        avatarProps={{
-                            src: "/logo.svg",
-                        }}
-                    />
-                    <User
-                        name={user.name}
-                        description="Mauzodata store admin"
-                        avatarProps={{
-                            src: "https://github.com/alkadoHs.png",
-                            size: "sm",
-                            isBordered: true,
-                        }}
-                    />
-                </section>
-
-                <ScrollShadow className="max-h-[400px] my-3">
-                    <Listbox
-                        variant="faded"
-                        aria-label="Listbox menu with icons"
-                        className="p-0"
-                    >
-                        <ListboxItem
-                            key="new"
-                            startContent={<HomeIcon className={iconClasses} />}
-                            onPress={() =>
-                                router.visit(route("dashboard"))
-                            }
-                        >
-                            Dashboard
-                        </ListboxItem>
-                        <ListboxItem
-                            key="copy"
-                            startContent={<Settings className={iconClasses} />}
-                        >
-                            Settings
-                        </ListboxItem>
-                        <ListboxItem
-                            key="products"
-                            startContent={<ListTodo className={iconClasses} />}
-                            onPress={() =>
-                                router.visit(route("products.index"))
-                            }
-                        >
-                            Products
-                        </ListboxItem>
-                        <ListboxItem
-                            key="users"
-                            startContent={<Users className={iconClasses} />}
-                        >
-                            System Users
-                        </ListboxItem>
-                        <ListboxItem
-                            key="customers"
-                            startContent={
-                                <BookTextIcon className={iconClasses} />
-                            }
-                        >
-                            Customers History
-                        </ListboxItem>
-                        <ListboxItem
-                            key="expenses"
-                            startContent={
-                                <ClipboardListIcon className={iconClasses} />
-                            }
-                        >
-                            Expenses
-                        </ListboxItem>
-                        <ListboxItem
-                            key="vendor"
-                            startContent={
-                                <Layers3Icon className={iconClasses} />
-                            }
-                        >
-                            Vendor Products
-                        </ListboxItem>
-                        <ListboxItem
-                            key="transfers"
-                            startContent={
-                                <ArrowUpDownIcon className={iconClasses} />
-                            }
-                        >
-                            Transfers
-                        </ListboxItem>
-                        <ListboxItem
-                            key="credits"
-                            startContent={
-                                <CreditCardIcon className={iconClasses} />
-                            }
-                        >
-                            Credit Sales
-                        </ListboxItem>
-                        <ListboxItem
-                            key="reports"
-                            startContent={
-                                <FileLineChart className={iconClasses} />
-                            }
-                        >
-                            Reports
-                        </ListboxItem>
-                        <ListboxItem
-                            key="delete"
-                            className="text-danger"
-                            color="danger"
-                            startContent={
-                                <DeleteIcon
-                                    className={cn(iconClasses, "text-danger")}
-                                />
-                            }
-                        >
-                            Delete file
-                        </ListboxItem>
-                    </Listbox>
-                </ScrollShadow>
-                <section>
-                    <ul className="space-y-4">
-                        <li className="flex gap-2">
-                            <CircleAlert className="text-default-500 size-6" />
-                            <span className="text-default-500">
-                                Guide information
-                            </span>
-                        </li>
-                        <li className="flex gap-2">
-                            <CircleMinus className="text-default-500 size-6" />
-                            <span className="text-default-500">Logout</span>
-                        </li>
-                    </ul>
-                </section>
-            </aside>
+            <Sidebar user={user} />
             <main className="w-full p-4">
                 <Card className="z-30 mb-4 sticky top-0">
                     <CardBody>
@@ -174,7 +30,20 @@ export default function Authenticated({
                                 </span>
                             </div>
 
-                            <div>
+                            <div className="flex items-center gap-4">
+                                <Link href={route("cart.index")} as="button">
+                                    <Badge
+                                        color="primary"
+                                        content={50}
+                                        size="sm"
+                                        shape="circle"
+                                    >
+                                        <ShoppingBagIcon
+                                            size={24}
+                                            className="text-default-400"
+                                        />
+                                    </Badge>
+                                </Link>
                                 <UserProfile user={user} />
                             </div>
                         </div>

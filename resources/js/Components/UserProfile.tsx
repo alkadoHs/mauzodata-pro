@@ -7,6 +7,7 @@ import {
     DropdownItem,
     Button,
     User,
+    Avatar,
 } from "@nextui-org/react";
 import { PlusIcon } from "./icons/PlusIcon";
 import { User as BaseUser } from "@/types";
@@ -22,9 +23,7 @@ export default function UserProfile({ user }: { user: BaseUser}) {
             }}
         >
             <DropdownTrigger>
-                <Button variant="ghost" disableRipple>
-                    Profile
-                </Button>
+                <Avatar  size="sm"/>
             </DropdownTrigger>
             <DropdownMenu
                 aria-label="Custom item styles"

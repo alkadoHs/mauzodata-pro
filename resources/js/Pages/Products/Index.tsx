@@ -44,7 +44,9 @@ export default function ProductIndex({
         (product: Product, columnKey: React.Key) => {
             const cellValue = product[columnKey as keyof Product];
 
-            if (columnKey == "stock") {
+            if (columnKey == "name") {
+                return `${cellValue} / ${product.unit}`;
+            } else if (columnKey == "stock") {
                 if (product.stock < product.stock_alert) {
                     return (
                         <Chip color="warning" size="sm" variant="flat">
@@ -160,7 +162,7 @@ export default function ProductIndex({
                     topContentPlacement="outside"
                     isHeaderSticky={true}
                     bottomContent={
-                        <div className="flex w-full justify-end">
+                        <div className="flex w-full justify-center">
                             <Pagination
                                 isCompact
                                 showControls
