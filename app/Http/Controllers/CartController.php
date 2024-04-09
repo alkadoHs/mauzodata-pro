@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCustomerRequest;
+use App\Models\Cart;
+use App\Models\CartItem;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Inertia\Inertia;
@@ -11,86 +15,87 @@ class CartController extends Controller
 {
     public function index(): Response
     {
-        $products = Product::paginate(10);
-        if(request()->get('search'))
-            $products = Product::search(request()->get('search'))->paginate(10);
+        $cart = Cart::with(['cartItems.product', 'customer'])->firstOrCreate();
 
         return Inertia::render('Cart/Index', [
-            'cart'=> session()->get('cart', []),
-            'products' => $products,
+            'cart'=> Cart::with(['cartItems.product', 'customer'])->firstOrCreate(),
+            'total' => $cart->cartItems->reduce(fn ($acc, $item) => $acc + $item->quantity * $item->price, 0) ?? 0,
+            'products' => Product::where('stock', '>', 0)->get(),
         ]);
     }
 
     public function add(Request $request)
     {
         $product = Product::find($request->input('product_id'));
-        if (!$product) {
-            abort(404);
-        }
 
-        $cart = session()->get('cart', []);
-
-        if(isset($cart[$product->id])) {
-            return back()->withErrors([
-                'product_id' => 'Alredy available to the cart.'
+        $cart = Cart::first();
+        
+        $productExist = CartItem::where('product_id', $product->id)->first();
+        if($productExist) {
+            if($product->stock < $productExist->quantity) {
+                return back()->withErrors([
+                    'quantity' => 'Product exceed the available stock.',
+                ]);
+            } 
+            // $productExist->increment('quantity');
+        } else {
+            $cart->cartItems()->create([
+                'product_id' => $product->id,
+                'quantity' => 1,
+                'price' => $product->sale_price
             ]);
         }
 
-        $cart[$product->id] = [
-            'id' => $product->id,
-            'name' => $product->name,
-            'price' => $product->sale_price,
-            'quantity' => isset($cart[$product->id]) ? $cart[$product->id]['quantity'] + 1 : 1,
-        ];
-
-        session()->put('cart', $cart);
-
-        return redirect()->route('cart.index');
+        return back();
     }
 
-    public function update(Request $request, int $productId)
+    public function update(Request $request, $item_id)
     {
         $quantity = $request->input('quantity');
-        $product = Product::find($productId);
+        $item = CartItem::find($item_id);
+        $product = Product::find($item->product_id);
 
-        if (!$product) {
-            abort(404);
-        }
-
-        // Check if requested quantity exceeds available stock
-        if($quantity <= 0 || $quantity == "" || $quantity == null) {
+        // dd($item);
+    
+        if($product->stock < $quantity) {
             return back()->withErrors([
-                'quantity' => "Quantity can not be equals to zero or less than zero"
+                'quantity' => 'Quantity exceed the available stock.'
             ]);
-        }
+        } else {
+            if($product->whole_sale > 0 && $quantity >= $product->whole_sale ) {
+                $item->update([
+                    'quantity' => $quantity,
+                    'price' => $product->whole_price,
+                ]);
 
-        if ($quantity > $product->stock) {
-            return redirect()->back()->withErrors([
-                "quantity" => "Stock is not enough, stock available for '$product->name' is ~ $product->stock $product->unit"
+                return back()->with(
+                    'message', "Whole sale price applied to this item."
+                );
+            }
+            $item->update([
+                'quantity' => $quantity,
+                'price' => $product->sale_price,
             ]);
-        }
-
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity'] = $quantity;
-            session()->put('cart', $cart);
         }
 
         return redirect()->back();
     }
 
-    public function remove(Request $request)
+    
+    public function addCustomer(StoreCustomerRequest $request) {
+        $cart = Cart::first();
+        $customer = Customer::create([...$request->validated(), 'branch_id' => auth()->user()->branch_id]);
+
+        $cart->update(['customer_id' => $customer->id]);
+        return back();
+    }
+
+
+    public function remove(Request $request, $item_id)
     {
-        $productId = $request->input('product_id');
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            unset($cart[$productId]);
-            session()->put('cart', $cart);
-        }
-
-        return redirect()->route('cart.index');
+        $item = CartItem::find($item_id);
+        $item->delete();
+        return back();
     }
 }
 

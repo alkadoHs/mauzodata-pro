@@ -3,7 +3,8 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Head, useForm } from '@inertiajs/react';
-import { Button, Input } from '@nextui-org/react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function ConfirmPassword() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -37,7 +38,6 @@ export default function ConfirmPassword() {
 
                     <Input
                         id="password"
-                        variant="bordered"
                         type="password"
                         name="password"
                         value={data.password}

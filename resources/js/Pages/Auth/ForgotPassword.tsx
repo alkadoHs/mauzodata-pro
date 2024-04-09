@@ -2,7 +2,8 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { Button, Input } from '@nextui-org/react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -34,7 +35,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
             <form onSubmit={submit}>
                 <Input
                     id="email"
-                    variant="bordered"
                     type="email"
                     name="email"
                     value={data.email}
@@ -47,7 +47,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                 <div className="flex items-center justify-end mt-4">
                     <Button
-                        color="primary"
                         type="submit"
                         className="ms-4"
                         disabled={processing}

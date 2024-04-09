@@ -3,7 +3,8 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Button, Input } from '@nextui-org/react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -35,7 +36,6 @@ export default function Register() {
 
                     <Input
                         id="name"
-                        variant="bordered"
                         name="name"
                         value={data.name}
                         className="mt-1 block w-full"
@@ -53,7 +53,6 @@ export default function Register() {
 
                     <Input
                         id="email"
-                        variant="bordered"
                         type="email"
                         name="email"
                         value={data.email}
@@ -71,7 +70,6 @@ export default function Register() {
 
                     <Input
                         id="password"
-                        variant="bordered"
                         type="password"
                         name="password"
                         value={data.password}
@@ -92,7 +90,6 @@ export default function Register() {
 
                     <Input
                         id="password_confirmation"
-                        variant="bordered"
                         type="password"
                         name="password_confirmation"
                         value={data.password_confirmation}

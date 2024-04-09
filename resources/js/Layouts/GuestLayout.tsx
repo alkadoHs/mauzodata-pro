@@ -1,6 +1,5 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import { Link } from "@inertiajs/react";
-import { Card, CardBody } from "@nextui-org/react";
 import { PropsWithChildren } from "react";
 
 export default function Guest({ children }: PropsWithChildren) {
@@ -12,9 +11,9 @@ export default function Guest({ children }: PropsWithChildren) {
                 </Link>
             </div>
 
-            <Card className="max-w-md mx-auto w-full">
-                <CardBody>{children}</CardBody>
-            </Card>
+            <div className="max-w-md mx-auto w-full">
+                <div>{children}</div>
+            </div>
         </div>
     );
 }

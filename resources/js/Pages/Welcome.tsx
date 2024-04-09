@@ -1,19 +1,19 @@
-import { Link, Head } from '@inertiajs/react';
-import { PageProps } from '@/types';
-import { WelcomeHero } from '@/components/welcome-hero';
+import { Link, Head } from "@inertiajs/react";
+import { PageProps } from "@/types";
 
-export default function Welcome({ auth, laravelVersion, phpVersion }: PageProps<{ laravelVersion: string, phpVersion: string }>) {
-    const handleImageError = () => {
-        document.getElementById('screenshot-container')?.classList.add('!hidden');
-        document.getElementById('docs-card')?.classList.add('!row-span-1');
-        document.getElementById('docs-card-content')?.classList.add('!flex-row');
-        document.getElementById('background')?.classList.add('!hidden');
-    };
-
+export default function Welcome({
+    auth,
+    laravelVersion,
+    phpVersion,
+}: PageProps<{ laravelVersion: string; phpVersion: string }>) {
     return (
         <>
             <Head title="Welcome" />
-            <WelcomeHero />
+            <div className="grid items-center justify-center">
+                <button className="bg-blue-500 py-4 text-white w-fit px-6">
+                    login
+                </button>
+            </div>
         </>
     );
 }

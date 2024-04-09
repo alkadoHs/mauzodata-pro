@@ -1,4 +1,4 @@
-import { nextui } from "@nextui-org/react";
+import forms from "@tailwindcss/forms";
 import defaultTheme from "tailwindcss/defaultTheme";
 
 /** @type {import('tailwindcss').Config} */
@@ -9,62 +9,76 @@ export default {
         "./storage/framework/views/*.php",
         "./resources/views/**/*.blade.php",
         "./resources/js/**/*.tsx",
-        "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
     ],
 
-    plugins: [
-        nextui({
-            layout: {
-                disabledOpacity: "0.3", // opacity-[0.3]
+    theme: {
+        container: {
+            center: true,
+            padding: "2rem",
+            screens: {
+                "2xl": "1400px",
+            },
+        },
+        extend: {
+            colors: {
+                border: "hsl(var(--border))",
+                input: "hsl(var(--input))",
+                ring: "hsl(var(--ring))",
+                background: "hsl(var(--background))",
+                foreground: "hsl(var(--foreground))",
+                primary: {
+                    DEFAULT: "hsl(var(--primary))",
+                    foreground: "hsl(var(--primary-foreground))",
+                },
+                secondary: {
+                    DEFAULT: "hsl(var(--secondary))",
+                    foreground: "hsl(var(--secondary-foreground))",
+                },
+                destructive: {
+                    DEFAULT: "hsl(var(--destructive))",
+                    foreground: "hsl(var(--destructive-foreground))",
+                },
+                muted: {
+                    DEFAULT: "hsl(var(--muted))",
+                    foreground: "hsl(var(--muted-foreground))",
+                },
+                accent: {
+                    DEFAULT: "hsl(var(--accent))",
+                    foreground: "hsl(var(--accent-foreground))",
+                },
+                popover: {
+                    DEFAULT: "hsl(var(--popover))",
+                    foreground: "hsl(var(--popover-foreground))",
+                },
+                card: {
+                    DEFAULT: "hsl(var(--card))",
+                    foreground: "hsl(var(--card-foreground))",
+                },
+            },
+            borderRadius: {
+                lg: `var(--radius)`,
+                md: `calc(var(--radius) - 2px)`,
+                sm: "calc(var(--radius) - 4px)",
+            },
+            fontFamily: {
+                sans: ["Figtree", ...defaultTheme.fontFamily.sans],
+            },
+            keyframes: {
+                "accordion-down": {
+                    from: { height: 0 },
+                    to: { height: "var(--radix-accordion-content-height)" },
+                },
+                "accordion-up": {
+                    from: { height: "var(--radix-accordion-content-height)" },
+                    to: { height: 0 },
+                },
+            },
+            animation: {
+                "accordion-down": "accordion-down 0.2s ease-out",
+                "accordion-up": "accordion-up 0.2s ease-out",
+            },
+        },
+    },
 
-                borderWidth: {
-                    small: "1px", // border-small
-                    medium: "1.5px", // border-medium
-                    large: "2px", // border-large
-                },
-            },
-            themes: {
-                light: {
-                    colors: {
-                        danger: {
-                            50: "#fef2f2",
-                            100: "#fee2e2",
-                            200: "#fecaca",
-                            300: "#fca5a5",
-                            400: "#f87171",
-                            500: "#ef4444",
-                            600: "#dc2626",
-                            700: "#b91c1c",
-                            800: "#991b1b",
-                            900: "#7f1d1d",
-                            DEFAULT: "#ef4444",
-                            // foreground: "#ffffff",
-                        },
-                        // focus: "#F182F6",
-                    },
-                },
-                dark: {
-                    colors: {
-                        // background: "#0D001A",
-                        foreground: "#ffffff",
-                        primary: {
-                            50: "#3B096C",
-                            100: "#520F83",
-                            200: "#7318A2",
-                            300: "#9823C2",
-                            400: "#c031e2",
-                            500: "#DD62ED",
-                            600: "#F182F6",
-                            700: "#FCADF9",
-                            800: "#FDD5F9",
-                            900: "#FEECFE",
-                            DEFAULT: "#DD62ED",
-                            foreground: "#ffffff",
-                        },
-                        focus: "#F182F6",
-                    },
-                },
-            },
-        }),
-    ],
+    plugins: [require("tailwindcss-animate")],
 };

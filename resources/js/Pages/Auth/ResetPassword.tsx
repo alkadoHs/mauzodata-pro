@@ -3,7 +3,8 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Head, useForm } from '@inertiajs/react';
-import { Button, Input } from '@nextui-org/react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function ResetPassword({ token, email }: { token: string, email: string }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -35,7 +36,6 @@ export default function ResetPassword({ token, email }: { token: string, email: 
 
                     <Input
                         id="email"
-                        variant="bordered"
                         type="email"
                         name="email"
                         value={data.email}
@@ -52,7 +52,6 @@ export default function ResetPassword({ token, email }: { token: string, email: 
 
                     <Input
                         id="password"
-                        variant="bordered"
                         type="password"
                         name="password"
                         value={data.password}
@@ -74,7 +73,6 @@ export default function ResetPassword({ token, email }: { token: string, email: 
                     <Input
                         id="password_confirmation"
                         type="password"
-                        variant="bordered"
                         name="password_confirmation"
                         value={data.password_confirmation}
                         className="mt-1 block w-full"

@@ -1,27 +1,35 @@
-import { useEffect, FormEventHandler } from 'react';
-import GuestLayout from '@/Layouts/GuestLayout';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Button, Checkbox, Input } from '@nextui-org/react';
+import { useEffect, FormEventHandler } from "react";
+import GuestLayout from "@/Layouts/GuestLayout";
+import InputError from "@/Components/InputError";
+import InputLabel from "@/Components/InputLabel";
+import { Head, Link, useForm } from "@inertiajs/react";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 
-export default function Login({ status, canResetPassword }: { status?: string, canResetPassword: boolean }) {
+export default function Login({
+    status,
+    canResetPassword,
+}: {
+    status?: string;
+    canResetPassword: boolean;
+}) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
+        email: "",
+        password: "",
         remember: false,
     });
 
     useEffect(() => {
         return () => {
-            reset('password');
+            reset("password");
         };
     }, []);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        post(route('login'));
+        post(route("login"));
     };
 
     return (
@@ -40,7 +48,6 @@ export default function Login({ status, canResetPassword }: { status?: string, c
 
                     <Input
                         id="email"
-                        variant="bordered"
                         type="email"
                         name="email"
                         value={data.email}
@@ -58,7 +65,6 @@ export default function Login({ status, canResetPassword }: { status?: string, c
 
                     <Input
                         id="password"
-                        variant="bordered"
                         type="password"
                         name="password"
                         value={data.password}
@@ -75,8 +81,8 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                         <Checkbox
                             name="remember"
                             checked={data.remember}
-                            onValueChange={(isSelected) =>
-                                setData("remember", isSelected)
+                            onCheckedChange={(checked) =>
+                                setData("remember", checked as boolean)
                             }
                         />
                         <span className="ms-2 text-sm text-gray-600 dark:text-gray-400">

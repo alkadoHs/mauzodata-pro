@@ -1,11 +1,16 @@
-import { useRef, useState, FormEventHandler } from 'react';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import Modal from '@/Components/Modal';
-import { useForm } from '@inertiajs/react';
-import { Button, Input } from '@nextui-org/react';
+import { useRef, useState, FormEventHandler } from "react";
+import InputError from "@/Components/InputError";
+import InputLabel from "@/Components/InputLabel";
+import Modal from "@/Components/Modal";
+import { useForm } from "@inertiajs/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export default function DeleteUserForm({ className = '' }: { className?: string }) {
+export default function DeleteUserForm({
+    className = "",
+}: {
+    className?: string;
+}) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const passwordInput = useRef<HTMLInputElement>(null);
 
@@ -17,7 +22,7 @@ export default function DeleteUserForm({ className = '' }: { className?: string 
         reset,
         errors,
     } = useForm({
-        password: '',
+        password: "",
     });
 
     const confirmUserDeletion = () => {
@@ -27,7 +32,7 @@ export default function DeleteUserForm({ className = '' }: { className?: string 
     const deleteUser: FormEventHandler = (e) => {
         e.preventDefault();
 
-        destroy(route('profile.destroy'), {
+        destroy(route("profile.destroy"), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
             onError: () => passwordInput.current?.focus(),
@@ -56,7 +61,7 @@ export default function DeleteUserForm({ className = '' }: { className?: string 
                 </p>
             </header>
 
-            <Button color="danger" onClick={confirmUserDeletion}>
+            <Button variant={"destructive"} onClick={confirmUserDeletion}>
                 Delete Account
             </Button>
 
@@ -82,7 +87,6 @@ export default function DeleteUserForm({ className = '' }: { className?: string 
 
                         <Input
                             id="password"
-                            variant="bordered"
                             type="password"
                             name="password"
                             ref={passwordInput}
@@ -102,7 +106,7 @@ export default function DeleteUserForm({ className = '' }: { className?: string 
                     </div>
 
                     <div className="mt-6 flex justify-end">
-                        <Button variant={"bordered"} onClick={closeModal}>
+                        <Button variant={"outline"} onClick={closeModal}>
                             Cancel
                         </Button>
 

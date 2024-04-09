@@ -4,8 +4,8 @@ import "../css/app.css";
 import { createRoot } from "react-dom/client";
 import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
-import { NextUIProvider } from "@nextui-org/react";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 
@@ -20,13 +20,13 @@ createInertiaApp({
         const root = createRoot(el);
 
         root.render(
-            <NextUIProvider>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
                 <App {...props} />
                 <Toaster richColors />
-            </NextUIProvider>
+            </ThemeProvider>
         );
     },
     progress: {
-        color: "#4B5563",
+        color: "#22c55e",
     },
 });

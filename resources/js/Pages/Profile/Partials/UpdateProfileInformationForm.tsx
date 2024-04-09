@@ -4,7 +4,8 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
 import { FormEventHandler } from 'react';
 import { PageProps } from '@/types';
-import { Button, Input } from '@nextui-org/react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function UpdateProfileInformation({ mustVerifyEmail, status, className = '' }: { mustVerifyEmail: boolean, status?: string, className?: string }) {
     const user = usePage<PageProps>().props.auth.user;
@@ -36,7 +37,6 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
                     <Input
                         id="name"
-                        variant='bordered'
                         className="mt-1 block w-full"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
@@ -53,7 +53,6 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
 
                     <Input
                         id="email"
-                        variant='bordered'
                         type="email"
                         className="mt-1 block w-full"
                         value={data.email}
@@ -88,7 +87,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                 )}
 
                 <div className="flex items-center gap-4">
-                    <Button type="submit" color='primary' disabled={processing}>Save</Button>
+                    <Button type="submit" disabled={processing}>Save</Button>
 
                     <Transition
                         show={recentlySuccessful}

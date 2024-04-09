@@ -5,7 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-
-export function numberFormat(num: Number | string ) {
-  return Intl.NumberFormat().format(Number(num));
+export function numberFormat(num: number) {
+  return Intl.NumberFormat().format(num)
 }

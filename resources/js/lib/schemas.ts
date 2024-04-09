@@ -1,3 +1,4 @@
+
 export type PaginationLink = {
     url: string;
     label: string;
@@ -11,10 +12,10 @@ export type Product = {
     buy_price: number;
     sale_price: number;
     stock: number;
-    stock_alert: number;
     whole_sale: number;
     whole_price: number;
     expire_date: string;
+    stock_alert: number;
 };
 
 export type PaginatedProduct = {
@@ -32,3 +33,10 @@ export type PaginatedProduct = {
     to: number;
     total: number;
 };
+
+
+export type Customer = {
+    id: number;
+    name: string;
+    contact: string;
+}

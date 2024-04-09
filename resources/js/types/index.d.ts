@@ -1,3 +1,4 @@
+import { Customer, Product } from "@/lib/schemas";
 import { Config } from "ziggy-js";
 
 export interface User {
@@ -11,15 +12,16 @@ export interface User {
     email_verified_at: string;
 }
 
-interface CartProduct {
-    id: number
-    name: string;
+interface CartItem {
+    id: number;
+    product: Product;
     price: number;
     quantity: number;
 }
 
 interface Cart {
-    [productId: number]: CartProduct;
+    cart_items: CartItem[];
+    customer: Customer;
 }
 
 export type PageProps<
