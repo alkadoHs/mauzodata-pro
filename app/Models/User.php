@@ -60,5 +60,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
+
+    public function creditSales(): HasMany
+    {
+        return $this->hasMany(CreditSale::class);
+    }
     
 }

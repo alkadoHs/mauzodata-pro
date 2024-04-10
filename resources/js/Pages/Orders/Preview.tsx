@@ -66,12 +66,12 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
                             <p>
                                 <span>Name: </span>{" "}
                                 <span className="text-muted-foreground inline-block underline uppercase pb-1">
-                                    {order.customer.name}
+                                    {order?.customer?.name}
                                 </span>
                             </p>
                             <p>
                                 <span>Contact: </span>{" "}
-                                {order.customer.contact ? (
+                                {order?.customer?.contact ? (
                                     <span className="text-muted-foreground inline-block underline pb-1">
                                         {order.customer.contact}
                                     </span>

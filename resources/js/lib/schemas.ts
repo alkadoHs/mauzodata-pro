@@ -69,3 +69,18 @@ export type orderItem = {
     price: number;
     quantity: number;
 }
+
+export type CreditSale = {
+    id: number;
+    order: Order;
+    credit_sale_payments: CreditSalePayment[]
+    created_at: string;
+}
+
+export type CreditSalePayment = {
+    id: number;
+    user: User;
+    credit_sale: CreditSale;
+    amount: number;
+    created_at: string;
+}

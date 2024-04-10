@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\CreditSale;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -15,8 +16,10 @@ class OrderController extends Controller
     public function complete(Request $request)
     {
         $cart = Cart::with('cartItems')->first();
+        $totalPrice = $cart->cartItems->reduce(fn ($acc, $item) => $acc + $item->price * $item->quantity);
+        $paid = (float) $request->post('paid');
 
-        DB::transaction(function () use ($request, $cart) {
+        DB::transaction(function () use ($request, $cart, $totalPrice, $paid) {
             $order = Order::create(['customer_id' => $cart->customer_id, ...$request->all()]);
             
             foreach ($cart->cartItems as $item) {
@@ -28,8 +31,14 @@ class OrderController extends Controller
                     'quantity' => $item->quantity,
                 ]);
 
+                //if amount paid is less than total price add order to the credit sales
+                if($paid < $totalPrice) {
+                    $order->creditSale()->create();
+                }
+
                 $product->decrement('stock', $item->quantity);
             }
+
     
             $cart->delete();
         });

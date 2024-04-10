@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\CreditSale;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use App\Models\Product;
@@ -121,7 +122,7 @@ class CartController extends Controller
     public function credit_sales(): Response
     {
         return Inertia::render('Credits/UserCreditSales', [
-            //
+            'creditSales' => auth()->user()->creditSales()->with(['creditSalePayments.user', 'user', 'order.customer'])->orderByDesc('created_at')->get(),
         ]);
     }
 }
