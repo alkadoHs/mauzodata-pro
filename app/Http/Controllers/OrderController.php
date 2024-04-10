@@ -8,6 +8,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class OrderController extends Controller
 {
@@ -33,6 +34,15 @@ class OrderController extends Controller
             $cart->delete();
         });
 
-        return back();
+        return redirect(route('orders.preview'));
+    }
+
+
+    public function preview()
+    {
+        $latesOrder = Order::where('user_id', auth()->id())->with(['customer', 'user', 'branch', 'orderItems.product'])->latest()->first();
+        return Inertia::render('Orders/Preview', [
+            'order' => $latesOrder,
+        ]);
     }
 }

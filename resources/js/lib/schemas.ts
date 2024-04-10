@@ -1,3 +1,4 @@
+import { User } from "@/types";
 
 export type PaginationLink = {
     url: string;
@@ -39,4 +40,32 @@ export type Customer = {
     id: number;
     name: string;
     contact: string;
+}
+
+export type Branch = {
+    id: number;
+    name: string;
+    email: string;
+    city: string;
+    address: string;
+    tax_id: string;
+}
+
+export type Order = {
+    id: number;
+    branch: Branch;
+    user: User;
+    customer: Customer;
+    order_items: orderItem[];
+    invoice_number: string;
+    paid: number;
+    created_at: string;
+};
+
+export type orderItem = {
+    id: number;
+    order: Order;
+    product: Product;
+    price: number;
+    quantity: number;
 }

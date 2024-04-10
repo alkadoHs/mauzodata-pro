@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -49,6 +50,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/orders', [OrderController::class, 'complete'])->name('orders.complete');
+    Route::get('/orders/view', [OrderController::class, 'preview'])->name('orders.preview');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/invoices/download/{id}', [InvoiceController::class, 'download'])->name('invoices.download');
 });
 
 
