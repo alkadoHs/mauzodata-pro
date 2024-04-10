@@ -19,7 +19,7 @@ export default function Authenticated({
         <div className="min-h-screen mx-auto flex items-start bg-gray-100 dark:bg-gray-900">
             <Sidebar user={user} />
             <main className="w-full">
-                <nav className="z-30 bg-gray-200 dark:bg-gray-700/50 py-2 px-2 sticky top-0">
+                <nav className="z-30 bg-gray-200 dark:bg-gray-900 py-2 px-2 sticky top-0">
                     <ul className="flex justify-end">
                         <li className="flex items-center gap-2 mr-auto">
                             <Button size="sm" variant={"ghost"}>

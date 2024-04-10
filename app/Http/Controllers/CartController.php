@@ -97,5 +97,32 @@ class CartController extends Controller
         $item->delete();
         return back();
     }
+
+    public function sales(): Response
+    {
+        return Inertia::render('Sales/History', [
+            'orders' => auth()->user()->orders()->with(['branch', 'customer', 'orderItems.product'])->orderByDesc('created_at')->get(),
+        ]);
+    }
+
+    public function pricing(): Response
+    {
+
+       $products = Product::paginate(25);
+        if(request()->get('search')) {
+            $products = Product::search(request()->get('search'))->paginate(25);
+        }
+        return Inertia::render('Products/Pricing', [
+            'products' => $products,
+        ]);
+    }
+
+
+    public function credit_sales(): Response
+    {
+        return Inertia::render('Credits/UserCreditSales', [
+            //
+        ]);
+    }
 }
 

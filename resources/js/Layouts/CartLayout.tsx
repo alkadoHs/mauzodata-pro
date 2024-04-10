@@ -14,7 +14,7 @@ export default function CartLayout({
 }) {
     return (
         <Authenticated user={user}>
-            <ScrollArea className="w-full whitespace-nowrap border-b dark:border-gray-800 mb-3 bg-gray-200 dark:bg-gray-700/50 text-gray-800 dark:text-gray-400">
+            <ScrollArea className="w-full whitespace-nowrap border-b dark:border-gray-800 mb-3 bg-gray-200 dark:bg-gray-900 text-gray-800 dark:text-gray-400">
                 <nav className="flex w-max space-x-4 px-4 pt-4">
                     <CartNavLink
                         label="New sale"

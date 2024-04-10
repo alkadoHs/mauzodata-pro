@@ -5,24 +5,16 @@ import DeleteProductAction from "../Actions/DeleteProductAction";
 import UpdateProductAction from "../Actions/UpdateProductAction";
 import ViewProductAction from "../Actions/ViewProductAction";
 
-export const productColumns: ColumnDef<Product>[] = [
+export const pricingColumns: ColumnDef<Product>[] = [
     {
         accessorKey: "name",
         header: "NAME",
         cell: ({ row }) => {
+
             return `${row.original.name} / ${row.original.unit}`;
         },
     },
-    {
-        accessorKey: "buy_price",
-        header: () => <div className="text-right">B.PRICE</div>,
-        cell: ({ row }) => {
-            const amount = parseFloat(row.getValue("buy_price"));
-            const formatted = numberFormat(amount);
 
-            return <div className="text-right font-medium">{formatted}</div>;
-        },
-    },
     {
         accessorKey: "sale_price",
         header: () => <div className="text-right">S.PRICE</div>,
@@ -75,19 +67,6 @@ export const productColumns: ColumnDef<Product>[] = [
             const formatted = numberFormat(whole_price);
 
             return <div className="text-right font-medium">{formatted}</div>;
-        },
-    },
-    {
-        accessorKey: "Action",
-        header: () => <div className="text-center">Actions</div>,
-        cell: ({ row }) => {
-            return (
-                <div className="relative flex items-center justify-center gap-2">
-                    <ViewProductAction product={row.original} />
-                    <UpdateProductAction product={row.original} />
-                    <DeleteProductAction product={row.original} />
-                </div>
-            );
         },
     },
 ];

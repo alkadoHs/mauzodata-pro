@@ -8,6 +8,7 @@ import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
 import { DownloadCloud, Printer } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
+import { TableCell, TableFooter, TableRow } from "@/components/ui/table";
 
 dayjs.extend(relativeTime);
 
@@ -18,12 +19,12 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
 
             <section>
                 <div className="flex items-center justify-between px-4">
-                    <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                    <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight ">
                         Invoice
                     </h3>
 
                     <div className="flex items-center gap-4">
-                        <a href={route('invoices.download', order.id)}>
+                        <a href={route("invoices.download", order.id)}>
                             <Button variant={"outline"}>
                                 <DownloadCloud className="mr-2 " />
                                 Download
@@ -35,10 +36,10 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
                     </div>
                 </div>
 
-                <div className="max-w-3xl mx-auto bg-gray-800 rounded-lg p-8 my-8">
+                <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg p-8 my-8">
                     <header className="grid grid-cols-2 justify-between">
-                        <h2 className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-                            Invoice #{`00${order.id}`}
+                        <h2 className=" w-fit h-fit scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0 p-3 bg-indigo-500">
+                            Invoice #{`0${order.id}`}
                         </h2>
 
                         <div className="text-right space-y-1.5">
@@ -83,7 +84,7 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
 
                     <div className="relative overflow-x-auto my-4">
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th scope="col" className="px-6 py-3">
                                         Product name
@@ -100,33 +101,59 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
                                 </tr>
                             </thead>
                             <tbody className="h last:border-b border-gray-700">
-                              {order.order_items.map((item) => (
-                                <tr key={item.id} className="bg-white dark:bg-gray-800 dark:border-gray-700">
-                                    <th
-                                        scope="row"
-                                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                {order.order_items.map((item) => (
+                                    <tr
+                                        key={item.id}
+                                        className="bg-white dark:bg-gray-800 dark:border-gray-700"
                                     >
-                                        {item.product.name}
-                                    </th>
-                                    <td className="px-6 py-4">{item.quantity}</td>
-                                    <td className="px-6 py-4">{numberFormat(item.price)}</td>
-                                    <td className="px-6 py-4">{numberFormat(item.quantity * item.price)}</td>
-                                </tr>
-                              ))}
+                                        <th
+                                            scope="row"
+                                            className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                        >
+                                            {item.product.name}
+                                        </th>
+                                        <td className="px-6 py-4">
+                                            {item.quantity}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {numberFormat(item.price)}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {numberFormat(
+                                                item.quantity * item.price
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
 
                         <div className="flex justify-end mt-3">
-                          <div className="table w-full max-w-xs space-y-3">
-                            <div className="table-row ">
-                              <div className="table-cell text-lg text-muted-foreground">TOTAL PRICE</div>
-                              <div className="table-cell font-bold">{numberFormat(order.order_items.reduce((acc, item) => acc + item.price * item.quantity, 0))}</div>
+                            <div className="table w-full max-w-xs space-y-3">
+                                <div className="table-row ">
+                                    <div className="table-cell text-lg text-muted-foreground">
+                                        TOTAL PRICE
+                                    </div>
+                                    <div className="table-cell font-bold">
+                                        {numberFormat(
+                                            order.order_items.reduce(
+                                                (acc, item) =>
+                                                    acc +
+                                                    item.price * item.quantity,
+                                                0
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="table-row">
+                                    <div className="table-cell text-muted-foreground">
+                                        PAID AMOUNT{" "}
+                                    </div>
+                                    <div className="table-cell font-bold">
+                                        {numberFormat(order.paid)}
+                                    </div>
+                                </div>
                             </div>
-                            <div className="table-row">
-                              <div className="table-cell text-muted-foreground">PAID AMOUNT </div>
-                              <div className="table-cell font-bold">{numberFormat(order.paid)}</div>
-                            </div>
-                          </div>
                         </div>
                     </div>
                 </div>
