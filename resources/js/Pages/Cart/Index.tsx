@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { numberFormat } from "@/lib/utils";
 import { DataTable } from "@/components/DataTable";
 import { cartItemColumns } from "./partials/CartItemColumns";
-
 import { Input } from "@/components/ui/input";
 import { AddProductToTheCart } from "./Add";
 import AddCustomer from "./partials/AddCustomer";

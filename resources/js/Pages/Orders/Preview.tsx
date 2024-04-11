@@ -24,7 +24,10 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
                     </h3>
 
                     <div className="flex items-center gap-4">
-                        <a href={route("invoices.download", order.id)}>
+                        <a
+                            href={route("invoices.download", order.id)}
+                            target="_blank"
+                        >
                             <Button variant={"outline"}>
                                 <DownloadCloud className="mr-2 " />
                                 Download
