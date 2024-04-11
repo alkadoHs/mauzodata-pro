@@ -31,14 +31,17 @@ class OrderController extends Controller
                     'quantity' => $item->quantity,
                 ]);
 
-                //if amount paid is less than total price add order to the credit sales
-                if($paid < $totalPrice) {
-                    $order->creditSale()->create();
-                }
-
+                
                 $product->decrement('stock', $item->quantity);
             }
 
+            //if amount paid is less than total price add order to the credit sales
+            if($paid < $totalPrice) {
+                $creditSale = $order->creditSale()->create();
+
+                //take what has paid and add to credit payments
+                $creditSale->creditSalePayments()->create(['amount' => $order->paid ?? 0]);
+            }
     
             $cart->delete();
         });

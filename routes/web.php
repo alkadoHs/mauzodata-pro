@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CreditSalePaymentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\RemoveCommaFromInput;
+use App\Models\CreditSalePayment;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -55,6 +57,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/invoices/download/{id}', [InvoiceController::class, 'download'])->name('invoices.download');
+});
+
+Route::middleware(['auth', 'verified', RemoveCommaFromInput::class,])->group(function () {
+    Route::post('/credits/{creditSale}', [CreditSalePaymentController::class, 'add_payment'])->name('credits.payment');
 });
 
 

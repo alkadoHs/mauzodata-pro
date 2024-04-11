@@ -122,7 +122,7 @@ class CartController extends Controller
     public function credit_sales(): Response
     {
         return Inertia::render('Credits/UserCreditSales', [
-            'creditSales' => auth()->user()->creditSales()->with(['creditSalePayments.user', 'user', 'order.customer'])->orderByDesc('created_at')->get(),
+            'creditSales' => auth()->user()->creditSales()->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])->orderByDesc('created_at')->get(),
         ]);
     }
 }
