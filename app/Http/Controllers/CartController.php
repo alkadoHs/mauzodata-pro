@@ -103,6 +103,7 @@ class CartController extends Controller
     {
         return Inertia::render('Sales/History', [
             'orders' => auth()->user()->orders()->with(['branch', 'customer', 'orderItems.product'])->orderByDesc('created_at')->get(),
+            'payments' => auth()->user()->creditSalePayments()->get(),
         ]);
     }
 

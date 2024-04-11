@@ -16,7 +16,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Order } from "@/lib/schemas";
+import { CreditSalePayment, Order } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
@@ -26,9 +26,18 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
-const SalesHistory = ({ auth, orders }: PageProps<{ orders: Order[] }>) => {
+const SalesHistory = ({
+    auth,
+    orders,
+    payments,
+}: PageProps<{ orders: Order[]; payments: CreditSalePayment[] }>) => {
     let totalRevenue = orders.reduce(
         (acc, order) => acc + Number(order.paid),
+        0
+    );
+
+    const creditsReceived = payments.reduce(
+        (acc, item) => acc + Number(item.amount),
         0
     );
 
@@ -78,7 +87,7 @@ const SalesHistory = ({ auth, orders }: PageProps<{ orders: Order[] }>) => {
                             <DollarSign className="size-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">100,000</div>
+                            <div className="text-2xl font-bold">{numberFormat(creditsReceived)}</div>
                             <p className="text-xs text-primary">
                                 +20.1% from last month
                             </p>

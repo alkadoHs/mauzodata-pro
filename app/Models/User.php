@@ -65,5 +65,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(CreditSale::class);
     }
+
+    public function creditSalePayments(): HasMany
+    {
+        return $this->hasMany(CreditSalePayment::class);
+    }
     
 }
