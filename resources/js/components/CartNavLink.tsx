@@ -13,7 +13,7 @@ const CartNavLink = ({ label, url, icon }: Props) => {
             href={route(url)}
             as="button"
             className={clsx(
-                "flex items-center gap-2 w-full text-left bg-inherit p-2 transition-colors duration-200 rounded-s-none rounded-3xl hover:bg-slate-700",
+                "flex items-center gap-2 w-full text-left bg-inherit p-2 transition-colors duration-200 rounded-none hover:bg-gray-50 dark:hover:bg-gray-700",
                 {
                     "bg-green-500/10 rounded-b-none border-b-4 border-primary":
                         route().current()?.startsWith(url),

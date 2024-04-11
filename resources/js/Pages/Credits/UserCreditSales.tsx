@@ -172,7 +172,7 @@ const UserCrediSales = ({
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between gap-4 mt-4">
+                                <div className="flex items-center justify-between gap-4 mt-4 mb-2">
                                     <div className="flex gap-3 text-base">
                                         <Heading4>Payment statement</Heading4>
                                     </div>
