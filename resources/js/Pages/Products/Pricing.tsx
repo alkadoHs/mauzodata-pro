@@ -25,7 +25,7 @@ export default function Pricing({
     const onSearchChange = useDebouncedCallback(
         (value?: ChangeEvent<HTMLInputElement>) => {
             if (value && value?.target.value.length > 1) {
-                router.visit(route("products.index"), {
+                router.visit(route("cart.pricing"), {
                     data: { search: value.target.value },
                     only: ["products"],
                     preserveScroll: true,
@@ -70,6 +70,7 @@ export default function Pricing({
                         <Link
                             href={products.first_page_url}
                             disabled={!products.first_page_url}
+                            as="button"
                             preserveScroll
                         >
                             <Button
@@ -83,6 +84,7 @@ export default function Pricing({
                         <Link
                             href={products.prev_page_url}
                             disabled={!products.prev_page_url}
+                            as="button"
                             preserveScroll
                         >
                             <Button variant={"outline"} size={"sm"}>
@@ -96,6 +98,7 @@ export default function Pricing({
                         <Link
                             href={products.next_page_url}
                             disabled={!products.next_page_url}
+                            as="button"
                             preserveScroll
                         >
                             <Button variant={"outline"} size={"sm"}>
@@ -106,6 +109,7 @@ export default function Pricing({
                         <Link
                             href={products.last_page_url}
                             disabled={!products.last_page_url}
+                            as="button"
                             preserveScroll
                         >
                             <Button
