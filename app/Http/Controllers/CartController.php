@@ -104,12 +104,12 @@ class CartController extends Controller
         return Inertia::render('Sales/History', [
             'orders' => auth()->user()->orders()->with(['branch', 'customer', 'orderItems.product'])->orderByDesc('created_at')->get(),
             'payments' => auth()->user()->creditSalePayments()->get(),
+            'expenses' => auth()->user()->expenseItems()->get(),
         ]);
     }
 
     public function pricing(): Response
     {
-
        $products = Product::paginate(25);
         if(request()->get('search')) {
             $products = Product::search(request()->get('search'))->paginate(25);
@@ -124,6 +124,13 @@ class CartController extends Controller
     {
         return Inertia::render('Credits/UserCreditSales', [
             'creditSales' => auth()->user()->creditSales()->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])->orderByDesc('created_at')->get(),
+        ]);
+    }
+
+    public function expenses(): Response
+    {
+        return Inertia::render('Expenses/UserExpenses', [
+            'expenseItems' => auth()->user()->expenseItems()->whereDate('expenses.created_at', now())->get(),
         ]);
     }
 }

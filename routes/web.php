@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CreditSalePaymentController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -62,6 +63,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', RemoveCommaFromInput::class,])->group(function () {
     Route::post('/credits/{creditSale}', [CreditSalePaymentController::class, 'add_payment'])->name('credits.payment');
 });
+
+Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->group(function () {
+    Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+    Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+});
+
 
 
 

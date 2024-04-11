@@ -35,12 +35,11 @@ export type PaginatedProduct = {
     total: number;
 };
 
-
 export type Customer = {
     id: number;
     name: string;
     contact: string;
-}
+};
 
 export type Branch = {
     id: number;
@@ -49,7 +48,7 @@ export type Branch = {
     city: string;
     address: string;
     tax_id: string;
-}
+};
 
 export type Order = {
     id: number;
@@ -68,14 +67,14 @@ export type orderItem = {
     product: Product;
     price: number;
     quantity: number;
-}
+};
 
 export type CreditSale = {
     id: number;
     order: Order;
-    credit_sale_payments: CreditSalePayment[]
+    credit_sale_payments: CreditSalePayment[];
     created_at: string;
-}
+};
 
 export type CreditSalePayment = {
     id: number;
@@ -83,4 +82,20 @@ export type CreditSalePayment = {
     credit_sale: CreditSale;
     amount: number;
     created_at: string;
-}
+};
+
+export type Expense = {
+    id: number;
+    branch: Branch;
+    user: User;
+    expense_items: ExpenseItem[];
+    created_at: string;
+};
+
+export type ExpenseItem = {
+    id: number;
+    expense: Expense;
+    item: string;
+    cost: number;
+    created_at: string;
+};

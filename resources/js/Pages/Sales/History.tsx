@@ -16,7 +16,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { CreditSalePayment, Order } from "@/lib/schemas";
+import { CreditSalePayment, ExpenseItem, Order } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
@@ -30,7 +30,8 @@ const SalesHistory = ({
     auth,
     orders,
     payments,
-}: PageProps<{ orders: Order[]; payments: CreditSalePayment[] }>) => {
+    expenses,
+}: PageProps<{ orders: Order[]; payments: CreditSalePayment[], expenses: ExpenseItem[] }>) => {
     let totalRevenue = orders.reduce(
         (acc, order) => acc + Number(order.paid),
         0
@@ -40,6 +41,8 @@ const SalesHistory = ({
         (acc, item) => acc + Number(item.amount),
         0
     );
+
+    const totalExpenses = expenses.reduce((acc, item) => acc + Number(item.cost), 0)
 
     return (
         <CartLayout user={auth.user}>
@@ -72,7 +75,7 @@ const SalesHistory = ({
                             <Banknote className="size-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">45,200</div>
+                            <div className="text-2xl font-bold">{numberFormat(totalExpenses)}</div>
                             <p className="text-xs text-primary">
                                 +20.1% from last month
                             </p>
