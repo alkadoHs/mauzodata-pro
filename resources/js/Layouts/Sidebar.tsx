@@ -1,25 +1,14 @@
 import SideLink from "@/components/SideLink";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { User as AuthUser } from "@/types";
-import { Link, router } from "@inertiajs/react";
 
 import {
-    ArrowUpDownIcon,
     BookOpenText,
-    BookTextIcon,
     CircleAlert,
     CircleMinus,
-    ClipboardListIcon,
-    CreditCardIcon,
-    DeleteIcon,
-    FileLineChart,
+    DatabaseZap,
     HomeIcon,
-    Layers3Icon,
-    ListTodo,
-    Settings,
-    Users,
 } from "lucide-react";
-import React from "react";
 
 const Sidebar = ({ user }: { user: AuthUser }) => {
     const iconClasses =
@@ -43,6 +32,13 @@ const Sidebar = ({ user }: { user: AuthUser }) => {
                             label="Products"
                             url="products.index"
                             icon={<BookOpenText className="size-5 " />}
+                        />
+                    </li>
+                    <li>
+                        <SideLink
+                            label="Store"
+                            url="stores.products"
+                            icon={<DatabaseZap className="size-5 " />}
                         />
                     </li>
                 </ul>

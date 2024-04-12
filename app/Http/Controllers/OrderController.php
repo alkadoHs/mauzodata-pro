@@ -46,7 +46,7 @@ class OrderController extends Controller
             $cart->delete();
         });
 
-        if($cart->print_invoice)
+        if($cart->print_invoice == 1)
             return redirect(route('orders.preview'));
         else
             return redirect()->back();

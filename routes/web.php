@@ -8,8 +8,10 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StoreProductController;
 use App\Http\Middleware\RemoveCommaFromInput;
 use App\Models\CreditSalePayment;
+use App\Models\StoreProduct;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -72,6 +74,13 @@ Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->group(func
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+});
+
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/stores/products', [StoreProductController::class, 'index'])->name('stores.products');
+    Route::get('/stores/transfers', [StoreProductController::class, 'transfers'])->name('stores.transfers');
+    Route::post('/stores/products', [StoreProductController::class, 'store'])->name('stores.products.store');
 });
 
 

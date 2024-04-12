@@ -102,9 +102,9 @@ class CartController extends Controller
     public function sales(): Response
     {
         return Inertia::render('Sales/History', [
-            'orders' => auth()->user()->orders()->with(['branch', 'customer', 'orderItems.product'])->orderByDesc('created_at')->get(),
-            'payments' => auth()->user()->creditSalePayments()->get(),
-            'expenses' => auth()->user()->expenseItems()->get(),
+            'orders' => auth()->user()->orders()->with(['branch', 'customer', 'orderItems.product'])->whereDate('orders.created_at', today())->orderByDesc('created_at')->get(),
+            'payments' => auth()->user()->creditSalePayments()->whereDate('created_at', today())->get(),
+            'expenses' => auth()->user()->expenseItems()->whereDate('expense_items.created_at', today())->get(),
         ]);
     }
 
