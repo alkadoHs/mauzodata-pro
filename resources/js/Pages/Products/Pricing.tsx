@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import CartLayout from "@/Layouts/CartLayout";
 import { pricingColumns } from "./partials/PricingColumns";
+import { Heading4 } from "@/components/Typography/Heading4";
 
 export default function Pricing({
     auth,
@@ -41,6 +42,7 @@ export default function Pricing({
             <Head title="Products" />
 
             <section className="p-4">
+                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight pb-2">Products</h4>
                 <div className="flex flex-col gap-4">
                     <div className="flex justify-between gap-3 items-end">
                         <Input

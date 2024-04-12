@@ -20,9 +20,10 @@ import { CreditSalePayment, ExpenseItem, Order } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
-import { Banknote, DollarSign, HistoryIcon } from "lucide-react";
+import { Banknote, Cable, DollarSign, HistoryIcon } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import EmptyPlaceHolder from "@/components/EmptyPlaceHolder";
 
 dayjs.extend(relativeTime);
 
@@ -75,7 +76,9 @@ const SalesHistory = ({
                             <Banknote className="size-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{numberFormat(totalExpenses)}</div>
+                            <div className="text-2xl font-bold">
+                                {numberFormat(totalExpenses)}
+                            </div>
                             <p className="text-xs text-primary">
                                 +20.1% from last month
                             </p>
@@ -90,7 +93,9 @@ const SalesHistory = ({
                             <DollarSign className="size-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{numberFormat(creditsReceived)}</div>
+                            <div className="text-2xl font-bold">
+                                {numberFormat(creditsReceived)}
+                            </div>
                             <p className="text-xs text-primary">
                                 +20.1% from last month
                             </p>
@@ -105,91 +110,103 @@ const SalesHistory = ({
                         </h3>
                     </header>
                     <Accordion type="multiple" className="w-full">
-                        {orders.map((order) => (
-                            <AccordionItem
-                                key={order.id}
-                                value={order.invoice_number}
-                            >
-                                <AccordionTrigger>
-                                    <div className="max-w-sm lg:max-w-xl w-full flex gap-3 justify-between items-center">
-                                        <p>INV - {`0${order.id}`}</p>
-                                        {order.customer ? (
-                                            <p className="bg-amber-500/30">
-                                                {order.customer.name}
+                        {orders.length ? (
+                            orders.map((order) => (
+                                <AccordionItem
+                                    key={order.id}
+                                    value={order.invoice_number}
+                                >
+                                    <AccordionTrigger>
+                                        <div className="max-w-sm lg:max-w-xl w-full flex gap-3 justify-between items-center">
+                                            <p>INV - {`0${order.id}`}</p>
+                                            {order.customer ? (
+                                                <p className="bg-amber-500/30">
+                                                    {order.customer.name}
+                                                </p>
+                                            ) : null}
+                                            <p className="bg-violet-500/30 p-1">
+                                                PAID ={" "}
+                                                {numberFormat(order.paid)}{" "}
                                             </p>
-                                        ) : null}
-                                        <p className="bg-violet-500/30 p-1">
-                                            PAID = {numberFormat(order.paid)}{" "}
-                                        </p>
-                                        <p className="text-muted-foreground flex gap-2">
-                                            <HistoryIcon className="size-4" />{" "}
-                                            <span>
-                                                {dayjs(
-                                                    order.created_at
-                                                ).fromNow()}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>PRODUCT</TableHead>
-                                                <TableHead>QTY</TableHead>
-                                                <TableHead>PRICE</TableHead>
-                                                <TableHead>TOTAL</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {order?.order_items.map((item) => (
-                                                <TableRow key={item.id}>
-                                                    <TableCell>
-                                                        {item.product.name}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {numberFormat(
-                                                            item.quantity
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {numberFormat(
-                                                            item.price
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {numberFormat(
-                                                            item.price *
-                                                                item.quantity
-                                                        )}
-                                                    </TableCell>
+                                            <p className="text-muted-foreground flex gap-2">
+                                                <HistoryIcon className="size-4" />{" "}
+                                                <span>
+                                                    {dayjs(
+                                                        order.created_at
+                                                    ).fromNow()}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>
+                                                        PRODUCT
+                                                    </TableHead>
+                                                    <TableHead>QTY</TableHead>
+                                                    <TableHead>PRICE</TableHead>
+                                                    <TableHead>TOTAL</TableHead>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                        <TableFooter>
-                                            <TableRow>
-                                                <TableHead>
-                                                    TOTAL PRICE
-                                                </TableHead>
-                                                <TableCell></TableCell>
-                                                <TableCell></TableCell>
-                                                <TableHead className="bg-violet-500/30">
-                                                    {numberFormat(
-                                                        order.order_items.reduce(
-                                                            (acc, item) =>
-                                                                acc +
-                                                                item.price *
-                                                                    item.quantity,
-                                                            0
-                                                        )
-                                                    )}
-                                                </TableHead>
-                                            </TableRow>
-                                        </TableFooter>
-                                    </Table>
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
+                                            </TableHeader>
+                                            <TableBody>
+                                                {order?.order_items.map(
+                                                    (item) => (
+                                                        <TableRow key={item.id}>
+                                                            <TableCell>
+                                                                {
+                                                                    item.product
+                                                                        .name
+                                                                }
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {numberFormat(
+                                                                    item.quantity
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {numberFormat(
+                                                                    item.price
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {numberFormat(
+                                                                    item.price *
+                                                                        item.quantity
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )
+                                                )}
+                                            </TableBody>
+                                            <TableFooter>
+                                                <TableRow>
+                                                    <TableHead>
+                                                        TOTAL PRICE
+                                                    </TableHead>
+                                                    <TableCell></TableCell>
+                                                    <TableCell></TableCell>
+                                                    <TableHead className="bg-violet-500/30">
+                                                        {numberFormat(
+                                                            order.order_items.reduce(
+                                                                (acc, item) =>
+                                                                    acc +
+                                                                    item.price *
+                                                                        item.quantity,
+                                                                0
+                                                            )
+                                                        )}
+                                                    </TableHead>
+                                                </TableRow>
+                                            </TableFooter>
+                                        </Table>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))
+                        ) : (
+                            <EmptyPlaceHolder message="You haven't sold anything today." />
+                        )}
                     </Accordion>
                 </div>
             </section>
