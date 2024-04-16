@@ -10,9 +10,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class OrderController extends Controller
 {
+    public function index(): Response
+    {
+        $orders = Order::with(['orderItems.product', 'user'])->paginate(25);
+        if(request()->search)
+            $orders = Order::where('id', request()->search)->with(['orderItems.product', 'user'])->paginate(25);
+        
+        return Inertia::render('Sales/Index', [
+            'orders' => $orders,
+        ]);
+    }
+
+
     public function complete(Request $request)
     {
         $cart = Cart::with('cartItems')->first();
@@ -46,10 +59,7 @@ class OrderController extends Controller
             $cart->delete();
         });
 
-        if($cart->print_invoice == 1)
-            return redirect(route('orders.preview'));
-        else
-            return redirect()->back();
+        return redirect(route('orders.preview'));
     }
 
 

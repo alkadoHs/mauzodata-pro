@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Product } from "@/lib/schemas";
 import { EditIcon } from "@/Components/icons/EditIcon";
+import { NumericFormat } from "react-number-format";
+
 
 export default function UpdateProductAction({ product }: { product: Product }) {
     const [open, setOpen] = React.useState(false);
@@ -78,14 +80,20 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="buy_price">Buying price</Label>
-                                <Input
-                                    type="number"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="buy_price"
                                     value={data.buy_price}
                                     onChange={(e) =>
-                                        setData("buy_price", parseFloat(e.target.value))
+                                        setData(
+                                            "buy_price",
+                                            parseFloat(e.target.value)
+                                        )
                                     }
                                     placeholder="Product buy_price"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.buy_price} />
                             </div>
@@ -93,33 +101,44 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                 <Label htmlFor="sale_price">
                                     Selling price
                                 </Label>
-                                <Input
-                                    type="number"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="sale_price"
                                     value={data.sale_price}
                                     onChange={(e) =>
-                                        setData("sale_price", parseFloat(e.target.value))
+                                        setData(
+                                            "sale_price",
+                                            parseFloat(e.target.value)
+                                        )
                                     }
                                     placeholder="Product sale_price"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.sale_price} />
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="stock">Stock</Label>
-                                <Input
-                                    type="number"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="stock"
                                     value={data.stock}
                                     onChange={(e) =>
-                                        setData("stock", parseFloat(e.target.value))
+                                        setData(
+                                            "stock",
+                                            parseFloat(e.target.value)
+                                        )
                                     }
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.stock} />
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="stock_alert">Stock Alert</Label>
-                                <Input
-                                    type="number"
+                                <NumericFormat
                                     id="stock_alert"
                                     value={data.stock_alert}
                                     onChange={(e) =>
@@ -129,6 +148,9 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                         )
                                     }
                                     placeholder="Product stock_alert"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.stock_alert} />
                             </div>
@@ -151,8 +173,8 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                 <Label htmlFor="whole_sale">
                                     whole sale stock
                                 </Label>
-                                <Input
-                                    type="number"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="whole_sale"
                                     value={data.whole_sale}
                                     onChange={(e) =>
@@ -162,6 +184,9 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                         )
                                     }
                                     placeholder="whole sale"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.whole_sale} />
                             </div>

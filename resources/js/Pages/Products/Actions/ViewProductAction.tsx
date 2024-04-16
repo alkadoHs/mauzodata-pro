@@ -14,7 +14,6 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Product } from "@/lib/schemas";
-import { EditIcon } from "@/Components/icons/EditIcon";
 import { EyeIcon } from "lucide-react";
 
 export default function ViewProductAction({ product }: { product: Product }) {
@@ -24,22 +23,12 @@ export default function ViewProductAction({ product }: { product: Product }) {
         ...product,
     });
 
-    const onsubmit: FormEventHandler = (e) => {
-        e.preventDefault();
-
-        patch(route("products.update", product.id), {
-            onSuccess: () => {
-                toast.success("Updated successfully.");
-                setOpen(false);
-            },
-        });
-    };
 
     return (
         <>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger>
-                    <span className="text-xl text-sky-500 cursor-pointer active:opacity-50">
+                    <span className="text-xl text-green-500 cursor-pointer active:opacity-50">
                         <EyeIcon />
                     </span>
                 </DialogTrigger>
@@ -49,7 +38,7 @@ export default function ViewProductAction({ product }: { product: Product }) {
                             Update <b className="underline">{product.name}</b>
                         </DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={onsubmit}>
+                    <form>
                         <div className="grid grid-cols-6 gap-4">
                             <div className="col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="name">Name</Label>

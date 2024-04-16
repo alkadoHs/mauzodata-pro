@@ -1,5 +1,3 @@
-import React from "react";
-import { PlusIcon } from "./icons/PlusIcon";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,20 +15,23 @@ import {
 
 import { User as BaseUser } from "@/types";
 import { router } from "@inertiajs/react";
-import { Button } from "@/components/ui/button";
-import { DropdownMenuIcon } from "@radix-ui/react-icons";
-import { BarChart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
+import { DotsVerticalIcon } from "@radix-ui/react-icons";
 export default function UserProfile({ user }: { user: BaseUser }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Avatar>
+                {/* <Avatar>
                     <AvatarImage src={''} alt={user.name}/>
                     <AvatarFallback>
                         <img src="/avatar.png" alt={user.name} />
                     </AvatarFallback>
-                </Avatar>
+                </Avatar> */}
+                <Button variant={'outline'} size={'icon'}>
+                    <DotsVerticalIcon className="d stroke-2" />
+                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -71,7 +72,7 @@ export default function UserProfile({ user }: { user: BaseUser }) {
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>GitHub</DropdownMenuItem>
+                {/* <DropdownMenuItem>GitHub</DropdownMenuItem> */}
                 <DropdownMenuItem>Support</DropdownMenuItem>
                 <DropdownMenuItem disabled>API</DropdownMenuItem>
                 <DropdownMenuSeparator />

@@ -27,5 +27,21 @@ class StoreProductController extends Controller
         StoreProduct::create($request->validated());
         return back();
     }
+
+
+    public function update(StoreProductRequest $request, StoreProduct $storeProduct)
+    {
+        $storeProduct->update($request->validated());
+
+        return back();
+    }
+
+
+    public function transfers()
+    {
+        return Inertia::render('Stores/Transfers/Index', [
+            "products" => StoreProduct::paginate(10),
+        ]);
+    }
 }
 

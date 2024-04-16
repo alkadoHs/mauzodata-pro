@@ -17,7 +17,7 @@ export default function Login({
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
-        remember: false,
+        remember: true,
     });
 
     useEffect(() => {
@@ -91,7 +91,15 @@ export default function Login({
                     </label>
                 </div>
 
-                <div className="flex items-center justify-end mt-4">
+                <div className="grid items-center gap-4 mt-4">
+                    <Button
+                        type="submit"
+                        className="rounded-3xl"
+                        color="primary"
+                        disabled={processing}
+                    >
+                        Log in
+                    </Button>
                     {canResetPassword && (
                         <Link
                             href={route("password.request")}
@@ -100,15 +108,11 @@ export default function Login({
                             Forgot your password?
                         </Link>
                     )}
+                    <div className="text-center">
 
-                    <Button
-                        type="submit"
-                        className="ms-4"
-                        color="primary"
-                        disabled={processing}
-                    >
-                        Log in
-                    </Button>
+                    <p className="text-muted-foreground text-sm text-center">All right reserved @mauzodata</p>
+                    <p>-2024</p>
+                    </div>
                 </div>
             </form>
         </GuestLayout>

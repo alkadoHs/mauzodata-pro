@@ -1,5 +1,5 @@
 import React, { FormEventHandler } from "react";
-import { router, useForm } from "@inertiajs/react";
+import { useForm } from "@inertiajs/react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,8 @@ import InputError from "@/Components/InputError";
 import {
     Dialog,
     DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+    DialogFooter, DialogTrigger
 } from "@/components/ui/dialog";
-import { Product } from "@/lib/schemas";
-import { DeleteIcon } from "@/Components/icons/DeleteIcon";
 import { Plus } from "lucide-react";
 
 export default function AddCustomer() {

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumericFormat } from "react-number-format";
 import InputError from "@/Components/InputError";
 import {
     Dialog,
@@ -13,6 +14,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { PlusCircle } from "lucide-react";
 
 export default function CreateProduct() {
     const [open, setOpen] = React.useState(false);
@@ -45,7 +47,7 @@ export default function CreateProduct() {
         <>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger>
-                    <Button>Add new</Button>
+                    <Button size={'sm'}><PlusCircle className="size-5 mr-2" />Add new</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl">
                     <DialogHeader className="flex flex-col gap-1">
@@ -81,14 +83,17 @@ export default function CreateProduct() {
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="buy_price">Buying price</Label>
-                                <Input
-                                    type="text"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="buy_price"
                                     value={data.buy_price}
                                     onChange={(e) =>
                                         setData("buy_price", e.target.value)
                                     }
                                     placeholder="Product buy_price"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.buy_price} />
                             </div>
@@ -96,39 +101,48 @@ export default function CreateProduct() {
                                 <Label htmlFor="sale_price">
                                     Selling price
                                 </Label>
-                                <Input
-                                    type="text"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="sale_price"
                                     value={data.sale_price}
                                     onChange={(e) =>
                                         setData("sale_price", e.target.value)
                                     }
                                     placeholder="Product sale_price"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.sale_price} />
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="stock">Stock</Label>
-                                <Input
-                                    type="text"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="stock"
                                     value={data.stock}
                                     onChange={(e) =>
                                         setData("stock", e.target.value)
                                     }
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.stock} />
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="stock_alert">Stock Alert</Label>
-                                <Input
-                                    type="text"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="stock_alert"
                                     value={data.stock_alert}
                                     onChange={(e) =>
                                         setData("stock_alert", e.target.value)
                                     }
                                     placeholder="Product stock_alert"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.stock_alert} />
                             </div>
@@ -151,14 +165,17 @@ export default function CreateProduct() {
                                 <Label htmlFor="whole_sale">
                                     whole sale stock
                                 </Label>
-                                <Input
-                                    type="text"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="whole_sale"
                                     value={data.whole_sale}
                                     onChange={(e) =>
                                         setData("whole_sale", e.target.value)
                                     }
                                     placeholder="Product whole_sale"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.whole_sale} />
                             </div>
@@ -166,20 +183,29 @@ export default function CreateProduct() {
                                 <Label htmlFor="whole_price">
                                     Whole sale price
                                 </Label>
-                                <Input
-                                    type="text"
+                                <NumericFormat
+                                    customInput={Input}
                                     id="whole_price"
                                     value={data.whole_price}
                                     onChange={(e) =>
                                         setData("whole_price", e.target.value)
                                     }
                                     placeholder="Product whole_price"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.whole_price} />
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant={'outline'} onClick={() => setOpen(false)}>Cancel</Button>
+                            <Button
+                                type="button"
+                                variant={"outline"}
+                                onClick={() => setOpen(false)}
+                            >
+                                Cancel
+                            </Button>
                             <Button type="submit" disabled={processing}>
                                 Create
                             </Button>

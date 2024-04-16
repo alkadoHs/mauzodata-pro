@@ -1,5 +1,4 @@
-import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { PaginatedProduct, Product } from "@/lib/schemas";
+import { Customer, Product } from "@/lib/schemas";
 import { Cart, PageProps } from "@/types";
 import { Head, router, useForm } from "@inertiajs/react";
 import { toast } from "sonner";
@@ -12,15 +11,17 @@ import AddCustomer from "./partials/AddCustomer";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Trash2Icon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FormEventHandler, useState } from "react";
+import { FormEventHandler } from "react";
+import { NumericFormat } from "react-number-format";
 import CartLayout from "@/Layouts/CartLayout";
 
 const CartIndex = ({
     auth,
     cart,
     products,
+    customers,
     total,
-}: PageProps<{ cart: Cart; products: Product[]; total: number }>) => {
+}: PageProps<{ cart: Cart; products: Product[]; total: number, customers: Customer[] }>) => {
     const { data, setData, post, processing, errors, reset } = useForm({
         paid: "",
         print_invoice: true,
@@ -52,6 +53,7 @@ const CartIndex = ({
 
                 <div className="m min-w-[400px]">
                     <AddProductToTheCart products={products} />
+                    {/* <SearchCustomer customers={customers} /> */}
                     <ul className="my-6 space-y-3 divide-y divide-gray-300 dark:divide-gray-700 max-w-sm">
                         <li className="flex justify-between items-center">
                             <p>Total Price</p>
@@ -111,8 +113,8 @@ const CartIndex = ({
 
                             <li className="flex justify-between items-center pt-4">
                                 <p>Paid </p>
-                                <Input
-                                    type="number"
+                                <NumericFormat
+                                    customInput={Input}
                                     value={data.paid}
                                     onChange={(e) =>
                                         setData("paid", e.target.value)
@@ -128,6 +130,9 @@ const CartIndex = ({
                                         }
                                     }}
                                     className="max-w-28"
+                                    allowLeadingZeros
+                                    allowNegative={false}
+                                    thousandSeparator=","
                                     required
                                 />
                             </li>

@@ -1,9 +1,8 @@
 import CartLayout from "@/Layouts/CartLayout";
 import { DataTable } from "@/components/DataTable";
-import { Expense, ExpenseItem } from "@/lib/schemas";
+import { ExpenseItem } from "@/lib/schemas";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
-import React from "react";
 import { userExpenseColumns } from "./Columns/UserExpensesColumns";
 import ExpenseForm from "./Partials/ExpenseForm";
 

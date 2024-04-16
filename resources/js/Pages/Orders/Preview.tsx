@@ -5,10 +5,9 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { Button } from "@/components/ui/button";
 import { Order } from "@/lib/schemas";
 import { PageProps } from "@/types";
-import { Head, router } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import { DownloadCloud, Printer } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
-import { TableCell, TableFooter, TableRow } from "@/components/ui/table";
 
 dayjs.extend(relativeTime);
 

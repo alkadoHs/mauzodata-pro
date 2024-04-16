@@ -9,7 +9,13 @@ import { PaginatedProduct } from "@/lib/schemas";
 import { DataTable } from "@/components/DataTable";
 import { productColumns } from "./partials/productColumns";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, ChevronFirstIcon, ChevronLastIcon, FilterIcon } from "lucide-react";
+import {
+    ArrowLeft,
+    ArrowRight,
+    ChevronFirstIcon,
+    ChevronLastIcon,
+    FilterIcon,
+} from "lucide-react";
 
 export default function ProductIndex({
     auth,
@@ -42,31 +48,26 @@ export default function ProductIndex({
             <Head title="Products" />
 
             <section className="p-4">
-                <div className="flex flex-col gap-4">
-                    <div className="flex justify-between gap-3 items-end">
-                        <Input
-                            className="w-full sm:max-w-[44%]"
-                            placeholder="Search by name..."
-                            onChange={onSearchChange}
-                        />
+                <div className="flex flex-col gap-4"></div>
 
-                        <CreateProduct />
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-default-400 text-small">
-                            Total{" "}
-                            <span className="text-indigo-600">
-                                {products.total}
+                <div className="px-4 mx-auto pb-10 pt-0">
+                    <div className="flex py-3 justify-between items-center border-x border-t px-3 rounded-t-md dark:border-slate-800">
+                        <div className="text-default-400 text-lg font-semibold">
+                            Products
+                            <span className="text-green-600">
+                                ({products.total})
                             </span>{" "}
-                            products
-                        </span>
-                        <div>
-                            Last Page: {products.last_page}
+                        </div>
+                        <div className="w-full flex gap-3 items-center justify-end">
+                            <Input
+                                className="w-full sm:max-w-[44%]"
+                                placeholder="Search by name..."
+                                onChange={onSearchChange}
+                            />
+
+                            <CreateProduct />
                         </div>
                     </div>
-                </div>
-
-                <div className="px-4 mx-auto py-10">
                     <DataTable columns={productColumns} data={products.data} />
 
                     <div className="flex items-center gap-3 justify-center my-3">

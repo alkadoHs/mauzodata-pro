@@ -1,4 +1,3 @@
-import Authenticated from "@/Layouts/AuthenticatedLayout";
 import CartLayout from "@/Layouts/CartLayout";
 import {
     Accordion,
@@ -6,15 +5,12 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
 import {
     TableHeader,
     TableRow,
     TableHead,
     TableBody,
-    TableCell,
-    TableFooter,
-    Table,
+    TableCell, Table
 } from "@/components/ui/table";
 import { CreditSale } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
@@ -22,8 +18,7 @@ import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Cable, FileText, HistoryIcon } from "lucide-react";
-import React from "react";
+import { HistoryIcon } from "lucide-react";
 import AddCreditPayment from "./Actions/AddCreditPayment";
 import { Heading4 } from "@/components/Typography/Heading4";
 import EmptyPlaceHolder from "@/components/EmptyPlaceHolder";

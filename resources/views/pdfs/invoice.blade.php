@@ -16,7 +16,12 @@
             padding: 8px;
         }
 
-        #items tbody  tr:nth-child(even){background-color: #f2f2f2;}
+         tr {
+            border: 1px dashed #bbb;
+            border-bottom: 1px dashed #bbb;
+        }
+
+        /* #items tbody  tr:nth-child(even){background-color: #f2f2f2;} */
 
         #items tr:hover {background-color: #ddd;}
 

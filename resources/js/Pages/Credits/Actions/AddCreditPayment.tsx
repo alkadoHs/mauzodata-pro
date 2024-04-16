@@ -14,7 +14,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { CreditSale } from "@/lib/schemas";
-import { set } from "date-fns";
+import { NumericFormat } from "react-number-format";
 
 export default function AddCreditPayment({ credit }: { credit: CreditSale }) {
     const [open, setOpen] = React.useState(false);
@@ -48,8 +48,8 @@ export default function AddCreditPayment({ credit }: { credit: CreditSale }) {
                     <form onSubmit={onsubmit}>
                         <div className="my-4 col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">
                             <Label htmlFor="name">Amount</Label>
-                            <Input
-                                type="number"
+                            <NumericFormat
+                                customInput={Input}
                                 id="name"
                                 value={data.amount}
                                 onChange={(e) =>

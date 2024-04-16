@@ -23,7 +23,7 @@ export default function CartLayout({
                     />
 
                     <CartNavLink
-                        label="Sales history"
+                        label="My Sales"
                         url="cart.sales"
                         icon={<History className="size-5" />}
                     />

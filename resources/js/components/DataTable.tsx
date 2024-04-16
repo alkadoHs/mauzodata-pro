@@ -30,7 +30,7 @@ export function DataTable<TData, TValue>({
     });
 
     return (
-        <div className="rounded-md border dark:border-gray-800">
+        <div className="rounded-md border bg-slate-50 dark:bg-slate-800/50 dark:border-gray-800">
             <Table>
                 <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
@@ -74,7 +74,7 @@ export function DataTable<TData, TValue>({
                                 colSpan={columns.length}
                                 className="h-24 text-center"
                             >
-                                No results.
+                                No records was found.
                             </TableCell>
                         </TableRow>
                     )}

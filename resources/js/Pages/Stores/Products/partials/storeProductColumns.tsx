@@ -1,6 +1,7 @@
-import { Product, StoreProduct } from "@/lib/schemas";
+import { StoreProduct } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
+import UpdateStoreProductAction from "../Actions/UpdateStoreProductAction";
 // import DeleteProductAction from "../Actions/DeleteProductAction";
 // import UpdateProductAction from "../Actions/UpdateProductAction";
 // import ViewProductAction from "../Actions/ViewProductAction";
@@ -77,17 +78,17 @@ export const storeProductColumns: ColumnDef<StoreProduct>[] = [
             return <div className="text-right font-medium">{formatted}</div>;
         },
     },
-    // {
-    //     accessorKey: "Action",
-    //     header: () => <div className="text-center">Actions</div>,
-    //     cell: ({ row }) => {
-    //         return (
-    //             <div className="relative flex items-center justify-center gap-2">
-    //                 <ViewProductAction product={row.original} />
-    //                 <UpdateProductAction product={row.original} />
-    //                 <DeleteProductAction product={row.original} />
-    //             </div>
-    //         );
-    //     },
-    // },
+    {
+        accessorKey: "Action",
+        header: () => <div className="text-center">Actions</div>,
+        cell: ({ row }) => {
+            return (
+                <div className="relative flex items-center justify-center gap-2">
+                    {/* <ViewProductAction product={row.original} /> */}
+                    <UpdateStoreProductAction product={row.original} />
+                    {/* <DeleteProductAction product={row.original} /> */}
+                </div>
+            );
+        },
+    },
 ];

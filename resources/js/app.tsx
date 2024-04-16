@@ -1,5 +1,6 @@
 import "./bootstrap";
 import "../css/app.css";
+import "@fontsource/inter";
 
 import { createRoot } from "react-dom/client";
 import { createInertiaApp } from "@inertiajs/react";
@@ -22,7 +23,7 @@ createInertiaApp({
         root.render(
             <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
                 <App {...props} />
-                <Toaster richColors />
+                <Toaster richColors position="top-center" />
             </ThemeProvider>
         );
     },

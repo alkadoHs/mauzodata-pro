@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -8,11 +8,13 @@ export default function Dashboard({ auth }: PageProps) {
         <AuthenticatedLayout user={auth.user}>
             <Head title="Dashboard" />
 
-            <Card>
-                <CardContent>
-                    <p>Welcome Page</p>
-                </CardContent>
-            </Card>
+            <section className="p-4">
+                <Card>
+                    <CardContent>
+                        <p>Welcome Page</p>
+                    </CardContent>
+                </Card>
+            </section>
         </AuthenticatedLayout>
     );
 }

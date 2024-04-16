@@ -1,4 +1,3 @@
-import Authenticated from "@/Layouts/AuthenticatedLayout";
 import CartLayout from "@/Layouts/CartLayout";
 import {
     Accordion,
@@ -20,7 +19,7 @@ import { CreditSalePayment, ExpenseItem, Order } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
-import { Banknote, Cable, DollarSign, HistoryIcon } from "lucide-react";
+import { Banknote, DollarSign, HistoryIcon } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import EmptyPlaceHolder from "@/components/EmptyPlaceHolder";
@@ -120,11 +119,11 @@ const SalesHistory = ({
                                         <div className="max-w-sm lg:max-w-xl w-full flex gap-3 justify-between items-center">
                                             <p>INV - {`0${order.id}`}</p>
                                             {order.customer ? (
-                                                <p className="bg-amber-500/30">
+                                                <p className="bg-zinc-500/30">
                                                     {order.customer.name}
                                                 </p>
                                             ) : null}
-                                            <p className="bg-violet-500/30 p-1">
+                                            <p className="bg-slate-500/30 p-1">
                                                 PAID ={" "}
                                                 {numberFormat(order.paid)}{" "}
                                             </p>

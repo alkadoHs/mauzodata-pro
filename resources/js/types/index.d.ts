@@ -1,10 +1,22 @@
-import { Customer, Product } from "@/lib/schemas";
+import {
+    Branch,
+    CreditSalePayment,
+    Customer,
+    ExpenseItem,
+    Order,
+    Product,
+    orderItem,
+} from "@/lib/schemas";
 import { Config } from "ziggy-js";
 
 export interface User {
     id: number;
     company_id: number;
     branch_id: number;
+    orders: Order[];
+    expense_items: ExpenseItem[];
+    credit_sale_payments: CreditSalePayment[];
+    order_items: orderItem[];
     name: string;
     email: string;
     phone: string;
@@ -29,6 +41,7 @@ export type PageProps<
 > = T & {
     auth: {
         user: User;
+        branch: Branch;
     };
     ziggy: Config & { location: string };
 };

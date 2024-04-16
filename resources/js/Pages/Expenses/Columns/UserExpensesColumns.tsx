@@ -1,4 +1,4 @@
-import { ExpenseItem, Product } from "@/lib/schemas";
+import { ExpenseItem } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import dayjs from "dayjs";

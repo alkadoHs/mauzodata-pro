@@ -1,17 +1,20 @@
 <?php
 
+use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CreditSalePaymentController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StoreProductController;
+use App\Http\Controllers\UserController;
 use App\Http\Middleware\RemoveCommaFromInput;
-use App\Models\CreditSalePayment;
-use App\Models\StoreProduct;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -35,6 +38,18 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::resource('users', UserController::class)
+    ->only(['index', 'create', 'store'])
+    ->middleware(['auth']);
+
+Route::resource('companies', CompanyController::class)
+    ->only(['index', 'create', 'store'])
+    ->middleware(['auth']);
+
+Route::resource('branches', BranchController::class)
+    ->only(['index', 'create', 'show', 'store'])
+    ->middleware(['auth']);
+
 Route::resource('products', ProductController::class)
     ->only(['index', 'store', 'view', 'update', 'destroy'])
     ->middleware(['auth', 'verified', RemoveCommaFromInput::class]);
@@ -55,8 +70,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::post('/orders', [OrderController::class, 'complete'])->name('orders.complete');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders', [OrderController::class, 'complete'])->name('orders.complete')->middleware([RemoveCommaFromInput::class]);
     Route::get('/orders/view', [OrderController::class, 'preview'])->name('orders.preview');
+    Route::delete('/orders/items/{orderItem}', [OrderItemController::class, 'destroy'])->name('orders.items.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -81,6 +98,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/stores/products', [StoreProductController::class, 'index'])->name('stores.products');
     Route::get('/stores/transfers', [StoreProductController::class, 'transfers'])->name('stores.transfers');
     Route::post('/stores/products', [StoreProductController::class, 'store'])->name('stores.products.store');
+    Route::patch('/stores/products/{storeProduct}', [StoreProductController::class, 'update'])->name('stores.products.update');
+});
+
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/reports/sales', [ReportController::class, 'user_sales'])->name('reports.sales');
+    Route::get('/reports/outstock', [ReportController::class, 'out_stock'])->name('reports.outstock');
+    Route::get('/reports/zerostock', [ReportController::class, 'empty_stock'])->name('reports.zerostock');
 });
 
 

@@ -22,6 +22,7 @@ class CartController extends Controller
             'cart'=> Cart::with(['cartItems.product', 'customer'])->firstOrCreate(),
             'total' => $cart->cartItems->reduce(fn ($acc, $item) => $acc + $item->quantity * $item->price, 0) ?? 0,
             'products' => Product::where('stock', '>', 0)->get(),
+            'customers' => Customer::all(),
         ]);
     }
 

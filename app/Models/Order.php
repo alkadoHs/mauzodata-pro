@@ -11,13 +11,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
+use Lacodix\LaravelModelFilter\Traits\IsSearchable;
 
 #[ObservedBy(OrderObserver::class)]
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, IsSearchable;
 
     protected $fillable = ['user_id', 'branch_id', 'customer_id', 'paid', 'print_invoice', 'invoice_number'];
+
+    protected array $searchable = ['id'];
 
     public function user(): BelongsTo
     {
