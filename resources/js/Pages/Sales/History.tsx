@@ -31,7 +31,11 @@ const SalesHistory = ({
     orders,
     payments,
     expenses,
-}: PageProps<{ orders: Order[]; payments: CreditSalePayment[], expenses: ExpenseItem[] }>) => {
+}: PageProps<{
+    orders: Order[];
+    payments: CreditSalePayment[];
+    expenses: ExpenseItem[];
+}>) => {
     let totalRevenue = orders.reduce(
         (acc, order) => acc + Number(order.paid),
         0
@@ -42,7 +46,10 @@ const SalesHistory = ({
         0
     );
 
-    const totalExpenses = expenses.reduce((acc, item) => acc + Number(item.cost), 0)
+    const totalExpenses = expenses.reduce(
+        (acc, item) => acc + Number(item.cost),
+        0
+    );
 
     return (
         <CartLayout user={auth.user}>
@@ -102,7 +109,7 @@ const SalesHistory = ({
                     </Card>
                 </div>
 
-                <div className="p-4">
+                <div className="lg:p-4">
                     <header>
                         <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">
                             Products you sold

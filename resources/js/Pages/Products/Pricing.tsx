@@ -9,10 +9,10 @@ import { DataTable } from "@/components/DataTable";
 import { productColumns } from "./partials/productColumns";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
-  ArrowRight,
-  ChevronFirstIcon,
-  ChevronLastIcon
+    ArrowLeft,
+    ArrowRight,
+    ChevronFirstIcon,
+    ChevronLastIcon,
 } from "lucide-react";
 import CartLayout from "@/Layouts/CartLayout";
 import { pricingColumns } from "./partials/PricingColumns";
@@ -22,7 +22,6 @@ export default function Pricing({
     auth,
     products,
 }: PageProps<{ products: PaginatedProduct }>) {
-
     const onSearchChange = useDebouncedCallback(
         (value?: ChangeEvent<HTMLInputElement>) => {
             if (value && value?.target.value.length > 1) {
@@ -42,7 +41,9 @@ export default function Pricing({
             <Head title="Products" />
 
             <section className="p-4">
-                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight pb-2">Products</h4>
+                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight pb-2">
+                    Products
+                </h4>
                 <div className="flex flex-col gap-4">
                     <div className="flex justify-between gap-3 items-end">
                         <Input
@@ -65,7 +66,7 @@ export default function Pricing({
                     </div>
                 </div>
 
-                <div className="px-4 mx-auto py-10">
+                <div className="lg:px-4 mx-auto py-10">
                     <DataTable columns={pricingColumns} data={products.data} />
 
                     <div className="flex items-center gap-3 justify-center my-3">

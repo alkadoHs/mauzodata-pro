@@ -21,7 +21,12 @@ const CartIndex = ({
     products,
     customers,
     total,
-}: PageProps<{ cart: Cart; products: Product[]; total: number, customers: Customer[] }>) => {
+}: PageProps<{
+    cart: Cart;
+    products: Product[];
+    total: number;
+    customers: Customer[];
+}>) => {
     const { data, setData, post, processing, errors, reset } = useForm({
         paid: "",
         print_invoice: true,
@@ -43,7 +48,7 @@ const CartIndex = ({
         <CartLayout user={auth.user}>
             <Head title="Cart" />
 
-            <section className="flex flex-col md:flex-row gap-8 p-4">
+            <section className="flex flex-col md:flex-row gap-8 px-3 py-4">
                 <div className="w-full">
                     <DataTable
                         columns={cartItemColumns}
@@ -51,7 +56,7 @@ const CartIndex = ({
                     />
                 </div>
 
-                <div className="m min-w-[400px]">
+                <div className="w-full">
                     <AddProductToTheCart products={products} />
                     {/* <SearchCustomer customers={customers} /> */}
                     <ul className="my-6 space-y-3 divide-y divide-gray-300 dark:divide-gray-700 max-w-sm">

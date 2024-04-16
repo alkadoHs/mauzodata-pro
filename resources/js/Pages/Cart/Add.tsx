@@ -38,7 +38,7 @@ export function AddProductToTheCart({ products }: { products: Product[] }) {
     };
 
     return (
-        <div style={{ width: 400 }}>
+        <div style={{ width: '100%' }}>
             <ReactSearchAutocomplete
                 items={products}
                 onSelect={handleOnSelect}
