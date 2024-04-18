@@ -47,10 +47,10 @@ export default function ProductIndex({
         <Authenticated user={auth.user}>
             <Head title="Products" />
 
-            <section className="p-4">
+            <section>
                 <div className="flex flex-col gap-4"></div>
 
-                <div className="lg:px-4 mx-auto pb-10 pt-0">
+                <div className="lg:px-4 mx-auto pb-10 pt-0 whitespace-nowrap">
                     <div className="flex py-3 justify-between items-center border-x border-t px-3 rounded-t-md dark:border-slate-800">
                         <div className="text-default-400 text-lg font-semibold">
                             Products

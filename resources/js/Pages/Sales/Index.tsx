@@ -57,9 +57,9 @@ export default function SalesHistory({
         <Authenticated user={auth.user}>
             <Head title="Sales History" />
 
-            <section className="p-4">
+            <section className="max-w-full">
                 <div className="lg:px-4">
-                    <div className="rounded-md whitespace-nowrap border bg-slate-50 dark:bg-slate-800/50 dark:border-gray-800">
+                    <div className="rounded-md whitespace-nowrap border bg-slate-50 dark:bg-transparent dark:border-gray-800">
                         <div className="flex py-3 justify-between items-center border-x border-t px-3 rounded-t-md dark:border-slate-800">
                             <div className="text-default-400 text-lg font-semibold">
                                 Sales
@@ -135,23 +135,6 @@ export default function SalesHistory({
                                     </TableRow>
                                 ))}
                             </TableBody>
-                            <TableFooter>
-                                <TableRow>
-                                    <TableHead>TOTAL PRICE</TableHead>
-                                    <TableCell></TableCell>
-                                    <TableCell></TableCell>
-                                    <TableHead className="bg-violet-500/30">
-                                        {/* {numberFormat(
-                                        order.order_items.reduce(
-                                            (acc, item) =>
-                                                acc +
-                                                item.price * item.quantity,
-                                            0
-                                        )
-                                    )} */}
-                                    </TableHead>
-                                </TableRow>
-                            </TableFooter>
                         </Table>
                     </div>
                 </div>
