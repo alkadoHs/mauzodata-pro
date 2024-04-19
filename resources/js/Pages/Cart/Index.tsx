@@ -13,7 +13,7 @@ import { ShoppingBag, Trash2Icon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormEventHandler } from "react";
 import { NumericFormat } from "react-number-format";
-import CartLayout from "@/Layouts/CartLayout";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
 
 const CartIndex = ({
     auth,
@@ -45,7 +45,7 @@ const CartIndex = ({
     };
 
     return (
-        <CartLayout user={auth.user}>
+        <Authenticated user={auth.user}>
             <Head title="Cart" />
 
             <section className="flex flex-col md:flex-row gap-8 px-3 py-4">
@@ -156,7 +156,7 @@ const CartIndex = ({
                     </form>
                 </div>
             </section>
-        </CartLayout>
+        </Authenticated>
     );
 };
 

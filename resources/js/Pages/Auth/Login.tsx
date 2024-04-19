@@ -6,6 +6,7 @@ import { Head, Link, useForm } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 export default function Login({
     status,
@@ -33,88 +34,101 @@ export default function Login({
     };
 
     return (
-        <GuestLayout>
+        <>
             <Head title="Log in" />
+            <div className="w-full lg:grid  lg:grid-cols-2 h-dvh overflow-clip">
+                <div className="flex items-center justify-center py-12">
+                    <div className="mx-auto grid w-[350px] gap-6">
+                        <div className="grid gap-2 text-center">
+                            <h1 className="text-3xl font-bold">Login</h1>
+                            <p className="text-balance text-muted-foreground">
+                                Enter your email below to login to your account
+                            </p>
 
-            {status && (
-                <div className="mb-4 font-medium text-sm text-green-600">
-                    {status}
-                </div>
-            )}
-
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <Input
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        autoFocus={true}
-                        onChange={(e) => setData("email", e.target.value)}
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <Input
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                        onChange={(e) => setData("password", e.target.value)}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="block mt-4">
-                    <label className="flex items-center">
-                        <Checkbox
-                            name="remember"
-                            checked={data.remember}
-                            onCheckedChange={(checked) =>
-                                setData("remember", checked as boolean)
-                            }
-                        />
-                        <span className="ms-2 text-sm text-gray-600 dark:text-gray-400">
-                            Remember me
-                        </span>
-                    </label>
-                </div>
-
-                <div className="grid items-center gap-4 mt-4">
-                    <Button
-                        type="submit"
-                        className="rounded-3xl"
-                        color="primary"
-                        disabled={processing}
-                    >
-                        Log in
-                    </Button>
-                    {canResetPassword && (
-                        <Link
-                            href={route("password.request")}
-                            className="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                        >
-                            Forgot your password?
-                        </Link>
-                    )}
-                    <div className="text-center">
-
-                    <p className="text-muted-foreground text-sm text-center">All right reserved @mauzodata</p>
-                    <p>-2024</p>
+                            {status && (
+                                <div className="mb-4 font-medium text-sm text-green-600">
+                                    {status}
+                                </div>
+                            )}
+                        </div>
+                        <form onSubmit={submit} className="grid gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    placeholder="Your email"
+                                    required
+                                    type="email"
+                                    value={data.email}
+                                    onChange={(e) =>
+                                        setData("email", e.target.value)
+                                    }
+                                />
+                                <InputError message={errors.email} />
+                            </div>
+                            <div className="grid gap-2">
+                                <div className="flex items-center">
+                                    <Label htmlFor="password">Password</Label>
+                                    <Link
+                                        className="ml-auto inline-block text-sm underline"
+                                        href={route("password.request")}
+                                    >
+                                        Forgot your password?
+                                    </Link>
+                                </div>
+                                <Input
+                                    id="password"
+                                    required
+                                    type="password"
+                                    value={data.password}
+                                    onChange={(e) =>
+                                        setData("password", e.target.value)
+                                    }
+                                    placeholder="Password"
+                                />
+                                <InputError message={errors.password} />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    name="remember"
+                                    checked={data.remember}
+                                    onCheckedChange={(checked) =>
+                                        setData("remember", checked as boolean)
+                                    }
+                                />
+                                <Label
+                                    className="text-sm font-medium"
+                                    htmlFor="remember"
+                                >
+                                    Remember me
+                                </Label>
+                            </div>
+                            <Button className="w-full" type="submit">
+                                Login
+                            </Button>
+                        </form>
+                        <div className="mt-4 text-center text-sm">
+                            Don't have an account?
+                            <Link
+                                as="button"
+                                disabled
+                                className="underline"
+                                href={route("register")}
+                            >
+                                Sign up
+                            </Link>
+                        </div>
                     </div>
                 </div>
-            </form>
-        </GuestLayout>
+                <div className="hidden lg:block overflow-clip max-h-full">
+                    <img
+                        alt="Image"
+                        className="h-full w-full object-cover"
+                        src="/logside.svg"
+                        
+                    />
+                </div>
+            </div>
+        </>
     );
 }

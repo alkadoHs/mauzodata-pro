@@ -1,4 +1,3 @@
-import CartLayout from "@/Layouts/CartLayout";
 import {
     Accordion,
     AccordionContent,
@@ -23,6 +22,7 @@ import { Banknote, DollarSign, HistoryIcon } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import EmptyPlaceHolder from "@/components/EmptyPlaceHolder";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
 
 dayjs.extend(relativeTime);
 
@@ -52,10 +52,10 @@ const SalesHistory = ({
     );
 
     return (
-        <CartLayout user={auth.user}>
+        <Authenticated user={auth.user}>
             <Head title="Sales History" />
 
-            <section className="p-4">
+            <section className="">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -216,7 +216,7 @@ const SalesHistory = ({
                     </Accordion>
                 </div>
             </section>
-        </CartLayout>
+        </Authenticated>
     );
 };
 

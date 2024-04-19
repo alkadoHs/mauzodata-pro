@@ -45,7 +45,7 @@ export default function Authenticated({
             {/* Sidebar start */}
             <div className="sticky top-0 hidden border-r dark:border-muted/80 bg-muted/40 md:block">
                 <div className="flex h-dvh max-h-screen flex-col gap-2">
-                    {/* sidebar header */}
+                    {/* sidebar header copilot */}
                     <div className="flex h-14 items-center border-b dark:border-muted/80 px-4 lg:h-[60px] lg:px-6">
                         <Link
                             as="button"
@@ -66,7 +66,7 @@ export default function Authenticated({
                             </span>
                         </Button>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 overflow-y-auto">
                         {/* Sidebar List  */}
                         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                             <SidebarItems />

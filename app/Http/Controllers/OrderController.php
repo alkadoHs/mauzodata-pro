@@ -7,7 +7,6 @@ use App\Models\CreditSale;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,11 +16,19 @@ class OrderController extends Controller
     public function index(): Response
     {
         $orders = Order::with(['orderItems.product', 'user'])->paginate(25);
-        if(request()->search)
+        $filters = ['dateBtn' => ['startDate' => null, 'endDate' =>null ], 'search' => null];
+        if(request()->search) {
             $orders = Order::where('id', request()->search)->with(['orderItems.product', 'user'])->paginate(25);
-        
+            $filters['search'] = request()->search;
+            
+        } elseif (request(['startDate', 'endDate'])) {
+            $orders = Order::whereBetween('created_at', [request()->startDate, request()->endDate]) ->with(['orderItems.product', 'user'])->paginate(25);
+            $filters['dateBtn']['startDate'] = request()->startDate;
+            $filters['dateBtn']['endDate'] = request()->endDate;
+        }
         return Inertia::render('Sales/Index', [
             'orders' => $orders,
+            'filters' => $filters,
         ]);
     }
 

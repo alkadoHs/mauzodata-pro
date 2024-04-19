@@ -1,4 +1,3 @@
-import CartLayout from "@/Layouts/CartLayout";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -8,12 +7,13 @@ import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
 import { DownloadCloud, Printer } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
 
 dayjs.extend(relativeTime);
 
 export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
     return (
-        <CartLayout user={auth.user}>
+        <Authenticated user={auth.user}>
             <Head title="Invoice preview" />
 
             <section>
@@ -160,6 +160,6 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
                     </div>
                 </div>
             </section>
-        </CartLayout>
+        </Authenticated>
     );
 }

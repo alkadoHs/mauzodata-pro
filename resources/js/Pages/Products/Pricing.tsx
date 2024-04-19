@@ -2,11 +2,9 @@ import { PageProps } from "@/types";
 import { Head, Link, router } from "@inertiajs/react";
 import { ChangeEvent } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import CreateProduct from "./Actions/CreateProduct";
 import { Input } from "@/components/ui/input";
 import { PaginatedProduct } from "@/lib/schemas";
 import { DataTable } from "@/components/DataTable";
-import { productColumns } from "./partials/productColumns";
 import { Button } from "@/components/ui/button";
 import {
     ArrowLeft,
@@ -14,9 +12,8 @@ import {
     ChevronFirstIcon,
     ChevronLastIcon,
 } from "lucide-react";
-import CartLayout from "@/Layouts/CartLayout";
 import { pricingColumns } from "./partials/PricingColumns";
-import { Heading4 } from "@/components/Typography/Heading4";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
 
 export default function Pricing({
     auth,
@@ -37,10 +34,10 @@ export default function Pricing({
     );
 
     return (
-        <CartLayout user={auth.user}>
+        <Authenticated user={auth.user}>
             <Head title="Products" />
 
-            <section className="p-4">
+            <section className="">
                 <h4 className="scroll-m-20 text-xl font-semibold tracking-tight pb-2">
                     Products
                 </h4>
@@ -126,6 +123,6 @@ export default function Pricing({
                     </div>
                 </div>
             </section>
-        </CartLayout>
+        </Authenticated>
     );
 }

@@ -1,4 +1,3 @@
-import CartLayout from "@/Layouts/CartLayout";
 import {
     Accordion,
     AccordionContent,
@@ -22,6 +21,7 @@ import { HistoryIcon } from "lucide-react";
 import AddCreditPayment from "./Actions/AddCreditPayment";
 import { Heading4 } from "@/components/Typography/Heading4";
 import EmptyPlaceHolder from "@/components/EmptyPlaceHolder";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
 
 dayjs.extend(relativeTime);
 
@@ -30,10 +30,10 @@ const UserCrediSales = ({
     creditSales,
 }: PageProps<{ creditSales: CreditSale[] }>) => {
     return (
-        <CartLayout user={auth.user}>
+        <Authenticated user={auth.user}>
             <Head title="My credit sales" />
 
-            <section className="p-4">
+            <section className="">
                 <Heading4>Credit Sales</Heading4>
                 <Accordion type="multiple" className="w-full">
                     {creditSales.length ? (
@@ -271,7 +271,7 @@ const UserCrediSales = ({
                     )}
                 </Accordion>
             </section>
-        </CartLayout>
+        </Authenticated>
     );
 };
 
