@@ -21,13 +21,13 @@ createInertiaApp({
         const root = createRoot(el);
 
         root.render(
-            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <ThemeProvider defaultTheme={"dark"} storageKey="vite-ui-theme">
                 <App {...props} />
-                <Toaster richColors position="bottom-center" />
+                <Toaster richColors duration={7000} position="bottom-center" />
             </ThemeProvider>
         );
     },
     progress: {
-        color: "#22c55e",
+        color: "#6366f1",
     },
 });

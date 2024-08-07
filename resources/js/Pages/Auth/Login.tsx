@@ -36,14 +36,14 @@ export default function Login({
     return (
         <>
             <Head title="Log in" />
-            <div className="w-full lg:grid  lg:grid-cols-2 h-dvh overflow-clip">
+            <div className="w-full dark h-dvh bg-gradient-to-br text-white/90 from-zinc-950 via-zinc-900 to-rose-900 overflow-clip">
                 <div className="flex items-center justify-center py-12">
-                    <div className="mx-auto grid w-[350px] gap-6">
+                    <div className="mx-auto grid w-[350px] bg-zinc-500/10 shadow-lg rounded-lg p-6 gap-6">
                         <div className="grid gap-2 text-center">
                             <h1 className="text-3xl font-bold">Login</h1>
-                            <p className="text-balance text-muted-foreground">
+                            {/* <p className="text-balance text-muted-foreground">
                                 Enter your email below to login to your account
-                            </p>
+                            </p> */}
 
                             {status && (
                                 <div className="mb-4 font-medium text-sm text-green-600">
@@ -103,7 +103,7 @@ export default function Login({
                                     Remember me
                                 </Label>
                             </div>
-                            <Button className="w-full" type="submit">
+                            <Button className="w-full rounded-3xl dark:text-white dark:bg-indigo-500 dark:hover:bg-indigo-400" type="submit">
                                 Login
                             </Button>
                         </form>
@@ -111,7 +111,6 @@ export default function Login({
                             Don't have an account?
                             <Link
                                 as="button"
-                                disabled
                                 className="underline"
                                 href={route("register")}
                             >
@@ -119,14 +118,6 @@ export default function Login({
                             </Link>
                         </div>
                     </div>
-                </div>
-                <div className="hidden lg:block overflow-clip max-h-full">
-                    <img
-                        alt="Image"
-                        className="h-full w-full object-cover"
-                        src="/logside.svg"
-                        
-                    />
                 </div>
             </div>
         </>

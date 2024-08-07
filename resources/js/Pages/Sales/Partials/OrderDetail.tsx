@@ -1,6 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
     Popover,
     PopoverContent,
@@ -30,7 +28,7 @@ export function OrderDetail({ order }: { order: Order }) {
                     View(<span className="text-primary">{order.order_items.length}</span>)
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="min-w-sm">
+            <PopoverContent className="min-w-md">
                 <div className="grid gap-4">
                     <div className="space-y-2">
                         <h4 className="font-medium leading-none">Sale Items</h4>
@@ -38,7 +36,7 @@ export function OrderDetail({ order }: { order: Order }) {
                             Products associated with this sale.
                         </p>
                     </div>
-                    <Table>
+                    <Table className="">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>PRODUCT</TableHead>

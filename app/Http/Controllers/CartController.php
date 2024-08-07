@@ -7,8 +7,11 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CreditSale;
 use App\Models\Customer;
+use App\Models\User;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -102,10 +105,17 @@ class CartController extends Controller
 
     public function sales(): Response
     {
+            $products_sold = OrderItem::with(['product'])->select('product_id', DB::raw('SUM(quantity)  as total_qty'), DB::raw('SUM(total)  as total_price'))
+                                  ->whereRelation('order', 'user_id', auth()->id())
+                                  ->whereDate('created_at', today())
+                                  ->orderByDesc('created_at')
+                                  ->groupBy(['product_id'])->get();
+
         return Inertia::render('Sales/History', [
-            'orders' => auth()->user()->orders()->with(['branch', 'customer', 'orderItems.product'])->whereDate('orders.created_at', today())->orderByDesc('created_at')->get(),
-            'payments' => auth()->user()->creditSalePayments()->whereDate('created_at', today())->get(),
-            'expenses' => auth()->user()->expenseItems()->whereDate('expense_items.created_at', today())->get(),
+            'orders' => auth()->user()->orderItems()->where('status', 'paid')->whereDate('order_items.created_at', today())->orderByDesc('created_at')->sum('total'),
+            'payments' => auth()->user()->creditSalePayments()->whereDate('created_at', today())->sum('amount'),
+            'expenses' => auth()->user()->expenseItems()->whereDate('expense_items.created_at', today())->sum('cost'),
+            'products_sold' => $products_sold
         ]);
     }
 
@@ -132,6 +142,7 @@ class CartController extends Controller
     {
         return Inertia::render('Expenses/UserExpenses', [
             'expenseItems' => auth()->user()->expenseItems()->whereDate('expenses.created_at', now())->get(),
+            'users' => User::where('id', auth()->id())->orWhere('role', 'vendor')->get(),
         ]);
     }
 }

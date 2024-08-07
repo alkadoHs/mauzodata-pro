@@ -4,6 +4,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import DeleteProductAction from "../Actions/DeleteProductAction";
 import UpdateProductAction from "../Actions/UpdateProductAction";
 import ViewProductAction from "../Actions/ViewProductAction";
+import { Badge } from "@/components/ui/badge";
+import { TrendingDown } from "lucide-react";
 
 export const productColumns: ColumnDef<Product>[] = [
     {
@@ -11,6 +13,32 @@ export const productColumns: ColumnDef<Product>[] = [
         header: "NAME",
         cell: ({ row }) => {
             return `${row.original.name} / ${row.original.unit}`;
+        },
+    },
+    {
+        accessorKey: "stock",
+        header: () => <div className="text-right">STOCK</div>,
+        cell: ({ row }) => {
+            const stock = parseFloat(row.getValue("stock"));
+            const formatted = numberFormat(stock);
+
+            if (row.original.stock <= 0) {
+                return (
+                    <div className="flex justify-end">
+                        <TrendingDown className="size-4 text-destructive mr-1" />
+                        <Badge variant={"destructive"}>{formatted}</Badge>
+                    </div>
+                );
+            } else if (row.original.stock < row.original.stock_alert) {
+                return (
+                    <div className="flex justify-end">
+                        <TrendingDown className="size-4 text-primary mr-1" />
+                        <Badge variant={"secondary"}>{formatted}</Badge>
+                    </div>
+                );
+            }
+
+            return <div className="text-right font-medium">{formatted}</div>;
         },
     },
     {
@@ -33,30 +61,7 @@ export const productColumns: ColumnDef<Product>[] = [
             return <div className="text-right font-medium">{formatted}</div>;
         },
     },
-    {
-        accessorKey: "stock",
-        header: () => <div className="text-right">STOCK</div>,
-        cell: ({ row }) => {
-            const stock = parseFloat(row.getValue("stock"));
-            const formatted = numberFormat(stock);
 
-            if (row.original.stock < row.original.stock_alert) {
-                return (
-                    <div className="text-right font-medium text-amber-800 bg-amber-100 px-3 py-1 rounded-3xl w-fit float-end">
-                        <span className="">{formatted}</span>
-                    </div>
-                );
-            } else if (row.original.stock <= 0) {
-                return (
-                    <div className="text-right font-medium text-red-600">
-                        {formatted}
-                    </div>
-                );
-            }
-
-            return <div className="text-right font-medium">{formatted}</div>;
-        },
-    },
     {
         accessorKey: "whole_sale",
         header: () => <div className="text-right">W.S.Stock</div>,

@@ -7,6 +7,7 @@ import {
     ShoppingBasket,
     Hourglass,
     Scale,
+    FileCheck2,
 } from "lucide-react";
 import {
     Accordion,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "./ui/badge";
 import { Link } from "@inertiajs/react";
+import { User } from "@/types";
 
 const SidebarItems = () => {
     return (
@@ -32,7 +34,7 @@ const SidebarItems = () => {
                 type="single"
                 collapsible
                 className="w-full"
-                defaultValue="item-1"
+                // defaultValue="item-1"
             >
                 <AccordionItem value="item-1" className="border-none">
                     <AccordionTrigger className="py-1.5 my-1 text-muted-foreground">
@@ -90,7 +92,7 @@ const SidebarItems = () => {
             <Link
                 as="button"
                 href={route("orders.index")}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                className="flex items-center bg-indigo-500 text-white gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
             >
                 <ShoppingCart className="size-5" />
                 Orders
@@ -105,6 +107,14 @@ const SidebarItems = () => {
             >
                 <Package className="size-5" />
                 Products{" "}
+            </Link>
+            <Link
+                as="button"
+                href={route("newstocks.index")}
+                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+            >
+                <Package className="size-5" />
+                New Stocks
             </Link>
             <Link
                 as="button"
@@ -130,6 +140,93 @@ const SidebarItems = () => {
                 <LineChart className="size-5" />
                 Analytics
             </Link>
+            <Accordion
+                type="single"
+                collapsible
+                className="w-full"
+                defaultValue="item-10"
+            >
+                <AccordionItem value="item-10" className="border-none">
+                    <AccordionTrigger className="py-1.5 my-1 text-muted-foreground">
+                        <div className="flex gap-2 items-center">
+                            <Scale className="size-5" />
+                            <p>Vendor Activities</p>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="pl-2">
+                            <Link
+                                as="button"
+                                href={route("vendorproducts.index")}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                            >
+                                <ShoppingBasket className="size-5" />
+                                Vendor products
+                            </Link>
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+
+            <Accordion
+                type="single"
+                collapsible
+                className="w-full"
+                defaultValue="item-20"
+            >
+                <AccordionItem value="item-20" className="border-none">
+                    <AccordionTrigger className="py-1.5 my-1 text-muted-foreground">
+                        <div className="flex gap-2 items-center">
+                            <Scale className="size-5" />
+                            <p>Reports</p>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="pl-2">
+                            <Link
+                                as="button"
+                                href={route("reports.sales")}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                            >
+                                <FileCheck2 className="size-5" />
+                                Sellers Reports
+                            </Link>
+                            <Link
+                                as="button"
+                                href={route("reports.outstock")}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                            >
+                                <FileCheck2 className="size-5" />
+                                Out of stock
+                            </Link>
+                            <Link
+                                as="button"
+                                href={route("reports.zerostock")}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                            >
+                                <FileCheck2 className="size-5" />
+                                Zero stock
+                            </Link>
+                            {/* <Link
+                                as="button"
+                                href={route("cart.expenses")}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                            >
+                                <ShoppingBasket className="size-5" />
+                                Add Expenses
+                            </Link>
+                            <Link
+                                as="button"
+                                href={route("cart.credits")}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                            >
+                                <ShoppingBasket className="size-5" />
+                                Credit Sales
+                            </Link> */}
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
         </>
     );
 };

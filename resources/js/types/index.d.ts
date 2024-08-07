@@ -42,6 +42,9 @@ export type PageProps<
     auth: {
         user: User;
         branch: Branch;
+        success: string;
+        error: string;
+        info: string;
     };
     ziggy: Config & { location: string };
 };

@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { Product } from "@/lib/schemas";
 import { EditIcon } from "@/Components/icons/EditIcon";
-import { NumericFormat } from "react-number-format";
 
 
 export default function UpdateProductAction({ product }: { product: Product }) {
@@ -80,9 +79,9 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="buy_price">Buying price</Label>
-                                <NumericFormat
-                                    customInput={Input}
+                                <Input
                                     id="buy_price"
+                                    type="number"
                                     value={data.buy_price}
                                     onChange={(e) =>
                                         setData(
@@ -91,9 +90,6 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                         )
                                     }
                                     placeholder="Product buy_price"
-                                    allowLeadingZeros
-                                    allowNegative={false}
-                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.buy_price} />
                             </div>
@@ -101,9 +97,9 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                 <Label htmlFor="sale_price">
                                     Selling price
                                 </Label>
-                                <NumericFormat
-                                    customInput={Input}
+                                <Input
                                     id="sale_price"
+                                    type="number"
                                     value={data.sale_price}
                                     onChange={(e) =>
                                         setData(
@@ -112,17 +108,14 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                         )
                                     }
                                     placeholder="Product sale_price"
-                                    allowLeadingZeros
-                                    allowNegative={false}
-                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.sale_price} />
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="stock">Stock</Label>
-                                <NumericFormat
-                                    customInput={Input}
+                                <Input
                                     id="stock"
+                                    type="number"
                                     value={data.stock}
                                     onChange={(e) =>
                                         setData(
@@ -130,16 +123,14 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                             parseFloat(e.target.value)
                                         )
                                     }
-                                    allowLeadingZeros
-                                    allowNegative={false}
-                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.stock} />
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="stock_alert">Stock Alert</Label>
-                                <NumericFormat
+                                <Input
                                     id="stock_alert"
+                                    type="number"
                                     value={data.stock_alert}
                                     onChange={(e) =>
                                         setData(
@@ -148,16 +139,13 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                         )
                                     }
                                     placeholder="Product stock_alert"
-                                    allowLeadingZeros
-                                    allowNegative={false}
-                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.stock_alert} />
                             </div>
                             <div className="col-span-3 md:col-span-2 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="expire_date">Expire date</Label>
                                 <Input
-                                    type="text"
+                                    type="date"
                                     id="expire_date"
                                     value={data.expire_date}
                                     onChange={(e) =>
@@ -165,7 +153,7 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                     }
                                     placeholder="Product expire_date"
                                 />
-                                <InputError message={errors.name} />
+                                <InputError message={errors.expire_date} />
                             </div>
                         </div>
                         <div className="grid grid-cols-6 space-x-4 my-4">
@@ -173,9 +161,9 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                 <Label htmlFor="whole_sale">
                                     whole sale stock
                                 </Label>
-                                <NumericFormat
-                                    customInput={Input}
+                                <Input
                                     id="whole_sale"
+                                    type="number"
                                     value={data.whole_sale}
                                     onChange={(e) =>
                                         setData(
@@ -184,9 +172,6 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                         )
                                     }
                                     placeholder="whole sale"
-                                    allowLeadingZeros
-                                    allowNegative={false}
-                                    thousandSeparator=","
                                 />
                                 <InputError message={errors.whole_sale} />
                             </div>
@@ -204,7 +189,7 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                                             parseFloat(e.target.value)
                                         )
                                     }
-                                    placeholder="Product whole_price"
+                                    placeholder="whole_price"
                                 />
                                 <InputError message={errors.whole_price} />
                             </div>

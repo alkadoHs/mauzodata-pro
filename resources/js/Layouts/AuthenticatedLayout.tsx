@@ -3,11 +3,10 @@ import { User as AuthUser } from "@/types";
 import {
     Bell,
     CircleUser,
-    Home,
-    LineChart,
     Menu,
     Package,
-    Package2, Search, ShoppingCart, Users
+    Package2,
+    Search,
 } from "lucide-react";
 import { Link, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
@@ -29,19 +28,19 @@ import {
     DropdownMenuSeparator,
     DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import SidebarItems from "@/components/SidebarItems";
 
 export default function Authenticated({
     user,
     header,
     children,
-}: PropsWithChildren<{ user: AuthUser; header?: ReactNode }>) {
+}: PropsWithChildren<{ user: AuthUser; header?: ReactNode, }>) {
     const iconClasses =
         "text-2xl stroke-2 text-green-400 text-default-500 pointer-events-none flex-shrink-0";
 
+    // const auth = PageProps
     return (
-        <div className="grid items-start min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <div className="grid items-start min-h-screen w-full bg-gray-100 dark:bg-gray-900 md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
             {/* Sidebar start */}
             <div className="sticky top-0 hidden border-r dark:border-muted/80 bg-muted/40 md:block">
                 <div className="flex h-dvh max-h-screen flex-col gap-2">
@@ -68,12 +67,11 @@ export default function Authenticated({
                     </div>
                     <div className="flex-1 overflow-y-auto">
                         {/* Sidebar List  */}
-                        <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                        <nav className="grid gap-2 items-start px-2 text-sm font-medium lg:px-4">
                             <SidebarItems />
                         </nav>
                     </div>
-                    {/* Sidebar upgrade to pro */}
-                    <div className="mt-auto p-4">
+                    {/* <div className="mt-auto p-4">
                         <Card x-chunk="dashboard-02-chunk-0">
                             <CardHeader className="p-2 pt-0 md:p-4">
                                 <CardTitle>Upgrade to Pro</CardTitle>
@@ -88,7 +86,7 @@ export default function Authenticated({
                                 </Button>
                             </CardContent>
                         </Card>
-                    </div>
+                    </div> */}
                 </div>
             </div>
             <div className="max-w-full overflow-hidden flex flex-col">
@@ -176,7 +174,7 @@ export default function Authenticated({
                     </DropdownMenu>
                 </header>
                 <main className="over flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                    {children}
+                    { children }
                 </main>
             </div>
         </div>

@@ -28,7 +28,7 @@ export default function ViewProductAction({ product }: { product: Product }) {
         <>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger>
-                    <span className="text-xl text-green-500 cursor-pointer active:opacity-50">
+                    <span className="text-xl text-primary cursor-pointer active:opacity-50">
                         <EyeIcon />
                     </span>
                 </DialogTrigger>

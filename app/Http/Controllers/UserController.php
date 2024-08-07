@@ -34,6 +34,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'phone' => 'required|string|max:13|unique:'.User::class,
+            'role' => 'required',
             'password' => ['required', 'max:255'],
         ]);
 
@@ -43,6 +44,7 @@ class UserController extends Controller
             'branch_id' => $request->branch_id,
             'name' => $request->name,
             'email' => $request->email,
+            'role' => $request->role,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);

@@ -58,6 +58,7 @@ export type Order = {
     order_items: orderItem[];
     invoice_number: string;
     paid: number;
+    status: "paid" | "credit";
     created_at: string;
 };
 
@@ -65,12 +66,15 @@ export type orderItem = {
     id: number;
     order: Order;
     product: Product;
+    buy_price: number;
     price: number;
     quantity: number;
+    total: number;
+    profit: number;
 };
 
 export type paginatedOrder = {
-    data: Order[],
+    data: Order[];
     links: PaginationLink[];
     current_page: number;
     last_page: number;
@@ -116,7 +120,6 @@ export type ExpenseItem = {
     created_at: string;
 };
 
-
 export type StoreProduct = {
     id: number;
     name: string;
@@ -145,3 +148,38 @@ export type PaginatedStoreProduct = {
     to: number;
     total: number;
 };
+
+export type product_sold = {
+    product_id: number;
+    product: Product;
+    total_qty: number;
+    total_price: number;
+    total_buy_price: number;
+    price: number;
+    total_profit: number;
+};
+
+
+export type VendorProduct = {
+    id: number;
+    user_id: number;
+    user: User;
+    released_by: User;
+    confirmed_by: User;
+    product_id: number;
+    product: Product;
+    buy_price: number;
+    sale_price: number;
+    stock: number;
+    sold: number;
+    status: string;
+}
+
+export type NewStock = {
+    id: number;
+    product_id: number;
+    product: Product;
+    stock: number;
+    new_stock: number;
+    created_at: string;
+}

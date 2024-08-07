@@ -24,6 +24,7 @@ export default function CreateUser({ branches }: { branches: Branch[] }) {
         name: "",
         email: "",
         phone: "",
+        role: "",
         password: "",
     });
 
@@ -65,7 +66,12 @@ export default function CreateUser({ branches }: { branches: Branch[] }) {
                             </div>
                             <div className="col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="branch_id">User Branch</Label>
-                                <Select onValueChange={(value) => setData('branch_id', value)}>
+                                <Select
+                                    onValueChange={(value) =>
+                                        setData("branch_id", value)
+                                    }
+                                    value={data.branch_id}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="select branch" />
                                     </SelectTrigger>
@@ -82,6 +88,40 @@ export default function CreateUser({ branches }: { branches: Branch[] }) {
                                     </SelectContent>
                                 </Select>
                                 <InputError message={errors.branch_id} />
+                            </div>
+                            <div className="col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">
+                                <Label htmlFor="role">Role(Permission)</Label>
+                                <Select
+                                    onValueChange={(value) =>
+                                        setData("role", value)
+                                    }
+                                    value={data.role}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem
+                                            key={"admin"}
+                                            value={"admin"}
+                                        >
+                                            ADMIN
+                                        </SelectItem>
+                                        <SelectItem
+                                            key={"seller"}
+                                            value={"seller"}
+                                        >
+                                            SELLER
+                                        </SelectItem>
+                                        <SelectItem
+                                            key={"vendor"}
+                                            value={"vendor"}
+                                        >
+                                            VENDOR
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.role} />
                             </div>
                             <div className="col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="email">Email Address</Label>

@@ -21,13 +21,15 @@ export default function Pricing({
 }: PageProps<{ products: PaginatedProduct }>) {
     const onSearchChange = useDebouncedCallback(
         (value?: ChangeEvent<HTMLInputElement>) => {
-            if (value && value?.target.value.length > 1) {
+            if (value && value?.target.value) {
                 router.visit(route("cart.pricing"), {
                     data: { search: value.target.value },
                     only: ["products"],
                     preserveScroll: true,
                     preserveState: true,
                 });
+            } else {
+                router.visit(route("cart.pricing"));
             }
         },
         1000
@@ -45,6 +47,7 @@ export default function Pricing({
                     <div className="flex justify-between gap-3 items-end">
                         <Input
                             className="w-full sm:max-w-[44%]"
+                            type="search"
                             placeholder="Search by name..."
                             onChange={onSearchChange}
                         />
@@ -63,7 +66,7 @@ export default function Pricing({
                     </div>
                 </div>
 
-                <div className="lg:px-4 mx-auto py-10">
+                <div className=" mx-auto py-5">
                     <DataTable columns={pricingColumns} data={products.data} />
 
                     <div className="flex items-center gap-3 justify-center my-3">

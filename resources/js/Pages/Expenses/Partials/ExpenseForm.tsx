@@ -4,16 +4,26 @@ import { Input } from "@/components/ui/input";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import { router } from "@inertiajs/react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { User } from "@/types";
+import { Label } from "@/components/ui/label";
 
 interface Expense {
     item: string;
     cost: string;
 }
 
-const ExpenseForm: React.FC = () => {
+const ExpenseForm = ({ user, vendors }: { user: User; vendors: User[] }) => {
     const [expenses, setExpenses] = useState<Expense[]>([
         { item: "", cost: "" },
     ]);
+    const [userId, setUserId] = useState(user.id.toString());
 
     const handleChange = (
         index: number,
@@ -49,10 +59,14 @@ const ExpenseForm: React.FC = () => {
             return;
         }
 
-        router.post(route("expenses.store"), { expenses: expenses as any }, {
-            onSuccess: () => toast.success('Submitted successfully.'),
-            preserveState:false,
-        });
+        router.post(
+            route("expenses.store"),
+            { expenses: expenses as any, user_id: userId },
+            {
+                onSuccess: () => toast.success("Submitted successfully."),
+                preserveState: false,
+            }
+        );
     };
 
     const isExpenseFilled = (expense: Expense) => {
@@ -64,6 +78,26 @@ const ExpenseForm: React.FC = () => {
 
     return (
         <form onSubmit={handleSubmit} className="grid gap-4">
+            <div className="grid gap-2 mb-2">
+                <Label htmlFor="user_id">User(Vendor/Seller)</Label>
+                <Select
+                    value={userId}
+                    name="user_id"
+                    onValueChange={(value) => setUserId(value)}
+                >
+                    <SelectTrigger>
+                        <SelectValue id="user_id" placeholder="Salect seller" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {vendors.map((vendor) => (
+                            <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                                {vendor.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
             {expenses.map((expense, index) => (
                 <div key={index} className="flex gap-4 items-center">
                     <Input
@@ -92,6 +126,7 @@ const ExpenseForm: React.FC = () => {
                     </Button>
                 </div>
             ))}
+
             <div className="space-x-4">
                 <Button
                     variant={"outline"}

@@ -37,7 +37,12 @@ export const cartItemColumns: ColumnDef<CartItem>[] = [
                         onBlur={(e) => {
                             router.patch(
                                 route("cart.update", row.original.id),
-                                { quantity: e.target.value },
+                                {
+                                    quantity:
+                                        e.target.value == ""
+                                            ? 0
+                                            : e.target.value,
+                                },
                                 {
                                     onSuccess: () => {
                                         toast.success("Cart item updated");

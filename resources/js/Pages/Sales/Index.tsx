@@ -8,40 +8,59 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {
-    paginatedOrder
-} from "@/lib/schemas";
+import { paginatedOrder, product_sold } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
-import {
-    FilterIcon,
-    History
-} from "lucide-react";
-import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Input } from "@/components/ui/input";
 import { useDebouncedCallback } from "use-debounce";
 import { ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import { OrderDetail } from "./Partials/OrderDetail";
-import OrderStatus from "./Partials/OrderStatus";
 import { Filter, OrderFilter } from "./Partials/OrderFilter";
 import CategoryFilter from "./Partials/CategoryFilter";
+import dayjs from "dayjs";
 
 dayjs.extend(relativeTime);
 
 export default function SalesHistory({
     auth,
     orders,
-    filters
+    filters,
+    products_sold,
 }: PageProps<{
     orders: paginatedOrder;
-    filters: Filter
+    filters: Filter;
+    products_sold: product_sold[];
 }>) {
     let totalRevenue = orders.data.reduce(
         (acc, order) => acc + Number(order.paid),
+        0
+    );
+
+    const totalSales = products_sold.reduce(
+        (acc, item) => acc + Number(item.total_price),
+        0
+    );
+    const totalSold = products_sold.reduce(
+        (acc, item) => acc + Number(item.total_qty),
+        0
+    );
+
+    const totalCurrentStock = products_sold.reduce(
+        (acc, item) => acc + Number(item.product.stock),
+        0
+    );
+
+    const totalPrevStock = products_sold.reduce(
+        (acc, item) =>
+            acc + (Number(item.total_qty) + Number(item.product.stock)),
+        0
+    );
+
+    const totalProfit = products_sold.reduce(
+        (acc, product) => acc + Number(product.total_profit),
         0
     );
 
@@ -50,7 +69,7 @@ export default function SalesHistory({
             if (value && value?.target.value.length > 0) {
                 router.visit(route("orders.index"), {
                     data: { search: value.target.value },
-                    only: ["orders"],
+                    only: ["products_sold"],
                     preserveScroll: true,
                     preserveState: true,
                 });
@@ -72,7 +91,7 @@ export default function SalesHistory({
                                 <Input
                                     type="search"
                                     value={filters?.search}
-                                    placeholder="Search "
+                                    placeholder="Search product"
                                     className="bg-slate-50 dark:bg-transparent sm:max-w-[44%]"
                                     onChange={onSearchChange}
                                 />
@@ -92,6 +111,79 @@ export default function SalesHistory({
                             </div>
                         </div>
                         <Table>
+                            <TableHeader>
+                                <TableHead>PRODUCT</TableHead>
+                                <TableHead className="text-right bg-green-600/50">
+                                    TOTAL SOLD
+                                </TableHead>
+                                <TableHead className="text-right bg-indigo-600/50">
+                                    PREV STOCK
+                                </TableHead>
+                                <TableHead className="text-right">
+                                    CURRENT STOCK
+                                </TableHead>
+                                <TableHead className="text-right  bg-green-600/50">
+                                    TOTAL PRICE
+                                </TableHead>
+                                <TableHead className="text-right  bg-orange-900/40">
+                                    PROFIT
+                                </TableHead>
+                            </TableHeader>
+                            <TableBody>
+                                {products_sold?.map((product, index) => (
+                                    <TableRow key={index + 1}>
+                                        <TableCell>
+                                            {product.product.name}
+                                        </TableCell>
+                                        <TableCell className="text-right bg-green-800/20">
+                                            {numberFormat(product.total_qty)}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {numberFormat(
+                                                product.product.stock
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right bg-indigo-800/10">
+                                            {numberFormat(
+                                                Number(product.product.stock) +
+                                                    Number(product.total_qty)
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right bg-green-800/20">
+                                            {numberFormat(product.total_price)}
+                                        </TableCell>
+
+                                        <TableCell className="text-right bg-orange-900/10">
+                                            {numberFormat(
+                                                product.total_price -
+                                                    product.total_buy_price
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                            <TableFooter>
+                                <TableCell>
+                                    <b>TOTAL</b>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {numberFormat(totalSold)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {numberFormat(totalPrevStock)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {numberFormat(totalCurrentStock)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {numberFormat(totalSales)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {numberFormat(totalProfit)}
+                                </TableCell>
+                            </TableFooter>
+                        </Table>
+                        {/* <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>SELLER</TableHead>
@@ -149,7 +241,7 @@ export default function SalesHistory({
                                     </TableRow>
                                 ))}
                             </TableBody>
-                        </Table>
+                        </Table> */}
                     </div>
                 </div>
             </section>

@@ -31,13 +31,15 @@ export default function ProductIndex({
 
     const onSearchChange = useDebouncedCallback(
         (value?: ChangeEvent<HTMLInputElement>) => {
-            if (value && value?.target.value.length > 1) {
+            if (value && value?.target.value) {
                 router.visit(route("products.index"), {
                     data: { search: value.target.value },
                     only: ["products"],
                     preserveScroll: true,
                     preserveState: true,
                 });
+            } else {
+                router.visit(route("products.index"))
             }
         },
         1000
@@ -54,12 +56,13 @@ export default function ProductIndex({
                     <div className="flex py-3 justify-between items-center border-x border-t px-3 rounded-t-md dark:border-slate-800">
                         <div className="text-default-400 text-lg font-semibold">
                             Products
-                            <span className="text-green-600">
+                            <span className="text-primary">
                                 ({products.total})
                             </span>{" "}
                         </div>
                         <div className="w-full flex gap-3 items-center justify-end">
                             <Input
+                                type="search"
                                 className="w-full sm:max-w-[44%]"
                                 placeholder="Search by name..."
                                 onChange={onSearchChange}

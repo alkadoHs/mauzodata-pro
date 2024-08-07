@@ -54,9 +54,9 @@ const UsersIndex = ({ auth, users }: PageProps<{ users: User[] }>) => {
                                         <TableCell>{user.name}</TableCell>
                                         <TableCell>
                                             {numberFormat(
-                                                user.orders.reduce(
+                                                user.order_items.reduce(
                                                     (acc, item) =>
-                                                        acc + Number(item.paid),
+                                                        acc + item.total,
                                                     0
                                                 )
                                             )}
@@ -64,12 +64,12 @@ const UsersIndex = ({ auth, users }: PageProps<{ users: User[] }>) => {
                                         <TableCell>
                                             {numberFormat(
                                                 user.order_items.reduce(
-                                                    (acc, order) =>
+                                                    (acc, item) =>
                                                         acc +
-                                                        (order.price -
-                                                            order.product
-                                                                .buy_price) *
-                                                            order.quantity,
+                                                        (item.total -
+                                                            item.product
+                                                                .buy_price *
+                                                                item.quantity),
                                                     0
                                                 )
                                             )}
@@ -117,20 +117,23 @@ const UsersIndex = ({ auth, users }: PageProps<{ users: User[] }>) => {
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            {numberFormat(user.order_items.reduce(
-                                                (acc, order) =>
-                                                    acc +
-                                                    (order.price -
-                                                        order.product
-                                                            .buy_price) *
-                                                        order.quantity,
-                                                0
-                                            ) -
-                                                user.expense_items.reduce(
-                                                    (acc, item) =>
-                                                        acc + Number(item.cost),
+                                            {numberFormat(
+                                                user.order_items.reduce(
+                                                    (acc, order) =>
+                                                        acc +
+                                                        (order.price -
+                                                            order.product
+                                                                .buy_price) *
+                                                            order.quantity,
                                                     0
-                                                ))}
+                                                ) -
+                                                    user.expense_items.reduce(
+                                                        (acc, item) =>
+                                                            acc +
+                                                            Number(item.cost),
+                                                        0
+                                                    )
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))}

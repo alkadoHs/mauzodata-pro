@@ -41,7 +41,7 @@ export default function AddCreditPayment({ credit }: { credit: CreditSale }) {
                 <DialogTrigger>
                     <Button>Add Payment</Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl">
+                <DialogContent>
                     <DialogHeader className="flex flex-col gap-1">
                         <DialogTitle>Add Payment </DialogTitle>
                     </DialogHeader>
@@ -51,6 +51,8 @@ export default function AddCreditPayment({ credit }: { credit: CreditSale }) {
                             <NumericFormat
                                 customInput={Input}
                                 id="name"
+                                thousandSeparator=','
+                                allowNegative={false}
                                 value={data.amount}
                                 onChange={(e) =>
                                     setData("amount", e.target.value)

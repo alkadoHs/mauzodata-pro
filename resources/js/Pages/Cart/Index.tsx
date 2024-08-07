@@ -14,6 +14,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FormEventHandler } from "react";
 import { NumericFormat } from "react-number-format";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const CartIndex = ({
     auth,
@@ -28,7 +35,8 @@ const CartIndex = ({
     customers: Customer[];
 }>) => {
     const { data, setData, post, processing, errors, reset } = useForm({
-        paid: "",
+        status: "paid",
+        paid: "0",
         print_invoice: true,
     });
 
@@ -103,7 +111,7 @@ const CartIndex = ({
                     </ul>
                     <form onSubmit={sellProducts}>
                         <ul className="my-6 space-y-3 divide-y divide-gray-300 dark:divide-gray-700 max-w-sm">
-                            <li className="flex justify-between items-center pt-4">
+                            {/* <li className="flex justify-between items-center pt-4">
                                 <p>Print receipt? </p>
                                 <Checkbox
                                     checked={data.print_invoice}
@@ -114,40 +122,54 @@ const CartIndex = ({
                                         )
                                     }
                                 />
+                            </li> */}
+
+                            <li className="flex justify-between items-center gap-4 pt-4">
+                                <p>Satatus </p>
+                                <Select
+                                    defaultValue="paid"
+                                    onValueChange={(value) =>
+                                        setData("status", value)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Sale type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem key={"paid"} value="paid">
+                                            Paid Sale
+                                        </SelectItem>
+                                        <SelectItem
+                                            key={"credit"}
+                                            value="credit"
+                                        >
+                                            Credit Sale
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </li>
 
-                            <li className="flex justify-between items-center pt-4">
-                                <p>Paid </p>
-                                <NumericFormat
-                                    customInput={Input}
-                                    value={data.paid}
-                                    onChange={(e) =>
-                                        setData("paid", e.target.value)
-                                    }
-                                    onBlur={(e) => {
-                                        if (
-                                            total != Number(data.paid) &&
-                                            !cart.customer
-                                        ) {
-                                            toast.info(
-                                                "The amount paid is not equals to the total price, You should add a customer to sell this or if not a credit sale then make sure total price is equal to paid."
-                                            );
+                            {data.status == "credit" && (
+                                <li className="flex justify-between items-center gap-4 pt-4">
+                                    <p>Amount Paid ?</p>
+                                    <NumericFormat
+                                        value={data.paid}
+                                        customInput={Input}
+                                        thousandSeparator=","
+                                        allowNegative={false}
+                                        onChange={(e) =>
+                                            setData("paid", e.target.value)
                                         }
-                                    }}
-                                    className="max-w-28"
-                                    allowLeadingZeros
-                                    allowNegative={false}
-                                    thousandSeparator=","
-                                    required
-                                />
-                            </li>
+                                    />
+                                </li>
+                            )}
                         </ul>
                         <Button
                             type="submit"
                             disabled={
                                 processing ||
                                 total <= 0 ||
-                                (total != Number(data.paid) && !cart.customer)
+                                (data.status == "credit" && !cart.customer)
                             }
                         >
                             <ShoppingBag className="size-5 mr-2" />

@@ -4,7 +4,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { Button } from "@/components/ui/button";
 import { Order } from "@/lib/schemas";
 import { PageProps } from "@/types";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import { DownloadCloud, Printer } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
@@ -23,18 +23,14 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
                     </h3>
 
                     <div className="flex items-center gap-4">
-                        <a
-                            href={route("invoices.download", order.id)}
-                            target="_blank"
-                        >
-                            <Button variant={"outline"}>
-                                <DownloadCloud className="mr-2 " />
-                                Download
+                        <Link href={route("invoices.download", order.id)}>
+                            <Button>
+                                <Printer className="mr-2" /> Print
                             </Button>
-                        </a>
-                        <Button>
+                        </Link>
+                        {/* <Button>
                             <Printer className="mr-2" /> Print
-                        </Button>
+                        </Button> */}
                     </div>
                 </div>
 
@@ -138,10 +134,8 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
                                     </div>
                                     <div className="table-cell font-bold">
                                         {numberFormat(
-                                            order.order_items.reduce(
-                                                (acc, item) =>
-                                                    acc +
-                                                    item.price * item.quantity,
+                                            order?.order_items.reduce(
+                                                (acc, item) => acc + item.total,
                                                 0
                                             )
                                         )}
@@ -152,7 +146,15 @@ export default function Preview({ auth, order }: PageProps<{ order: Order }>) {
                                         PAID AMOUNT{" "}
                                     </div>
                                     <div className="table-cell font-bold">
-                                        {numberFormat(order.paid)}
+                                        {order.status == "credit"
+                                            ? numberFormat(order.paid)
+                                            : numberFormat(
+                                                  order?.order_items.reduce(
+                                                      (acc, item) =>
+                                                          acc + item.total,
+                                                      0
+                                                  )
+                                              )}
                                     </div>
                                 </div>
                             </div>

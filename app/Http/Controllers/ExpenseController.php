@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Expense;
 use App\Models\ExpenseItem;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,7 +17,7 @@ class ExpenseController extends Controller
     public function index(): Response
     {
         return Inertia::render('Expenses/Index', [
-            //
+            'users' => User::where('id', auth()->id())->orWhere('role', 'vendor')->get(),
         ]);
     }
 
@@ -33,7 +34,7 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        $expense = Expense::create();
+        $expense = Expense::create(['user_id' => $request->user_id]);
 
         $expense->expenseItems()->createMany($request->post('expenses'));
 

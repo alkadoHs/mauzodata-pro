@@ -1,19 +1,19 @@
 import { DataTable } from "@/components/DataTable";
 import { ExpenseItem } from "@/lib/schemas";
-import { PageProps } from "@/types";
+import { PageProps, User } from "@/types";
 import { Head } from "@inertiajs/react";
 import { userExpenseColumns } from "./Columns/UserExpensesColumns";
 import ExpenseForm from "./Partials/ExpenseForm";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 
-const UserExpenses = ({ auth, expenseItems }: PageProps<{ expenseItems: ExpenseItem[]}>) => {
+const UserExpenses = ({ auth, expenseItems, users }: PageProps<{ expenseItems: ExpenseItem[], users: User[]}>) => {
     return (
         <Authenticated user={auth.user}>
             <Head title="My expenses" />
 
             <section className="">
                 <div className="my-3">
-                    <ExpenseForm />
+                    <ExpenseForm user={auth.user} vendors={users} />
                 </div>
                 <div className="md:px-4 mx-auto py-8">
                     <DataTable columns={userExpenseColumns} data={expenseItems} />

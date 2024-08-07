@@ -14,7 +14,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { CreditSalePayment, ExpenseItem, Order } from "@/lib/schemas";
+import {
+    CreditSalePayment,
+    ExpenseItem,
+    Order,
+    product_sold,
+} from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
@@ -31,26 +36,21 @@ const SalesHistory = ({
     orders,
     payments,
     expenses,
+    products_sold,
 }: PageProps<{
-    orders: Order[];
-    payments: CreditSalePayment[];
-    expenses: ExpenseItem[];
+    orders: number;
+    payments: number;
+    expenses: number;
+    products_sold: product_sold[];
 }>) => {
-    let totalRevenue = orders.reduce(
-        (acc, order) => acc + Number(order.paid),
+    const totalSales = products_sold.reduce(
+        (acc, item) => acc + Number(item.total_price),
         0
     );
-
-    const creditsReceived = payments.reduce(
-        (acc, item) => acc + Number(item.amount),
+    const totalSold = products_sold.reduce(
+        (acc, item) => acc + Number(item.total_qty),
         0
     );
-
-    const totalExpenses = expenses.reduce(
-        (acc, item) => acc + Number(item.cost),
-        0
-    );
-
     return (
         <Authenticated user={auth.user}>
             <Head title="Sales History" />
@@ -60,16 +60,19 @@ const SalesHistory = ({
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">
-                                Total Revenue
+                                Total Sales
                             </CardTitle>
                             <DollarSign className="size-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
-                                {numberFormat(totalRevenue)}
+                                {numberFormat(orders)}
                             </div>
                             <p className="text-xs text-primary">
-                                +20.1% from last month
+                                NET{" "}
+                                <span className="text-green-500">
+                                    {numberFormat(Number(orders) - Number(expenses))}
+                                </span>
                             </p>
                         </CardContent>
                     </Card>
@@ -83,11 +86,8 @@ const SalesHistory = ({
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
-                                {numberFormat(totalExpenses)}
+                                {numberFormat(expenses)}
                             </div>
-                            <p className="text-xs text-primary">
-                                +20.1% from last month
-                            </p>
                         </CardContent>
                     </Card>
 
@@ -100,120 +100,58 @@ const SalesHistory = ({
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
-                                {numberFormat(creditsReceived)}
+                                {numberFormat(payments)}
                             </div>
                             <p className="text-xs text-primary">
-                                +20.1% from last month
+                                TOTAL REVENUES {" "}
+                                <span className="text-green-500">
+                                    {numberFormat(Number(orders) + Number(payments) - Number(expenses))}
+                                </span>
                             </p>
                         </CardContent>
                     </Card>
                 </div>
 
-                <div className="lg:p-4">
-                    <header>
+                <div className="">
+                    <header className="py-3">
                         <h3 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                            Products you sold
+                            Products sold
                         </h3>
                     </header>
-                    <Accordion type="multiple" className="w-full">
-                        {orders.length ? (
-                            orders.map((order) => (
-                                <AccordionItem
-                                    key={order.id}
-                                    value={order.invoice_number}
-                                >
-                                    <AccordionTrigger>
-                                        <div className="max-w-sm lg:max-w-xl w-full flex gap-3 justify-between items-center">
-                                            <p>INV - {`0${order.id}`}</p>
-                                            {order.customer ? (
-                                                <p className="bg-zinc-500/30">
-                                                    {order.customer.name}
-                                                </p>
-                                            ) : null}
-                                            <p className="bg-slate-500/30 p-1">
-                                                PAID ={" "}
-                                                {numberFormat(order.paid)}{" "}
-                                            </p>
-                                            <p className="text-muted-foreground flex gap-2">
-                                                <HistoryIcon className="size-4" />{" "}
-                                                <span>
-                                                    {dayjs(
-                                                        order.created_at
-                                                    ).fromNow()}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>
-                                                        PRODUCT
-                                                    </TableHead>
-                                                    <TableHead>QTY</TableHead>
-                                                    <TableHead>PRICE</TableHead>
-                                                    <TableHead>TOTAL</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {order?.order_items.map(
-                                                    (item) => (
-                                                        <TableRow key={item.id}>
-                                                            <TableCell>
-                                                                {
-                                                                    item.product
-                                                                        .name
-                                                                }
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {numberFormat(
-                                                                    item.quantity
-                                                                )}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {numberFormat(
-                                                                    item.price
-                                                                )}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {numberFormat(
-                                                                    item.price *
-                                                                        item.quantity
-                                                                )}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )
-                                                )}
-                                            </TableBody>
-                                            <TableFooter>
-                                                <TableRow>
-                                                    <TableHead>
-                                                        TOTAL PRICE
-                                                    </TableHead>
-                                                    <TableCell></TableCell>
-                                                    <TableCell></TableCell>
-                                                    <TableHead className="bg-violet-500/30">
-                                                        {numberFormat(
-                                                            order.order_items.reduce(
-                                                                (acc, item) =>
-                                                                    acc +
-                                                                    item.price *
-                                                                        item.quantity,
-                                                                0
-                                                            )
-                                                        )}
-                                                    </TableHead>
-                                                </TableRow>
-                                            </TableFooter>
-                                        </Table>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            ))
-                        ) : (
-                            <EmptyPlaceHolder message="You haven't sold anything today." />
-                        )}
-                    </Accordion>
+
+                    <div className="rounded-md border  dark:border-gray-800">
+                        <Table>
+                            <TableHeader>
+                                <TableHead>PRODUCT</TableHead>
+                                <TableHead>TOTAL SOLD</TableHead>
+                                <TableHead>TOTAL PRICE</TableHead>
+                            </TableHeader>
+                            <TableBody>
+                                {products_sold?.map((product, index) => (
+                                    <TableRow key={product.product_id}>
+                                        <TableCell>
+                                            {product.product.name}
+                                        </TableCell>
+                                        <TableCell>
+                                            {numberFormat(product.total_qty)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {numberFormat(product.total_price)}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                            <TableFooter>
+                                <TableCell>
+                                    <b>TOTAL</b>
+                                </TableCell>
+                                <TableCell>{numberFormat(totalSold)}</TableCell>
+                                <TableCell>
+                                    {numberFormat(totalSales)}
+                                </TableCell>
+                            </TableFooter>
+                        </Table>
+                    </div>
                 </div>
             </section>
         </Authenticated>
