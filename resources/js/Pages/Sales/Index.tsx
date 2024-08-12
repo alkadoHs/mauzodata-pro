@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { paginatedOrder, product_sold } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
-import { PageProps } from "@/types";
+import { PageProps, User } from "@/types";
 import { Head, router } from "@inertiajs/react";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Input } from "@/components/ui/input";
@@ -28,17 +28,14 @@ export default function SalesHistory({
     auth,
     orders,
     filters,
+    users,
     products_sold,
 }: PageProps<{
     orders: paginatedOrder;
     filters: Filter;
+    users: User[];
     products_sold: product_sold[];
 }>) {
-    let totalRevenue = orders.data.reduce(
-        (acc, order) => acc + Number(order.paid),
-        0
-    );
-
     const totalSales = products_sold.reduce(
         (acc, item) => acc + Number(item.total_price),
         0
@@ -66,13 +63,15 @@ export default function SalesHistory({
 
     const onSearchChange = useDebouncedCallback(
         (value?: ChangeEvent<HTMLInputElement>) => {
-            if (value && value?.target.value.length > 0) {
+            if (value && value?.target.value) {
                 router.visit(route("orders.index"), {
                     data: { search: value.target.value },
                     only: ["products_sold"],
                     preserveScroll: true,
                     preserveState: true,
                 });
+            } else {
+                router.visit(route("orders.index"));
             }
         },
         1000
@@ -98,6 +97,7 @@ export default function SalesHistory({
                                 <OrderFilter
                                     orders={orders}
                                     filters={filters}
+                                    users={users}
                                 />
                                 <Button
                                     size={"icon"}

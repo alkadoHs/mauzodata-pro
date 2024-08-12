@@ -3,17 +3,27 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
 import { PageProps, User } from "@/types";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { DownloadCloud } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
+import { SalesFilter } from "./partials/SalesFilter";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 const UsersIndex = ({ auth, users }: PageProps<{ users: User[] }>) => {
+    let totalSales = 0;
+    let totalProfit = 0;
+    let totalExpenses = 0;
+    let totalCreditReceived = 0;
+    let totalNetSales = 0;
+    let totalNetProfit = 0;
+
     return (
         <Authenticated user={auth.user}>
             <Head title="Users" />
@@ -24,10 +34,15 @@ const UsersIndex = ({ auth, users }: PageProps<{ users: User[] }>) => {
 
                     <div className="flex justify-between items-center mb-3">
                         <div>Total</div>
-                        <div>
-                            <Button>
-                                <DownloadCloud className="mr-2 size-5" />
-                                Download
+                        <div className="flex items-center gap-3">
+                            <SalesFilter />
+                            <Button
+                                size={"icon"}
+                                onClick={() =>
+                                    router.visit(route("reports.sales"))
+                                }
+                            >
+                                <ReloadIcon className="size-5" />
                             </Button>
                         </div>
                     </div>
@@ -48,96 +63,113 @@ const UsersIndex = ({ auth, users }: PageProps<{ users: User[] }>) => {
                         </TableHeader>
                         <TableBody>
                             {users &&
-                                users.map((user, index) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell>{user.name}</TableCell>
-                                        <TableCell>
-                                            {numberFormat(
-                                                user.order_items.reduce(
-                                                    (acc, item) =>
-                                                        acc + item.total,
-                                                    0
-                                                )
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {numberFormat(
-                                                user.order_items.reduce(
-                                                    (acc, item) =>
-                                                        acc +
-                                                        (item.total -
-                                                            item.product
-                                                                .buy_price *
-                                                                item.quantity),
-                                                    0
-                                                )
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {numberFormat(
-                                                user.expense_items.reduce(
-                                                    (acc, item) =>
-                                                        acc + Number(item.cost),
-                                                    0
-                                                )
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {numberFormat(
-                                                user.credit_sale_payments.reduce(
-                                                    (acc, payment) =>
-                                                        acc +
-                                                        Number(payment.amount),
-                                                    0
-                                                )
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {numberFormat(
-                                                user.orders.reduce(
-                                                    (acc, item) =>
-                                                        acc + Number(item.paid),
-                                                    0
-                                                ) +
-                                                    user.credit_sale_payments.reduce(
-                                                        (acc, payment) =>
-                                                            acc +
-                                                            Number(
-                                                                payment.amount
-                                                            ),
-                                                        0
-                                                    ) -
-                                                    user.expense_items.reduce(
-                                                        (acc, item) =>
-                                                            acc +
-                                                            Number(item.cost),
-                                                        0
-                                                    )
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {numberFormat(
-                                                user.order_items.reduce(
-                                                    (acc, order) =>
-                                                        acc +
-                                                        (order.price -
-                                                            order.product
-                                                                .buy_price) *
-                                                            order.quantity,
-                                                    0
-                                                ) -
-                                                    user.expense_items.reduce(
-                                                        (acc, item) =>
-                                                            acc +
-                                                            Number(item.cost),
-                                                        0
-                                                    )
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                users.map(function (user, index) {
+                                    const sales = user?.order_items?.reduce(
+                                        (acc, item) => acc + Number(item.total),
+                                        0
+                                    );
+                                    totalSales += sales;
+
+                                    const profit = user?.order_items?.reduce(
+                                        (acc, item) => acc + item.profit,
+                                        0
+                                    );
+
+                                    totalProfit += profit;
+
+                                    const expenses =
+                                        user?.expense_items?.reduce(
+                                            (acc, item) =>
+                                                acc + Number(item.cost),
+                                            0
+                                        );
+
+                                    totalExpenses += expenses;
+
+                                    const credits =
+                                        user?.credit_sale_payments?.reduce(
+                                            (acc, payment) =>
+                                                acc + Number(payment.amount),
+                                            0
+                                        );
+
+                                    totalCreditReceived += credits;
+
+                                    const netSales =
+                                        user?.order_items?.reduce(
+                                            (acc, item) =>
+                                                acc + Number(item.total),
+                                            0
+                                        ) +
+                                        user?.credit_sale_payments?.reduce(
+                                            (acc, payment) =>
+                                                acc + Number(payment.amount),
+                                            0
+                                        ) -
+                                        user?.expense_items?.reduce(
+                                            (acc, item) =>
+                                                acc + Number(item.cost),
+                                            0
+                                        );
+
+                                    totalNetSales += netSales;
+
+                                    const netProfit =
+                                        user.order_items.reduce(
+                                            (acc, order) =>
+                                                acc + Number(order.profit),
+                                            0
+                                        ) -
+                                        user.expense_items.reduce(
+                                            (acc, item) =>
+                                                acc + Number(item.cost),
+                                            0
+                                        );
+
+                                    totalNetProfit += netProfit;
+
+                                    return (
+                                        <TableRow key={user.id}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell>{user.name}</TableCell>
+                                            <TableCell>
+                                                {numberFormat(sales)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {numberFormat(profit)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {numberFormat(expenses)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {numberFormat(credits)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {numberFormat(netSales)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {numberFormat(netProfit)}
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                         </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableHead>TOTAL</TableHead>
+                                <TableHead></TableHead>
+                                <TableHead>
+                                    {numberFormat(totalSales)}
+                                </TableHead>
+                                <TableHead>
+                                    {numberFormat(totalProfit)}
+                                </TableHead>
+                                <TableHead>{numberFormat(totalExpenses)}</TableHead>
+                                <TableHead>{numberFormat(totalCreditReceived)}</TableHead>
+                                <TableHead>{numberFormat(totalNetSales)}</TableHead>
+                                <TableHead>{numberFormat(totalNetProfit)}</TableHead>
+                            </TableRow>
+                        </TableFooter>
                     </Table>
                 </div>
             </section>

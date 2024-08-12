@@ -21,12 +21,10 @@ import { paginatedOrder } from "@/lib/schemas";
 import { FilterIcon } from "lucide-react";
 import { toast } from "sonner";
 import { router } from "@inertiajs/react";
-import { User } from "@/types";
 
 export interface Filter {
     search?: string;
     dateBtn: DateBtn;
-    users: User[];
 }
 
 interface DateBtn {
@@ -34,29 +32,25 @@ interface DateBtn {
     endDate?: Date;
 }
 
-export function OrderFilter({
-    orders,
+export function SalesFilter({
+    // orders,
     filters,
-    users,
 }: {
-    orders: paginatedOrder;
-    filters: Filter;
-    users: User[];
+    // orders: paginatedOrder;
+    filters?: Filter;
 }) {
     const [startDate, setStartDate] = React.useState<Date | undefined>(
-        filters.dateBtn?.startDate
+        filters?.dateBtn?.startDate
     );
     const [endDate, setEndDate] = React.useState<Date | undefined>(
-        filters.dateBtn?.endDate
+        filters?.dateBtn?.endDate
     );
-
-    const [user_id, setUserId] = React.useState<string>("");
 
     const handleSubmit: React.FormEventHandler = (e) => {
         e.preventDefault();
 
-        let data = { startDate, endDate, user_id };
-        router.get(route("orders.index"), data, { preserveState: true });
+        const data = { startDate, endDate };
+        router.get(route("reports.sales"), data, { preserveState: true });
     };
 
     return (
@@ -73,28 +67,8 @@ export function OrderFilter({
                 <div className="flex items-center gap-4">
                     <form
                         onSubmit={handleSubmit}
-                        className="flex flex-col tems-center gap-4"
+                        className="flex flex-col md:flex-row tems-center gap-4"
                     >
-                        <div className="grid gap-2">
-                            <div>
-                                Seller
-                            </div>
-                            <Select
-                                onValueChange={(value) => setUserId(value)}
-                                value={user_id}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="filter by user" />
-                                </SelectTrigger>
-                                <SelectContent position="popper">
-                                    {users.map((user) => (
-                                        <SelectItem value={user.id.toString()}>
-                                            {user.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button

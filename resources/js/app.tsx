@@ -23,7 +23,7 @@ createInertiaApp({
         root.render(
             <ThemeProvider defaultTheme={"dark"} storageKey="vite-ui-theme">
                 <App {...props} />
-                <Toaster richColors duration={7000} position="bottom-center" />
+                <Toaster richColors duration={7000} position="top-center" />
             </ThemeProvider>
         );
     },

@@ -13,6 +13,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { ReactSearchAutocomplete } from "react-search-autocomplete";
+import { numberFormat } from "@/lib/utils";
 
 export default function NewStockForm({ products }: { products: Product[] }) {
     const [open, setOpen] = React.useState(false);
@@ -35,27 +37,18 @@ export default function NewStockForm({ products }: { products: Product[] }) {
                 <div className="flex items-center gap-4">
                     <div className="grid gap-3 w-full">
                         <Label htmlFor="product_id">Product</Label>
-                        <Select
-                            onValueChange={(value) =>
-                                setData("product_id", value)
+                        <ReactSearchAutocomplete
+                            items={products}
+                            formatResult={(product: Product) =>
+                                `${product.name} / ${
+                                    product.unit
+                                }  (${numberFormat(product.stock)})`
                             }
-                            value={data.product_id}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="select product" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {products &&
-                                    products.map((product) => (
-                                        <SelectItem
-                                            key={product.id}
-                                            value={product.id.toString()}
-                                        >
-                                            {product.name}
-                                        </SelectItem>
-                                    ))}
-                            </SelectContent>
-                        </Select>
+                            onSelect={(product) =>
+                                setData("product_id", product.id.toString())
+                            }
+                            placeholder="Search product..."
+                        />
                         <InputError message={errors.product_id} />
                     </div>
                     <div className="grid gap-3 w-full">

@@ -20,6 +20,7 @@ export interface User {
     name: string;
     email: string;
     phone: string;
+    role: "admin" | "seller" | "vendor";
     isActive: boolean;
     email_verified_at: string;
 }

@@ -32,10 +32,11 @@ class NewStockController extends Controller
         $product = Product::find($validated['product_id']);
 
         // if new stock exist today show the info message else create new
-        $newStock = NewStock::whereDate('created_at', today())->where('product_id', $validated['product_id'])->first();
+        $newStock = NewStock::with('product')->whereDate('created_at', today())->where('product_id', $validated['product_id'])->first();
 
         if($newStock) {
-            return redirect()->back()->with('info', "This product alredy exist.");
+            $newStock->increment('new_stock', $validated['new_stock']);
+            return redirect()->back()->with('info', "Incremented the stock of {$newStock->product->name}.");
         }
         NewStock::create([...$validated, 'stock' => $product->stock]);
 

@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { User } from "@/types";
 import { ProductCombobox } from "@/Components/ProductComobox";
+import { ReactSearchAutocomplete } from "react-search-autocomplete";
+import { numberFormat } from "@/lib/utils";
 
 export default function CreateVendorProduct({
     users,
@@ -88,32 +90,22 @@ export default function CreateVendorProduct({
                             </div>
 
                             <div className="col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">
-                                <ProductCombobox productOptions={products} />
-                            </div>
-
-                            <div className="col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="product_id">Product</Label>
-                                <Select
-                                    onValueChange={(value) =>
-                                        setData("product_id", value)
+                                <ReactSearchAutocomplete
+                                    items={products}
+                                    placeholder="Select product..."
+                                    formatResult={(product: Product) =>
+                                        `${product.name} / ${
+                                            product.unit
+                                        }  (${numberFormat(product.stock)})`
                                     }
-                                    value={data.product_id}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="select product" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {products &&
-                                            products?.map((product) => (
-                                                <SelectItem
-                                                    key={product.id}
-                                                    value={product.id.toString()}
-                                                >
-                                                    {`${product.name} / ${product.unit}`}
-                                                </SelectItem>
-                                            ))}
-                                    </SelectContent>
-                                </Select>
+                                    onSelect={(product) =>
+                                        setData(
+                                            "product_id",
+                                            product.id.toString()
+                                        )
+                                    }
+                                />
                                 <InputError message={errors.product_id} />
                             </div>
                             <div className="col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">

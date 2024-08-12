@@ -68,7 +68,7 @@ export default function Authenticated({
                     <div className="flex-1 overflow-y-auto">
                         {/* Sidebar List  */}
                         <nav className="grid gap-2 items-start px-2 text-sm font-medium lg:px-4">
-                            <SidebarItems />
+                            <SidebarItems user={user} />
                         </nav>
                     </div>
                     {/* <div className="mt-auto p-4">
@@ -106,7 +106,7 @@ export default function Authenticated({
                         </SheetTrigger>
                         <SheetContent side="left" className="flex flex-col">
                             <nav className="grid gap-2 text-lg font-medium">
-                                <SidebarItems />
+                                <SidebarItems user={user} />
                             </nav>
                             <div className="mt-auto">
                                 <Card>

@@ -10,7 +10,7 @@ export function AddProductToTheCart({ products }: { products: Product[] }) {
         return (
             <>
                 <span style={{ display: "block", textAlign: "left" }}>
-                    name: <b>{item.name}</b>
+                    name: <b>{`${item.name}/ ${item.unit}`}</b>
                 </span>
                 <span style={{ display: "block", textAlign: "left" }}>
                     stock: {numberFormat(item.stock)}

@@ -11,10 +11,10 @@ import {
     TableBody,
     TableCell, Table
 } from "@/components/ui/table";
-import { CreditSale } from "@/lib/schemas";
+import { CreditSale, paginatedCreditSale } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { HistoryIcon } from "lucide-react";
@@ -22,22 +22,45 @@ import AddCreditPayment from "./Actions/AddCreditPayment";
 import { Heading4 } from "@/components/Typography/Heading4";
 import EmptyPlaceHolder from "@/components/EmptyPlaceHolder";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
+import { Input } from "@/components/ui/input";
+import { ChangeEvent } from "react";
+import { useDebouncedCallback } from "use-debounce";
 
 dayjs.extend(relativeTime);
 
 const UserCrediSales = ({
     auth,
     creditSales,
-}: PageProps<{ creditSales: CreditSale[] }>) => {
+}: PageProps<{ creditSales: paginatedCreditSale }>) => {
+     console.log(creditSales)
+    const onSearchChange = useDebouncedCallback(
+        (value?: ChangeEvent<HTMLInputElement>) => {
+            if (value && value?.target.value) {
+                router.visit(route("cart.credits"), {
+                    data: { search: value.target.value },
+                    only: ["creditSales"],
+                    preserveScroll: true,
+                    preserveState: true,
+                });
+            } else {
+                router.visit(route("cart.credits"));
+            }
+        },
+        1000
+    );
     return (
         <Authenticated user={auth.user}>
             <Head title="My credit sales" />
 
             <section className="">
                 <Heading4>Credit Sales</Heading4>
+
+                <div className="w-full my-3">
+                    <Input type="search" name="search" onChange={onSearchChange} placeholder="Search customer" />
+                </div>
                 <Accordion type="multiple" className="w-full">
-                    {creditSales.length ? (
-                        creditSales.map((credit) => (
+                    {creditSales?.data?.length ? (
+                        creditSales?.data?.map((credit) => (
                             <AccordionItem
                                 key={credit.id}
                                 value={credit?.order?.invoice_number}
@@ -47,7 +70,7 @@ const UserCrediSales = ({
                                         <p>INV - {`0${credit.order.id}`}</p>
                                         {credit?.order.customer ? (
                                             <p className="bg-amber-500/30">
-                                                {credit.order.customer.name}
+                                                {credit?.order?.customer?.name}
                                             </p>
                                         ) : null}
                                         <p className="bg-red-500/30 p-1">
@@ -91,9 +114,9 @@ const UserCrediSales = ({
                                                         <span>Customer</span>
                                                         <span>
                                                             {
-                                                                credit.order
-                                                                    .customer
-                                                                    .name
+                                                                credit?.order
+                                                                    ?.customer
+                                                                    ?.name
                                                             }
                                                         </span>
                                                     </div>
