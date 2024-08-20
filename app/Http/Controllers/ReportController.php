@@ -95,7 +95,7 @@ class ReportController extends Controller
 
     public function empty_stock(): Response
     {
-        return Inertia::render('Reports/OutStock', [
+        return Inertia::render('Reports/EmptyStock', [
             'products' => Product::where('branch_id', auth()->user()->branch_id)->where('stock', '<', 1)->paginate(25),
         ]);
     }

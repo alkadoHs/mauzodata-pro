@@ -9,9 +9,7 @@ import {
 } from "@/components/ui/table";
 import { PageProps } from "@/types";
 import { Head, Link } from "@inertiajs/react";
-import {
-    PaginatedProduct
-} from "@/lib/schemas";
+import { PaginatedProduct } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import {
     ArrowLeft,
@@ -28,11 +26,11 @@ export default function EmptyStock({
 }: PageProps<{ products: PaginatedProduct }>) {
     return (
         <Authenticated user={auth.user}>
-            <Head title="Users" />
+            <Head title="Zero stocks" />
 
             <section className="p-4 pt-0">
                 <header>
-                    <h2 className="text-xl my-3">Zero stock products</h2>
+                    <h2 className="text-xl my-3">Zero stocks </h2>
 
                     <div className="flex justify-between items-center mb-3">
                         <div>Total: {products.total}</div>

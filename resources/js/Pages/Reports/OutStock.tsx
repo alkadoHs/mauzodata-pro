@@ -17,7 +17,7 @@ import { numberFormat } from "@/lib/utils";
 export default function OutStock({ auth, products }: PageProps<{ products: PaginatedProduct }>) {
     return (
         <Authenticated user={auth.user}>
-            <Head title="Users" />
+            <Head title="Out of stock" />
 
             <section className="p-4 pt-0">
                 <header>

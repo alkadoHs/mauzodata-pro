@@ -51,7 +51,7 @@ class StockTransferController extends Controller
             $productExist->increment('stock', $validated['stock']);
 
             $product->decrement('stock', $validated['stock']);
-            return redirect()->back()->with('info', 'Bidhaa hii amepewa huyu venda tayari kwahiyo imeongezwa kwenye stock yake.');
+            return redirect()->back()->with('info', "Incremented the stock of {$product->name}.");
         }
 
         StockTransfer::create([
