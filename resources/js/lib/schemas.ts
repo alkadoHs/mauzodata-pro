@@ -124,6 +124,7 @@ export type Expense = {
     id: number;
     branch: Branch;
     user: User;
+    expense_items_sum_cost: number;
     expense_items: ExpenseItem[];
     created_at: string;
 };
@@ -183,6 +184,8 @@ export type VendorProduct = {
     released_by: User;
     confirmed_by: User;
     product_id: number;
+    branch_id: number;
+    branch: Branch;
     product: Product;
     buy_price: number;
     sale_price: number;

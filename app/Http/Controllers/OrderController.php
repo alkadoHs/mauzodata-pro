@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -181,5 +182,35 @@ class OrderController extends Controller
         return Inertia::render('Orders/Preview', [
             'order' => $latesOrder,
         ]);
+    }
+
+    public function invoices(Request $request)
+    {
+        $order = request()->order_id ?? null;
+        $search = request()->search ?? null;
+
+        $orders = Order::with(['customer', 'user', 'orderItems.product'])->orderBy('user_id')->latest()->paginate(50);
+
+        if($search) {
+            $orders = Order::with(['customer', 'user', 'orderItems.product'])->where('id', $search)->orWhereRelation('customer', 'name', "%$search%")->paginate(10);
+        }
+        return Inertia::render('Sales/Invoices', [
+            'orders'  => $orders,
+        ]);
+    }
+
+    public function invoice(Request $request, Order $invoice)
+    {
+        $currentOrder = Order::where('id', $invoice->id)->with(['customer', 'user', 'branch', 'orderItems.product'])->first();
+        return Inertia::render('Orders/Invoice', [
+            'order' => $currentOrder,
+        ]);
+    }
+
+    public function destroy(Order $order): RedirectResponse
+    {
+        $order->delete();
+
+        return redirect()->back();
     }
 }

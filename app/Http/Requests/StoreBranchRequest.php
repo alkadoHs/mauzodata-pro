@@ -24,10 +24,10 @@ class StoreBranchRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:50',
-            'phone' => 'required|max:13|unique:'.Branch::class,
+            'phone' => 'nullable|max:13|unique:'.Branch::class,
             'email' => 'nullable|string|max:50|unique:'.Branch::class,
-            'city' => 'required|string|max:50',
-            'address' => 'required|string|max:255',
+            'city' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:255',
             'tax_id' => 'nullable|max:50',
         ];
     }

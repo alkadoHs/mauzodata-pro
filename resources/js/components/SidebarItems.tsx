@@ -8,6 +8,9 @@ import {
     Hourglass,
     Scale,
     FileCheck2,
+    BotIcon,
+    SearchCheckIcon,
+    BookOpen,
 } from "lucide-react";
 import {
     Accordion,
@@ -34,7 +37,7 @@ const SidebarItems = ({ user }: { user: User }) => {
                 type="single"
                 collapsible
                 className="w-full"
-                defaultValue={user.role !== 'admin' ? "item-2BG": ""}
+                defaultValue={user.role !== "admin" ? "item-2BG" : ""}
             >
                 <AccordionItem value="item-2BG" className="border-none">
                     <AccordionTrigger className="py-1.5 my-1 text-muted-foreground">
@@ -104,16 +107,24 @@ const SidebarItems = ({ user }: { user: User }) => {
                     </Link>
                     <Link
                         as="button"
-                        href={route("products.index")}
-                        className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                        href={route("orders.invoices")}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                     >
-                        <Package className="size-5" />
-                        Products{" "}
+                        <SearchCheckIcon className="size-5" />
+                        Invoices
+                    </Link>
+                    <Link
+                        as="button"
+                        href={route("products.index")}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    >
+                        <BookOpen className="size-5" />
+                        Products
                     </Link>
                     <Link
                         as="button"
                         href={route("newstocks.index")}
-                        className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                     >
                         <Package className="size-5" />
                         New Stocks
@@ -128,6 +139,14 @@ const SidebarItems = ({ user }: { user: User }) => {
                     </Link>
                 </>
             )}
+            <Link
+                as="button"
+                href={route("stocktransfer.index")}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+                <BotIcon className="size-5" />
+                Stock Transfers
+            </Link>
             <Accordion
                 type="single"
                 collapsible
@@ -179,6 +198,14 @@ const SidebarItems = ({ user }: { user: User }) => {
                                 >
                                     <FileCheck2 className="size-5" />
                                     Sellers Reports
+                                </Link>
+                                <Link
+                                    as="button"
+                                    href={route("reports.expenses")}
+                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                >
+                                    <FileCheck2 className="size-5" />
+                                    Expenses Reports
                                 </Link>
                                 <Link
                                     as="button"

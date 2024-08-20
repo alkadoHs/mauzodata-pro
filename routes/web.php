@@ -16,6 +16,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StoreProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorProductController;
+use App\Http\Controllers\StockTransferController;
 use App\Http\Middleware\RemoveCommaFromInput;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -53,7 +54,7 @@ Route::resource('branches', BranchController::class)
     ->middleware(['auth']);
 
 Route::resource('products', ProductController::class)
-    ->only(['index', 'store', 'view', 'update', 'destroy'])
+    ->only(['index', 'store', 'show', 'edit', 'update', 'destroy'])
     ->middleware(['auth', 'verified', RemoveCommaFromInput::class]);
 
 
@@ -78,7 +79,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::post('/orders', [OrderController::class, 'complete'])->name('orders.complete')->middleware([RemoveCommaFromInput::class]);
     Route::get('/orders/view', [OrderController::class, 'preview'])->name('orders.preview');
+    Route::get('/orders/invoices', [OrderController::class, 'invoices'])->name('orders.invoices');
+    Route::get('/orders/invoices/{invoice}', [OrderController::class, 'invoice'])->name('orders.invoice');
     Route::delete('/orders/items/{orderItem}', [OrderItemController::class, 'destroy'])->name('orders.items.destroy');
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 });
 
 // pdfs 
@@ -102,7 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
 });
 
-// store rouutes 
+// store routes 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/stores/products', [StoreProductController::class, 'index'])->name('stores.products');
     Route::get('/stores/transfers', [StoreProductController::class, 'transfers'])->name('stores.transfers');
@@ -115,6 +119,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/sales', [ReportController::class, 'user_sales'])->name('reports.sales');
     Route::get('/reports/outstock', [ReportController::class, 'out_stock'])->name('reports.outstock');
     Route::get('/reports/zerostock', [ReportController::class, 'empty_stock'])->name('reports.zerostock');
+    Route::get('/reports/expenses', [ReportController::class, 'expenses'])->name('reports.expenses');
+    Route::get('/reports/expenses/{expense}/items', [ReportController::class, 'expense_items'])->name('reports.expenseitems');
+    Route::get('/reports/stock-transfers', [ReportController::class, 'stock_transfers'])->name('reports.stocktransfers');
 });
 
 // new stocks
@@ -130,6 +137,14 @@ Route::middleware(['auth', 'verified'])->controller(VendorProductController::cla
     Route::post('/vendor-products', 'store')->name('vendorproducts.store');
     Route::patch('/vendor-products/{vendorProduct}', 'update')->name('vendorproducts.update');
     Route::post('/vendor-products/{vendorProduct}/confirm', 'confirm_stock')->name('vendorproducts.confirm');
+});
+
+// products transfer
+Route::middleware(['auth', 'verified'])->controller(StockTransferController::class)->group(function () {
+   Route::get('/stock-transfer', 'index')->name('stocktransfer.index');
+   Route::post('/stock-tranfer', 'store')->name('stocktransfer.store');
+   Route::patch('/stock-tranfer/{product}', 'update')->name('stocktransfer.update');
+   Route::post('/stock-tranfer/{product}/confirm', 'confirm')->name('stocktransfer.confirm');
 });
 
 require __DIR__.'/auth.php';

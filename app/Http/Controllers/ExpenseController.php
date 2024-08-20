@@ -34,9 +34,16 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        $expense = Expense::create(['user_id' => $request->user_id]);
+        // find if user has expenses today
+        $expense = Expense::where('user_id', auth()->id())->whereDate('created_at', today())->first();
 
-        $expense->expenseItems()->createMany($request->post('expenses'));
+        // if exist add expense items into it else create new one and then add items
+        if($expense) {
+            $expense->expenseItems()->createMany($request->post('expenses'));
+        } else {
+            $newExpense = Expense::create(['user_id' => $request->user_id]);
+            $newExpense->expenseItems()->createMany($request->post('expenses'));
+        }
 
         return back();
     }

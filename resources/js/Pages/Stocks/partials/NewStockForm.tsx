@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { ReactSearchAutocomplete } from "react-search-autocomplete";
 import { numberFormat } from "@/lib/utils";
+import { Heading4 } from "@/components/Typography/Heading4";
 
 export default function NewStockForm({ products }: { products: Product[] }) {
     const [open, setOpen] = React.useState(false);
@@ -32,7 +33,10 @@ export default function NewStockForm({ products }: { products: Product[] }) {
     };
 
     return (
-        <>
+        <section>
+            <div className="mb-3">
+                <Heading4>Transfer Stocks</Heading4>
+            </div>
             <form onSubmit={onsubmit}>
                 <div className="flex items-center gap-4">
                     <div className="grid gap-3 w-full">
@@ -78,6 +82,6 @@ export default function NewStockForm({ products }: { products: Product[] }) {
                     </Button>
                 </div>
             </form>
-        </>
+        </section>
     );
 }

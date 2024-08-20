@@ -6,7 +6,7 @@ const OrderStatus = ({ order }: {order: Order}) => {
     const orderPrice = order?.order_items.reduce((acc, item) => acc + Number(item.price)* Number(item.quantity), 0)
   return (
     <>
-     {order.paid < orderPrice ? <Badge variant={'outline'}>Credit sale</Badge>: <Badge>Completed</Badge>}
+     {order.status == 'credit' ? <Badge variant={'outline'}>Credit sale</Badge>: <Badge>Paid Sale</Badge>}
     </>
   )
 }

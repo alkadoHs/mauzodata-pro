@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Expense;
+use App\Models\ExpenseItem;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\StockTransfer;
 use App\Models\User;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -73,7 +76,7 @@ class ReportController extends Controller
                                                      ->when($endDate, function (Builder $query) { 
                                                         return $query->whereDate('credit_sale_payments.created_at', '<=', request()->endDate);
                                                      }),
-            ])->where('company_id', auth()->user()->company_id)->get();
+            ])->get();
                     
         return Inertia::render('Reports/UserSales', [
             'users' => $users,
@@ -103,4 +106,37 @@ class ReportController extends Controller
             'products' => Product::where('branch_id', auth()->user()->branch_id)->whereColumn('stock', '<', 'stock_alert')->get(),
         ]);
     }
+
+    public function expenses(): Response
+    {
+      $dateFilter = request()->date ?? null;
+
+      $expenses = $dateFilter ? Expense::withSum('expenseItems', 'cost')->with('user')->whereDate('created_at', $dateFilter)->get() : 
+                                Expense::withSum('expenseItems', 'cost')->with('user')->whereDate('created_at', now())->get();
+
+      return Inertia::render('Reports/Expenses', [
+         'expenses' => $expenses
+      ]);
+    }
+
+    public function expense_items(Request $request, Expense $expense): Response
+    {
+      return Inertia::render('Reports/ExpenseItems', [
+         'expenseItems' => $expense->expenseItems()->with('expense.user')->get(),
+      ]);
+    }
+
+    public function stock_transfers(): Response
+    {
+      $dateFilter = request()->date ?? null; 
+
+      $stockTransfers = $dateFilter ? StockTransfer::with(['product', 'branch'])->whereDate('created_at', $dateFilter)->get()
+                                    : StockTransfer::with(['product', 'branch'])->whereDate('created_at', now())->get();
+
+      return Inertia::render('Reports/StockTransfers', [
+         'stockTransfers' => $stockTransfers
+      ]);
+    }
+
+
 }

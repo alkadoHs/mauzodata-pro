@@ -16,7 +16,6 @@ class VendorProductController extends Controller
     public function index():Response
     {
         $vendorProducts = VendorProduct::with(['user', 'releasedBy', 'confirmedBy', 'product'])
-                                ->whereDate('created_at', today())
                                 ->where('status', 'pending')
                                 ->orderBy('user_id')
                                 ->get();
@@ -33,7 +32,7 @@ class VendorProductController extends Controller
         $validated = $request->validate([
             'user_id' => 'required',
             'product_id' => 'required',
-            'stock' => 'required|numeric|max:99999999|min:0.5',
+            'stock' => 'required|numeric|max:99999999',
         ]);
 
         $product = Product::find($validated['product_id']);
@@ -46,12 +45,14 @@ class VendorProductController extends Controller
             ['user_id', '=', $validated['user_id']],
             ['product_id', '=', $validated['product_id']],
             ['status', '=', 'pending'],
-        ])->whereDate('created_at', today())->first();
+        ])->first();
 
         if($productExist) {
+            // increment vendor product stock
             $productExist->increment('stock', $validated['stock']);
 
-            $productExist->decrement('stock', $validated['stock']);
+            // decrement the product stock
+            $product->decrement('stock', $validated['stock']);
             return redirect()->back()->with('info', 'Bidhaa hii amepewa huyu venda tayari kwahiyo imeongezwa kwenye stock yake.');
         }
 
@@ -70,7 +71,7 @@ class VendorProductController extends Controller
     public function update(Request $request, VendorProduct $vendorProduct): RedirectResponse
     {
         $validated = $request->validate([
-            'sold' => 'required|numeric|min:0.5',
+            'sold' => 'required|numeric',
         ]);
 
         if($validated['sold'] > $vendorProduct->stock) {
@@ -86,6 +87,11 @@ class VendorProductController extends Controller
     {
         // find todays order of this vendor if exists
         $vendorOrder = Order::whereDate('created_at', today())->where('user_id', $vendorProduct->user_id)->first();
+
+        $product = Product::find($vendorProduct->product_id);
+
+        // vendor stock balance
+        $vendorStockBalanace = $vendorProduct->stock - $vendorProduct->sold;
 
         // if order exist add order item(vendor product) into it else create new order and add order item
         if($vendorOrder) {
@@ -112,6 +118,10 @@ class VendorProductController extends Controller
 
         // mark vendor product as confirmed
         $vendorProduct->update(['status' => 'confirmed']);
+
+        if($vendorStockBalanace > 0) {
+            $product->increment('stock', $vendorStockBalanace);
+        }
 
         return redirect()->back()->with('success', 'Stock confirmed successfully!');
     }

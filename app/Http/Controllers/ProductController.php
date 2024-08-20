@@ -15,9 +15,11 @@ class ProductController extends Controller
      */
     public function index(): Response
     {
+        $search = request()->search ?? null;
+
         $products = Product::paginate(25);
         if(request()->get('search')) {
-            $products = Product::search(request()->get('search'))->paginate(25);
+            $products = Product::where('name', 'LIKE', "%{$search}%")->paginate(10);
         }
         return Inertia::render('Products/Index', [
             'products' => $products,
@@ -46,17 +48,17 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(Product $product): Response
     {
-        //
+        return Inertia::render('Products/Show', ['product' => $product]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product)
+    public function edit(Product $product): Response
     {
-        //
+        return Inertia::render('Products/Edit', ['product' => $product]);
     }
 
     /**

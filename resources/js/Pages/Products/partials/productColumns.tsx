@@ -5,7 +5,9 @@ import DeleteProductAction from "../Actions/DeleteProductAction";
 import UpdateProductAction from "../Actions/UpdateProductAction";
 import ViewProductAction from "../Actions/ViewProductAction";
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown } from "lucide-react";
+import { EyeIcon, Pencil, TrendingDown } from "lucide-react";
+import { EditIcon } from "@/Components/icons/EditIcon";
+import { router } from "@inertiajs/react";
 
 export const productColumns: ColumnDef<Product>[] = [
     {
@@ -88,8 +90,26 @@ export const productColumns: ColumnDef<Product>[] = [
         cell: ({ row }) => {
             return (
                 <div className="relative flex items-center justify-center gap-2">
-                    <ViewProductAction product={row.original} />
-                    <UpdateProductAction product={row.original} />
+                    <span
+                        onClick={() =>
+                            router.visit(
+                                route("products.show", row.original.id)
+                            )
+                        }
+                        className="text-xl text-indigo-500 cursor-pointer active:opacity-50"
+                    >
+                        <EyeIcon />
+                    </span>
+                    <span
+                        onClick={() =>
+                            router.visit(
+                                route("products.edit", row.original.id)
+                            )
+                        }
+                        className="text-xl text-indigo-500 cursor-pointer active:opacity-50"
+                    >
+                        <EditIcon />
+                    </span>
                     <DeleteProductAction product={row.original} />
                 </div>
             );

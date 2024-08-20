@@ -36,6 +36,8 @@ class NewStockController extends Controller
 
         if($newStock) {
             $newStock->increment('new_stock', $validated['new_stock']);
+
+            $product->increment('stock', $validated['new_stock']);
             return redirect()->back()->with('info', "Incremented the stock of {$newStock->product->name}.");
         }
         NewStock::create([...$validated, 'stock' => $product->stock]);
