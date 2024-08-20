@@ -1,6 +1,5 @@
 import React, { FormEventHandler } from "react";
 import { useForm } from "@inertiajs/react";
-import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Branch, Product } from "@/lib/schemas";
+import { Product } from "@/lib/schemas";
 import {
     Select,
     SelectContent,
@@ -22,7 +21,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { User } from "@/types";
-import { ProductCombobox } from "@/Components/ProductComobox";
 import { ReactSearchAutocomplete } from "react-search-autocomplete";
 import { numberFormat } from "@/lib/utils";
 

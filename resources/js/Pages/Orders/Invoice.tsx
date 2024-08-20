@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Order } from "@/lib/schemas";
 import { PageProps } from "@/types";
 import { Head, Link, router } from "@inertiajs/react";
-import { ArrowLeftSquare, DownloadCloud, Printer } from "lucide-react";
+import { ArrowLeftSquare, Printer } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { ReactSearchAutocomplete } from "react-search-autocomplete";

@@ -1,7 +1,6 @@
 import Authenticated from '@/Layouts/AuthenticatedLayout'
 import { PageProps } from '@/types'
 import { Head } from '@inertiajs/react'
-import React from 'react'
 
 const ExpenseIndex = ({ auth }: PageProps) => {
   return (

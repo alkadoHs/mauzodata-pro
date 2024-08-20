@@ -8,19 +8,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { PageProps } from "@/types";
-import { Head, Link, router } from "@inertiajs/react";
-import { Expense, ExpenseItem, PaginatedProduct } from "@/lib/schemas";
+import { Head, router } from "@inertiajs/react";
+import { ExpenseItem } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
-import {
-    ArrowLeft,
-    ArrowRight,
-    ChevronFirstIcon,
-    ChevronLastIcon,
-    DownloadCloud,
-    ExternalLink,
-} from "lucide-react";
-import { dateFormat, dateFormatFilter, numberFormat } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+import { dateFormatFilter, numberFormat } from "@/lib/utils";
 
 export default function Expenses({
     auth,

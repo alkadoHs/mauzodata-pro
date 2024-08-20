@@ -3,10 +3,8 @@ import { User as AuthUser } from "@/types";
 import {
     Bell,
     CircleUser,
-    Menu,
-    Package,
-    Package2,
-    Search,
+    Menu, Package2,
+    Search
 } from "lucide-react";
 import { Link, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";

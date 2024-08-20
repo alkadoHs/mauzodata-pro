@@ -1,5 +1,4 @@
 import { Cable } from "lucide-react";
-import React from "react";
 
 const EmptyPlaceHolder = ({ message }: { message: string }) => {
     return (

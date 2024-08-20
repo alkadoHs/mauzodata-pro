@@ -8,7 +8,7 @@ import {
     DialogFooter,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Order, Product } from "@/lib/schemas";
+import { Order } from "@/lib/schemas";
 import { DeleteIcon } from "@/Components/icons/DeleteIcon";
 
 export default function DeleteOrderAction({ order }: { order: Order }) {

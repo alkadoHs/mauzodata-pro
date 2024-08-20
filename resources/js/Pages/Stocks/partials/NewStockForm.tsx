@@ -1,18 +1,10 @@
 import React, { FormEventHandler } from "react";
 import { useForm } from "@inertiajs/react";
-import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import InputError from "@/Components/InputError";
 import { Product } from "@/lib/schemas";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { ReactSearchAutocomplete } from "react-search-autocomplete";
 import { numberFormat } from "@/lib/utils";
 import { Heading4 } from "@/components/Typography/Heading4";

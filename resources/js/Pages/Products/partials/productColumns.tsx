@@ -2,10 +2,8 @@ import { Product } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import DeleteProductAction from "../Actions/DeleteProductAction";
-import UpdateProductAction from "../Actions/UpdateProductAction";
-import ViewProductAction from "../Actions/ViewProductAction";
 import { Badge } from "@/components/ui/badge";
-import { EyeIcon, Pencil, TrendingDown } from "lucide-react";
+import { EyeIcon, TrendingDown } from "lucide-react";
 import { EditIcon } from "@/Components/icons/EditIcon";
 import { router } from "@inertiajs/react";
 

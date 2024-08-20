@@ -12,7 +12,6 @@ import { Head, router } from "@inertiajs/react";
 import { NewStock } from "@/lib/schemas";
 import { dateFormat, numberFormat } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 
 export default function NewStocks({
     auth,

@@ -1,9 +1,6 @@
 import { Product } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import DeleteProductAction from "../Actions/DeleteProductAction";
-import UpdateProductAction from "../Actions/UpdateProductAction";
-import ViewProductAction from "../Actions/ViewProductAction";
 
 export const pricingColumns: ColumnDef<Product>[] = [
     {

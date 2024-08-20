@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import Authenticated from '@/Layouts/AuthenticatedLayout'
 import { PageProps } from '@/types'
 import { Head, useForm } from '@inertiajs/react'
-import React, { FormEventHandler } from 'react'
+import { FormEventHandler } from 'react'
 import { toast } from 'sonner'
 
 const Index = ({auth}: PageProps) => {

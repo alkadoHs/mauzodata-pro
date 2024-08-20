@@ -1,6 +1,5 @@
-import React, { FormEventHandler } from "react";
+import React from "react";
 import { useForm } from "@inertiajs/react";
-import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

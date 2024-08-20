@@ -2,26 +2,20 @@ import Authenticated from "@/Layouts/AuthenticatedLayout";
 import {
     Table,
     TableBody,
-    TableCell,
-    TableFooter,
-    TableHead,
+    TableCell, TableHead,
     TableHeader,
-    TableRow,
+    TableRow
 } from "@/components/ui/table";
-import { paginatedOrder, product_sold } from "@/lib/schemas";
+import { paginatedOrder } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
-import { PageProps, User } from "@/types";
+import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Input } from "@/components/ui/input";
 import { useDebouncedCallback } from "use-debounce";
 import { ChangeEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { ReloadIcon } from "@radix-ui/react-icons";
-import { Filter, OrderFilter } from "./Partials/OrderFilter";
-import CategoryFilter from "./Partials/CategoryFilter";
 import dayjs from "dayjs";
-import { Anchor, ExternalLink, History } from "lucide-react";
+import { ExternalLink, History } from "lucide-react";
 import { OrderDetail } from "./Partials/OrderDetail";
 import OrderStatus from "./Partials/OrderStatus";
 import DeleteOrderAction from "./Partials/DeleteOrderAction";

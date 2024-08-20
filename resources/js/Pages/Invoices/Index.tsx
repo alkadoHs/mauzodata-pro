@@ -1,12 +1,10 @@
-import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Order } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
-import { Head, router } from "@inertiajs/react";
-import React, { useCallback, useEffect } from "react";
+import { Head } from "@inertiajs/react";
+import { useEffect } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Button } from "@/components/ui/button";
 
 dayjs.extend(relativeTime);
 

@@ -11,7 +11,7 @@ import {
     TableBody,
     TableCell, Table
 } from "@/components/ui/table";
-import { CreditSale, paginatedCreditSale } from "@/lib/schemas";
+import { paginatedCreditSale } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";

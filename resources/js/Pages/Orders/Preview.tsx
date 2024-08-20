@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Order } from "@/lib/schemas";
 import { PageProps } from "@/types";
 import { Head, Link } from "@inertiajs/react";
-import { DownloadCloud, Printer } from "lucide-react";
+import { Printer } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 

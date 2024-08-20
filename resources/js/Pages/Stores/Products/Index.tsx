@@ -10,7 +10,7 @@ import {
     ChevronFirstIcon,
     ChevronLastIcon,
 } from "lucide-react";
-import React, { ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { storeProductColumns } from "./partials/storeProductColumns";
 import CreateStoreProduct from "./Actions/CreateStoreProduct";

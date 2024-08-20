@@ -10,7 +10,6 @@ import { AddProductToTheCart } from "./Add";
 import AddCustomer from "./partials/AddCustomer";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Trash2Icon } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { FormEventHandler } from "react";
 import { NumericFormat } from "react-number-format";
 import Authenticated from "@/Layouts/AuthenticatedLayout";

@@ -10,15 +10,11 @@ import {
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Branch, Product, VendorProduct } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
-import { PageProps, User } from "@/types";
+import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
-import React, { ChangeEvent } from "react";
-import CreatestockTransfer from "./actions/CreateStockTranfer";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { useDebouncedCallback } from "use-debounce";
 import { Button } from "@/components/ui/button";
-import { error } from "console";
 import CreateStockTransfer from "./actions/CreateStockTranfer";
 
 const Index = ({

@@ -1,9 +1,3 @@
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Table,
@@ -15,18 +9,14 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
-    CreditSalePayment,
-    ExpenseItem,
-    Order,
-    product_sold,
+    product_sold
 } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
-import { Banknote, DollarSign, HistoryIcon } from "lucide-react";
+import { Banknote, DollarSign } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import EmptyPlaceHolder from "@/components/EmptyPlaceHolder";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 
 dayjs.extend(relativeTime);

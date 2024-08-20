@@ -13,8 +13,7 @@ import {
     ArrowLeft,
     ArrowRight,
     ChevronFirstIcon,
-    ChevronLastIcon,
-    FilterIcon,
+    ChevronLastIcon
 } from "lucide-react";
 
 export default function ProductIndex({

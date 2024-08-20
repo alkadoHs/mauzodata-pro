@@ -2,15 +2,11 @@ import {
     Home,
     ShoppingCart,
     Package,
-    Users,
-    LineChart,
-    ShoppingBasket,
-    Hourglass,
-    Scale,
+    Users, ShoppingBasket, Scale,
     FileCheck2,
     BotIcon,
     SearchCheckIcon,
-    BookOpen,
+    BookOpen
 } from "lucide-react";
 import {
     Accordion,

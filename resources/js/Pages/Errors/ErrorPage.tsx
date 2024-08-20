@@ -1,4 +1,3 @@
-import { url } from "inspector";
 
 export default function ErrorPage({ status }: { status: number }) {
     const title = {

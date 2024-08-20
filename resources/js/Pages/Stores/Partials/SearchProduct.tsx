@@ -15,7 +15,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { PaginatedStoreProduct, StoreProduct } from "@/lib/schemas";
+import { PaginatedStoreProduct } from "@/lib/schemas";
 
 const frameworks = [
     {

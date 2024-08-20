@@ -2,7 +2,6 @@ import { DataTable } from "@/components/DataTable";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
-import React from "react";
 import NewStockForm from "./partials/NewStockForm";
 import { newStockColumns } from "@/columns/newStocks";
 import { NewStock, Product } from "@/lib/schemas";

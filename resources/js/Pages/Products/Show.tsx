@@ -6,9 +6,6 @@ import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Product } from "@/lib/schemas";
 import { PageProps } from "@/types";
 import { router, useForm } from "@inertiajs/react";
-import { EditIcon } from "lucide-react";
-import React, { FormEventHandler } from "react";
-import { toast } from "sonner";
 
 const Show = ({ auth, product }: PageProps<{ product: Product }>) => {
     const { data, setData, patch, processing, reset, errors } = useForm({

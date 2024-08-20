@@ -11,7 +11,6 @@ import {
 import { PageProps, User } from "@/types";
 import { Head, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
-import { DownloadCloud } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
 import { SalesFilter } from "./partials/SalesFilter";
 import { ReloadIcon } from "@radix-ui/react-icons";
