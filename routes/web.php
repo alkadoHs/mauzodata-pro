@@ -122,6 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/expenses', [ReportController::class, 'expenses'])->name('reports.expenses');
     Route::get('/reports/expenses/{expense}/items', [ReportController::class, 'expense_items'])->name('reports.expenseitems');
     Route::get('/reports/stock-transfers', [ReportController::class, 'stock_transfers'])->name('reports.stocktransfers');
+    Route::get('/reports/new-stocks', [ReportController::class, 'new_stocks'])->name('reports.newstocks');
 });
 
 // new stocks

@@ -116,11 +116,11 @@ export default function SalesHistory({
                                 <TableHead className="text-right bg-green-600/50">
                                     TOTAL SOLD
                                 </TableHead>
-                                <TableHead className="text-right bg-indigo-600/50">
-                                    PREV STOCK
-                                </TableHead>
                                 <TableHead className="text-right">
                                     CURRENT STOCK
+                                </TableHead>
+                                <TableHead className="text-right bg-indigo-600/50">
+                                    PREV STOCK
                                 </TableHead>
                                 <TableHead className="text-right  bg-green-600/50">
                                     TOTAL PRICE

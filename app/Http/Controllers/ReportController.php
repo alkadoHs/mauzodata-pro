@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Expense;
 use App\Models\ExpenseItem;
+use App\Models\NewStock;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\StockTransfer;
@@ -135,6 +136,18 @@ class ReportController extends Controller
 
       return Inertia::render('Reports/StockTransfers', [
          'stockTransfers' => $stockTransfers
+      ]);
+    }
+
+    public function new_stocks(): Response
+    {
+      $dateFilter = request()->date ?? null; 
+
+      $newStocks = $dateFilter ? NewStock::with(['product'])->whereDate('created_at', $dateFilter)->get()
+                                    : NewStock::with(['product'])->whereDate('created_at', now())->get();
+
+      return Inertia::render('Reports/NewStocks', [
+         'newStocks' => $newStocks,
       ]);
     }
 
