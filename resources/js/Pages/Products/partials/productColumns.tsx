@@ -83,6 +83,16 @@ export const productColumns: ColumnDef<Product>[] = [
         },
     },
     {
+        accessorKey: "VALUE",
+        header: () => <div className="text-right">VALUE</div>,
+        cell: ({ row }) => {
+            const value = Number(row.original.buy_price) * Number(row.original.stock);
+            const formatted = numberFormat(value);
+
+            return <div className="text-right font-medium">{formatted}</div>;
+        },
+    },
+    {
         accessorKey: "Action",
         header: () => <div className="text-center">Actions</div>,
         cell: ({ row }) => {
@@ -99,10 +109,18 @@ export const productColumns: ColumnDef<Product>[] = [
                         <EyeIcon />
                     </span>
                     <span
-                        onClick={() =>
-                            router.visit(
-                                route("products.edit", row.original.id)
-                            )
+                        onClick={() => {
+                            const key = prompt(
+                                "Enter superadmin key to continue...",
+                            );
+                            if(key == "SHOP900") {
+                                router.visit(
+                                    route("products.edit", row.original.id)
+                                )
+                            } else {
+                                alert("Hujaruhusiwa kurekebisha hii bidhaa.")
+                            }
+                        }
                         }
                         className="text-xl text-indigo-500 cursor-pointer active:opacity-50"
                     >

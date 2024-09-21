@@ -15,11 +15,14 @@ import {
     ChevronFirstIcon,
     ChevronLastIcon
 } from "lucide-react";
+import { Table, TableCell, TableFooter, TableRow } from "@/components/ui/table";
+import { numberFormat } from "@/lib/utils";
 
 export default function ProductIndex({
     auth,
     products,
-}: PageProps<{ products: PaginatedProduct }>) {
+    productsValue,
+}: PageProps<{ products: PaginatedProduct, productsValue: number }>) {
     const [filterValue, setFilterValue] = React.useState("");
 
     const pages = React.useMemo(() => {
@@ -43,6 +46,7 @@ export default function ProductIndex({
         },
         1000
     );
+
 
     return (
         <Authenticated user={auth.user}>
@@ -71,6 +75,19 @@ export default function ProductIndex({
                         </div>
                     </div>
                     <DataTable columns={productColumns} data={products.data} />
+
+                    <Table>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell>TOTAL</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell className="text-right lg:pr-14">{ numberFormat(Number(productsValue)) }</TableCell>
+                                <TableCell>-</TableCell>
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
 
                     <div className="flex items-center gap-3 justify-center my-3">
                         <Link

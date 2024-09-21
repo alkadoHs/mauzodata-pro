@@ -19,7 +19,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorProductController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Middleware\RemoveCommaFromInput;
+use App\Models\Product;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -33,7 +35,9 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $total = Product::select(DB::raw('SUM(stock * buy_price)  as value'))->first()?->value;
+
+    return Inertia::render('Dashboard', ['productsValue' => $total]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
