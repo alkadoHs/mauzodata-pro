@@ -130,6 +130,8 @@ const Inventory = ({ auth,products }: PageProps<{ products: PaginatedInventory}>
                                       Number(product.stock) +
                                           Number(
                                               product.order_items_sum_quantity
+                                          ) + Number(
+                                              product.stock_transfers_sum_stock
                                           )
                                   )}
                               </TableCell>
