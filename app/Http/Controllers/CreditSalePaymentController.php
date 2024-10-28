@@ -19,13 +19,19 @@ class CreditSalePaymentController extends Controller
 
         $totalDept = $totalPrice - $totalPayments;
 
-        if($totalDept > 0 && $validated['amount'] > $totalDept) {
+        if($totalDept > 0 && $validated['amount'] >= $totalDept) {
             $validated['amount'] = $totalDept;
+
+            //complete debt
+            $creditSale->update(['status' => 'paid']);
+
         } elseif($totalDept <= 0) {
+            $creditSale->update(['status' => 'paid']);
             return back()->with('error', "Deni limelipwa tayari");
         }
 
         $creditSale->creditSalePayments()->create($validated);
+
 
         return back();
     }

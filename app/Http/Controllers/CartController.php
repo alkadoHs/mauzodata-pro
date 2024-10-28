@@ -134,21 +134,21 @@ class CartController extends Controller
 
     public function credit_sales(): Response
     {
-        $creditSales = auth()->user()->creditSales()->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])->orderByDesc('created_at')->paginate(25);
+        $creditSales = auth()->user()->creditSales()->where('status', 'onprogresss')->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])->orderByDesc('created_at')->paginate(25);
 
         if(auth()->user()->role == 'admin') {
-            $creditSales = CreditSale::with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])->orderByDesc('created_at')->paginate(50);
+            $creditSales = CreditSale::where('status', 'onprogresss')->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])->orderByDesc('created_at')->paginate(50);
         }
 
         if(request()->search) {
             if(auth()->user()->role == 'admin') {
-                $creditSales = CreditSale::with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])
+                $creditSales = CreditSale::where('status', 'onprogresss')->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])
                              ->whereRelation('customer', 'name', 'LIKE', '%'. request()->search . '%')
-                             ->orderByDesc('created_at')->paginate(10);
+                             ->orderByDesc('created_at')->paginate(25);
             }
-            $creditSales = CreditSale::with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])
+            $creditSales = CreditSale::where('status', 'onprogresss')->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])
                              ->whereRelation('customer', 'name', 'LIKE', '%'. request()->search . '%')
-                             ->orderByDesc('created_at')->paginate(10);
+                             ->orderByDesc('created_at')->paginate(25);
         }
 
         return Inertia::render('Credits/UserCreditSales', [

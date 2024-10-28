@@ -56,7 +56,7 @@ export default function StockTransfers({
                         <TableBody>
                             {stockTransfers?.map((stockTransfer, index) => (
                                 <TableRow key={stockTransfer.id}>
-                                    <TableCell>
+                                    <TableCell className="text-blue-500">
                                         {stockTransfer?.branch?.name}
                                     </TableCell>
                                     <TableCell>

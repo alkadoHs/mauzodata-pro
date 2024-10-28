@@ -11,6 +11,7 @@ import {
     BookOpen,
     Settings,
     ArrowRight,
+    BarChart,
 } from "lucide-react";
 import {
     Accordion,
@@ -277,6 +278,14 @@ const SidebarItems = ({ user }: { user: User }) => {
                                 >
                                     <FileCheck2 className="size-5" />
                                     Zero stock
+                                </Link>
+                                <Link
+                                    as="button"
+                                    href={route("reports.inventory")}
+                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                >
+                                    <BarChart className="size-5" />
+                                    Inventory system
                                 </Link>
                                 {/* <Link
                                 as="button"

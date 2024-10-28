@@ -207,3 +207,37 @@ export type PaymentMethod = {
     id: number;
     name: string;
 };
+
+
+export interface Inventory {
+    id: number;
+    name: string;
+    new_stocks_sum_stock: number;
+    order_items_avg_profit: number;
+    order_items_avg_quantity: number;
+    order_items_avg_total: number;
+    order_items_count: number;
+    order_items_sum_profit: number;
+    order_items_sum_quantity: number;
+    order_items_sum_total: number;
+    stock: number;
+    stock_alert: number;
+    stock_transfers_sum_stock: number;
+    unit: string;
+}
+
+export interface PaginatedInventory {
+    data: Inventory[];
+    links: PaginationLink[];
+    current_page: number;
+    last_page: number;
+    first_page_url: string;
+    last_page_url: string;
+    prev_page_url: string;
+    next_page_url: string;
+    from: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+}
