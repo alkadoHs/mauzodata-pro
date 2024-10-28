@@ -16,8 +16,8 @@ class ReportController extends Controller
 {
     public function user_sales(): Response
     {
-        $from_date = request()->fromDate ?? null;
-        $to_date = request()->toDate ?? null;
+        $from_date = request()->startDate ?? null;
+        $to_date = request()->endDate ?? null;
 
         // dd([$startDate, $to_date]);
 
