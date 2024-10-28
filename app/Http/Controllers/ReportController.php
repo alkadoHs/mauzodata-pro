@@ -16,64 +16,64 @@ class ReportController extends Controller
 {
     public function user_sales(): Response
     {
-        $startDate = request()->startDate ?? null;
-        $endDate = request()->endDate ?? null;
+        $from_date = request()->fromDate ?? null;
+        $to_date = request()->toDate ?? null;
 
-        // dd([$startDate, $endDate]);
+        // dd([$startDate, $to_date]);
 
         $users = User::with([
                 'orders' => fn (Builder $query) => $query
-                                                    ->when(!$startDate && !$endDate, function (Builder $query) use($from_date, $to_date) { 
+                                                    ->when(!$from_date && !$to_date, function (Builder $query) use($from_date, $to_date) { 
                                                         return $query->where('orders.status', 'paid')->whereDate('orders.created_at', today());
                                                      })
-                                                     ->when($startDate && $endDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->where('orders.status', 'paid')->whereDate('orders.created_at', '>=', request()->startDate)->whereDate('orders.created_at', '<=', request()->endDate);
+                                                     ->when($from_date && $to_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->where('orders.status', 'paid')->whereDate('orders.created_at', '>=', $from_date)->whereDate('orders.created_at', '<=', $to_date);
                                                      })
-                                                     ->when($startDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->where('orders.status', 'paid')->whereDate('orders.created_at', '>=', request()->startDate);
+                                                     ->when($from_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->where('orders.status', 'paid')->whereDate('orders.created_at', '>=', $from_date);
                                                      })
-                                                     ->when($endDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->where('orders.status', 'paid')->whereDate('orders.created_at', '<=', request()->endDate);
+                                                     ->when($to_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->where('orders.status', 'paid')->whereDate('orders.created_at', '<=', $to_date);
                                                      })
                 ,
                 'orderItems' => fn (Builder $query) => $query->with('product')
-                                                    ->when(!$startDate && !$endDate, function (Builder $query) use($from_date, $to_date) { 
+                                                    ->when(!$from_date && !$to_date, function (Builder $query) use($from_date, $to_date) { 
                                                         return $query->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', today());
                                                      })
-                                                      ->when($startDate && $endDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', '>=', request()->startDate)->whereDate('order_items.created_at', '<=', request()->endDate);
+                                                      ->when($from_date && $to_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', '>=', $from_date)->whereDate('order_items.created_at', '<=', $to_date);
                                                      })
-                                                     ->when($startDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', '>=', request()->startDate);
+                                                     ->when($from_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', '>=', $from_date);
                                                      })
-                                                     ->when($endDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', '<=', request()->endDate);
+                                                     ->when($to_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', '<=', $to_date);
                                                      }),
                 'expenseItems' => fn (Builder $query) => $query
-                                                    ->when(!$startDate && !$endDate, function (Builder $query) use($from_date, $to_date) { 
+                                                    ->when(!$from_date && !$to_date, function (Builder $query) use($from_date, $to_date) { 
                                                         return $query->whereDate('expense_items.created_at', today());
                                                      })
-                                                     ->when($startDate && $endDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereDate('expense_items.created_at', '>=', request()->startDate)->whereDate('expense_items.created_at', '<=', request()->endDate);
+                                                     ->when($from_date && $to_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereDate('expense_items.created_at', '>=', $from_date)->whereDate('expense_items.created_at', '<=', $to_date);
                                                      })
-                                                     ->when($startDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereDate('expense_items.created_at', '>=', request()->startDate);
+                                                     ->when($from_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereDate('expense_items.created_at', '>=', $from_date);
                                                      })
-                                                     ->when($endDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereDate('expense_items.created_at', '<=', request()->endDate);
+                                                     ->when($to_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereDate('expense_items.created_at', '<=', $to_date);
                                                      }),
                 'creditSalePayments' => fn (Builder $query) => $query
-                                                    ->when(!$startDate && !$endDate, function (Builder $query) use($from_date, $to_date) { 
+                                                    ->when(!$from_date && !$to_date, function (Builder $query) use($from_date, $to_date) { 
                                                         return $query->whereDate('credit_sale_payments.created_at', today());
                                                      })
-                                                     ->when($startDate && $endDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereDate('credit_sale_payments.created_at', '>=', request()->startDate)->whereDate('credit_sale_payments.created_at', '<=', request()->endDate);
+                                                     ->when($from_date && $to_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereDate('credit_sale_payments.created_at', '>=', $from_date)->whereDate('credit_sale_payments.created_at', '<=', $to_date);
                                                      })
-                                                     ->when($startDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereDate('credit_sale_payments.created_at', '>=', request()->startDate);
+                                                     ->when($from_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereDate('credit_sale_payments.created_at', '>=', $from_date);
                                                      })
-                                                     ->when($endDate, function (Builder $query) use($from_date, $to_date) { 
-                                                        return $query->whereDate('credit_sale_payments.created_at', '<=', request()->endDate);
+                                                     ->when($to_date, function (Builder $query) use($from_date, $to_date) { 
+                                                        return $query->whereDate('credit_sale_payments.created_at', '<=', $to_date);
                                                      }),
             ])->get();
                     
