@@ -15,7 +15,7 @@ class CreditSale extends Model
     use HasFactory;
 
     protected $fillable = [
-        'order_id', 'user_id', 'customer_id'
+        'order_id', 'user_id', 'customer_id', 'status'
     ];
 
     public function order(): BelongsTo

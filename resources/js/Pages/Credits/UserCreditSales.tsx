@@ -14,10 +14,10 @@ import {
 import { paginatedCreditSale } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
-import { Head, router } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { HistoryIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronFirstIcon, ChevronLastIcon, HistoryIcon } from "lucide-react";
 import AddCreditPayment from "./Actions/AddCreditPayment";
 import { Heading4 } from "@/components/Typography/Heading4";
 import EmptyPlaceHolder from "@/components/EmptyPlaceHolder";
@@ -25,6 +25,7 @@ import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Input } from "@/components/ui/input";
 import { ChangeEvent } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { Button } from "@/components/ui/button";
 
 dayjs.extend(relativeTime);
 
@@ -56,7 +57,17 @@ const UserCrediSales = ({
                 <Heading4>Credit Sales</Heading4>
 
                 <div className="w-full my-3">
-                    <Input type="search" name="search" onChange={onSearchChange} placeholder="Search customer" />
+                    <Input
+                        type="search"
+                        name="search"
+                        onChange={onSearchChange}
+                        placeholder="Search customer"
+                    />
+                </div>
+                <div className="my-4">
+                    <p className="text-sm">
+                        Total <span className="py-1 px-4 bg-blue-400 rounded">{creditSales.total}</span>
+                    </p>
                 </div>
                 <Accordion type="multiple" className="w-full">
                     {creditSales?.data?.length ? (
@@ -294,6 +305,58 @@ const UserCrediSales = ({
                     )}
                 </Accordion>
             </section>
+
+            <div className="flex items-center gap-3 justify-center my-3">
+                <Link
+                    href={creditSales.first_page_url}
+                    disabled={!creditSales.first_page_url}
+                    preserveScroll
+                >
+                    <Button
+                        variant={"outline"}
+                        size={"sm"}
+                        disabled={!creditSales.first_page_url}
+                    >
+                        <ChevronFirstIcon className="size-5 text-muted-foreground mr-2" />
+                    </Button>
+                </Link>
+                <Link
+                    href={creditSales.prev_page_url}
+                    disabled={!creditSales.prev_page_url}
+                    preserveScroll
+                >
+                    <Button variant={"outline"} size={"sm"}>
+                        <ArrowLeft className="size-5 text-muted-foreground mr-2" />
+                        Prev
+                    </Button>
+                </Link>
+                <span>
+                    page - <b>{creditSales.current_page}</b>
+                </span>
+                <Link
+                    href={creditSales.next_page_url}
+                    disabled={!creditSales.next_page_url}
+                    preserveScroll
+                >
+                    <Button variant={"outline"} size={"sm"}>
+                        Next
+                        <ArrowRight className="size-5 text-muted-foreground mr-l" />
+                    </Button>
+                </Link>
+                <Link
+                    href={creditSales.last_page_url}
+                    disabled={!creditSales.last_page_url}
+                    preserveScroll
+                >
+                    <Button
+                        variant={"outline"}
+                        size={"sm"}
+                        disabled={!creditSales.last_page_url}
+                    >
+                        <ChevronLastIcon className="size-5 text-muted-foreground mr-2" />
+                    </Button>
+                </Link>
+            </div>
         </Authenticated>
     );
 };
