@@ -21,7 +21,7 @@ export default function Expenses({
         <Authenticated user={auth.user}>
             <Head title="expense items" />
 
-            <section className="p-4 pt-0">
+            <section className="pt-0">
                 <header>
                     <h2 className="text-xl my-3">
                         {expenseItems[0]?.expense?.user?.name}

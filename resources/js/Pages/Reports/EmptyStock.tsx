@@ -28,7 +28,7 @@ export default function EmptyStock({
         <Authenticated user={auth.user}>
             <Head title="Zero stocks" />
 
-            <section className="p-4 pt-0">
+            <section className="pt-0">
                 <header>
                     <h2 className="text-xl my-3">Zero stocks </h2>
 

@@ -130,6 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/stock-transfers', [ReportController::class, 'stock_transfers'])->name('reports.stocktransfers');
     Route::get('/reports/new-stocks', [ReportController::class, 'new_stocks'])->name('reports.newstocks');
     Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('reports.inventory');
+    Route::get('/legacy-stock-transfers', [ReportController::class, 'legacy_stock_transfer'])->name('reports.legacyStockTransfers');
 });
 
 // new stocks

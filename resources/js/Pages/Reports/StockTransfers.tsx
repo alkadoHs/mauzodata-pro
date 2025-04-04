@@ -25,7 +25,7 @@ export default function StockTransfers({
         <Authenticated user={auth.user}>
             <Head title="Users" />
 
-            <section className="p-4 pt-0">
+            <section className="pt-0">
                 <header>
                     <h2 className="text-xl my-3">Stock Transfered</h2>
 

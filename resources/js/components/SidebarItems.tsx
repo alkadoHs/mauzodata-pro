@@ -265,6 +265,14 @@ const SidebarItems = ({ user }: { user: User }) => {
                                 </Link>
                                 <Link
                                     as="button"
+                                    href={route("reports.legacyStockTransfers")}
+                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                >
+                                    <FileCheck2 className="size-5" />
+                                    Legacy Transfered stocks
+                                </Link>
+                                <Link
+                                    as="button"
                                     href={route("reports.newstocks")}
                                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                                 >

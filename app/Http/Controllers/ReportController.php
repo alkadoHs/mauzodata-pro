@@ -139,6 +139,18 @@ class ReportController extends Controller
       ]);
     }
 
+    public function legacy_stock_transfer(): Response
+    {
+        $dateFilter = request()->date ?? null; 
+
+      $stockTransfers = $dateFilter ? StockTransfer::with(['product', 'branch'])->whereDate('created_at', $dateFilter)->orderBy('branch_id')->get()
+                                    : StockTransfer::with(['product', 'branch'])->whereDate('created_at', now())->orderBy('branch_id')->get();
+
+      return Inertia::render('Reports/LegacyStockTransfers', [
+         'stockTransfers' => $stockTransfers
+      ]);
+    }
+
     public function new_stocks(): Response
     {
       $dateFilter = request()->date ?? null; 

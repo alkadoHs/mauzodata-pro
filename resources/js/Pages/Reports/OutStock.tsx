@@ -19,7 +19,7 @@ export default function OutStock({ auth, products }: PageProps<{ products: Pagin
         <Authenticated user={auth.user}>
             <Head title="Out of stock" />
 
-            <section className="p-4 pt-0">
+            <section className="pt-0">
                 <header>
                     <h2 className="text-xl my-3">Out of stock products</h2>
 
