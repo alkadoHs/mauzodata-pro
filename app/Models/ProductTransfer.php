@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductTransfer extends Model
 {
-    protected $fillable = ['branch_id', 'user_id'];
+    protected $fillable = ['branch_id', 'user_id', 'status'];
 
 
     public function user(): BelongsTo

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\NewStock;
 use App\Models\Product;
+use App\Models\ProductTransfer;
 use App\Models\StockTransfer;
 use App\Models\User;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -129,8 +130,9 @@ class ReportController extends Controller
     {
       $dateFilter = request()->date ?? null; 
 
-      $stockTransfers = $dateFilter ? StockTransfer::with(['product', 'branch'])->whereDate('created_at', $dateFilter)->orderBy('branch_id')->get()
-                                    : StockTransfer::with(['product', 'branch'])->whereDate('created_at', now())->orderBy('branch_id')->get();
+      $stockTransfers = ProductTransfer::withCount('productTransferItems')->with(['branch', 'user'])->when($dateFilter, function (Builder $query) use($dateFilter) {
+         return $query->whereDate('created_at', $dateFilter);
+      })->orderByDesc('created_at')->limit(25)->get();
 
       return Inertia::render('Reports/StockTransfers', [
          'stockTransfers' => $stockTransfers

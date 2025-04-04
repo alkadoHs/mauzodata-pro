@@ -13,11 +13,14 @@ import { VendorProduct } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { DataTable } from "@/components/DataTable";
+import { productTransferColumns } from "../ProductTransfers/transfer-columns";
+import { ProductTransfer } from "../ProductTransfers/Index";
 
 export default function StockTransfers({
     auth,
     stockTransfers,
-}: PageProps<{ stockTransfers: VendorProduct[] }>) {
+}: PageProps<{ stockTransfers: ProductTransfer[] }>) {
     return (
         <Authenticated user={auth.user}>
             <Head title="Users" />
@@ -46,66 +49,7 @@ export default function StockTransfers({
                     </div>
                 </header>
                 <div className="rounded-md border bg-slate-50 dark:bg-slate-800/50 dark:border-gray-800">
-                    <Table>
-                        <TableHeader>
-                            <TableHead>BRANCH</TableHead>
-                            <TableHead>PRODUCT</TableHead>
-                            <TableHead>STOCK</TableHead>
-                            <TableHead>STATUS</TableHead>
-                        </TableHeader>
-                        <TableBody>
-                            {stockTransfers?.map((stockTransfer, index) => (
-                                <TableRow key={stockTransfer.id}>
-                                    <TableCell className="text-blue-500">
-                                        {stockTransfer?.branch?.name}
-                                    </TableCell>
-                                    <TableCell>
-                                        {stockTransfer?.product?.name}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Input
-                                            className="max-w-20"
-                                            type="number"
-                                            value={numberFormat(
-                                                stockTransfer.stock
-                                            )}
-                                            onBlur={(e) => {
-                                                router.patch(
-                                                    route(
-                                                        "stocktransfer.update",
-                                                        stockTransfer.id
-                                                    ),
-                                                    {
-                                                        stock: parseFloat(
-                                                            e.target.value
-                                                        ),
-                                                    },
-                                                    {
-                                                        onSuccess: () => {
-                                                            // e.target.value =
-                                                            //     stockTransfer.stock.toString();
-                                                        },
-                                                        onError: (errors) => {
-                                                            toast.error(
-                                                                errors.stock
-                                                            );
-                                                            e.target.value =
-                                                                stockTransfer.stock.toString();
-                                                        },
-                                                        preserveState: false,
-                                                        preserveScroll: true,
-                                                    }
-                                                );
-                                            }}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        {stockTransfer?.status}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <DataTable columns={productTransferColumns} data={stockTransfers} />
 
                     <div className="flex items-center gap-3 justify-center my-3"></div>
                 </div>

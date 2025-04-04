@@ -185,6 +185,14 @@ const SidebarItems = ({ user }: { user: User }) => {
                         <BotIcon className="size-5" />
                         Stock Transfers
                     </Link>
+                    <Link
+                        as="button"
+                        href={route("product-transfers.index")}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    >
+                        <BotIcon className="size-5" />
+                        Product Transfers
+                    </Link>
                 </>
             )}
             <Accordion

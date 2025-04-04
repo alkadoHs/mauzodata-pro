@@ -90,7 +90,7 @@ export default function Authenticated({
                 </div>
             </div>
             <div className="max-w-full overflow-hidden flex flex-col">
-                <header className="sticky top-0 flex h-14 items-center gap-4 border-b dark:border-muted/80 bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+                <header className="sticky top-0 print:hidden flex h-14 items-center gap-4 border-b dark:border-muted/80 bg-muted/40 px-4 lg:h-[60px] lg:px-6">
                     <Sheet>
                         <SheetTrigger asChild>
                             <Button
@@ -173,7 +173,7 @@ export default function Authenticated({
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </header>
-                <main className="over flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+                <main className="over flex flex-1 flex-col gap-4 p-4 print:p-0 lg:gap-6 lg:p-6">
                     { children }
                 </main>
             </div>

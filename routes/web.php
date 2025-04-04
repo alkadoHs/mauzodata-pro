@@ -12,6 +12,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductTransferController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StoreProductController;
@@ -159,6 +160,19 @@ Route::middleware(['auth', 'verified'])->controller(PaymentMethodController::cla
     Route::get('/payments','index')->name('payments.index');
     Route::post('/payments','store')->name('payments.store');
     Route::delete('/payments/{paymentMethod}/delete', 'destroy')->name('payments.destroy');
+});
+
+// product transfers
+Route::middleware(['auth', 'verified'])->controller(ProductTransferController::class)->group(function () {
+    Route::get('/product-transfers', 'index')->name('product-transfers.index');
+
+    Route::get('/product-transfers/{productTransfer}/show', 'show')->name('product-transfers.show');
+
+    Route::post('/product-transfers', 'store')->name('product-transfers.store');
+    Route::post('/product-transfers/{product}/cart', 'cart')->name('product-transfers.cart');
+    Route::patch('/product-transfers/{item}/cart/update', 'update_cart')->name('product-transfers.cart.update');
+    // product-transfers.cart.destroy
+    Route::delete('/product-transfers/{item}/cart/destroy', 'destroy_cart')->name('product-transfers.cart.destroy');
 });
 
 require __DIR__.'/auth.php';
