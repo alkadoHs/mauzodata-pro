@@ -48,7 +48,7 @@
         "react-day-picker": "^8.10.1",
         "react-number-format": "^5.3.4",
         "react-search-autocomplete": "^8.5.2",
-        "recharts": "^2.12.4",
+        "recharts": "^2.15.3",
         "sonner": "^1.4.41",
         "tailwind-merge": "^2.2.2",
         "tailwindcss-animate": "^1.0.7",

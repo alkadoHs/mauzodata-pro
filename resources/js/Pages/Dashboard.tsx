@@ -3,120 +3,98 @@ import { Head } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { numberFormat } from "@/lib/utils";
-import { DollarSign, ShoppingCart, BarChart, TrendingUp, TrendingDown } from "lucide-react";
-import { ResponsiveContainer, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Bar } from "recharts";
+import { DollarSign, ShoppingCart, BarChart, TrendingUp, TrendingDown, HandCoins, AlertCircle, Banknote } from "lucide-react";
+import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis } from "recharts";
 import { Heading4 } from "@/components/Typography/Heading4";
+import { DashboardDateFilter } from "@/components/DashboardDateFilter";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart";
+
 
 type KpiProps = {
     kpis: {
-        myTodaysSales: number;
-        myTodaysProfit: number;
-        myTodaysExpenses: number;
-        branchTodaysSales: number;
+        mySales: number;
+        myProfit: number;
+        myExpenses: number;
+        myCreditReceived: number;
+        myOutstandingDebt: number;
+        branchSales: number;
+        branchProfit: number;
+        branchExpenses: number;
+        totalDebt: number;
         totalCapital: number;
     };
     salesChartData: {
         date: string;
         sales: number;
+        profit: number;
     }[];
+    filters: {
+        start_date?: string;
+        end_date?: string;
+    }
 };
 
-export default function Dashboard({ auth, kpis, salesChartData }: PageProps<KpiProps>) {
+const chartConfig = {
+    sales: {
+        label: "Sales",
+        color: "hsl(var(--chart-1))",
+    },
+    profit: {
+        label: "Profit",
+        color: "hsl(var(--chart-2))",
+    },
+} satisfies ChartConfig;
+
+export default function Dashboard({ auth, kpis, salesChartData, filters }: PageProps<KpiProps>) {
     
+    const isAdmin = auth.user.role === 'admin';
+    const filterTitle = filters.start_date && filters.end_date ? `Performance for ${filters.start_date} to ${filters.end_date}` : "Today's Performance";
+
     return (
         <AuthenticatedLayout user={auth.user}>
             <Head title="Dashboard" />
 
+            <div className="flex justify-between items-center mb-4">
+                <Heading4>Dashboard</Heading4>
+                {isAdmin && <DashboardDateFilter filters={filters} />}
+            </div>
+
             <div className="space-y-6">
                 {/* User-specific KPIs */}
-                <Heading4>Your Performance Today</Heading4>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
-                            <ShoppingCart className="size-5 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{numberFormat(kpis.myTodaysSales)}</div>
-                            <p className="text-xs text-muted-foreground">Your total sales for today.</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Today's Profit</CardTitle>
-                            <TrendingUp className="size-5 text-green-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{numberFormat(kpis.myTodaysProfit)}</div>
-                            <p className="text-xs text-muted-foreground">Estimated profit from your sales.</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Today's Expenses</CardTitle>
-                            <TrendingDown className="size-5 text-red-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{numberFormat(kpis.myTodaysExpenses)}</div>
-                             <p className="text-xs text-muted-foreground">Your logged expenses for today.</p>
-                        </CardContent>
-                    </Card>
+                <Heading4>{isAdmin ? "Your Performance" : "Today's Performance"}</Heading4>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Your Sales</CardTitle><ShoppingCart className="size-5 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{numberFormat(kpis.mySales)}</div><p className="text-xs text-muted-foreground">Total cash & credit sales made.</p></CardContent></Card>
+                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Credit Received</CardTitle><HandCoins className="size-5 text-blue-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{numberFormat(kpis.myCreditReceived)}</div><p className="text-xs text-muted-foreground">Payments received for credit sales.</p></CardContent></Card>
+                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Your Expenses</CardTitle><TrendingDown className="size-5 text-red-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{numberFormat(kpis.myExpenses)}</div><p className="text-xs text-muted-foreground">Your logged expenses.</p></CardContent></Card>
+                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">My Outstanding Debt</CardTitle><AlertCircle className="size-5 text-orange-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{numberFormat(kpis.myOutstandingDebt)}</div><p className="text-xs text-muted-foreground">Total debt owed from your credit sales.</p></CardContent></Card>
                 </div>
 
-                {/* Admin-specific KPIs and Charts */}
-                {auth.user.role === 'admin' && (
+                {/* Admin-specific Section */}
+                {isAdmin && (
                     <div className="space-y-6">
                         <Heading4>Branch Overview</Heading4>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-                             <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total Branch Sales (Today)</CardTitle>
-                                    <DollarSign className="size-5 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{numberFormat(kpis.branchTodaysSales)}</div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total Inventory Value (Capital)</CardTitle>
-                                    <BarChart className="size-5 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{numberFormat(kpis.totalCapital)}</div>
-                                </CardContent>
-                            </Card>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                             <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Branch Sales</CardTitle><DollarSign className="size-5 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{numberFormat(kpis.branchSales)}</div></CardContent></Card>
+                            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Est. Profit</CardTitle><TrendingUp className="size-5 text-green-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{numberFormat(kpis.branchProfit)}</div></CardContent></Card>
+                            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Expenses</CardTitle><Banknote className="size-5 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{numberFormat(kpis.branchExpenses)}</div></CardContent></Card>
+                            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Outstanding Debt</CardTitle><AlertCircle className="size-5 text-orange-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{numberFormat(kpis.totalDebt)}</div></CardContent></Card>
                         </div>
-
-                         <Card>
+                        <Card>
                             <CardHeader>
-                                <CardTitle>Sales - Last 7 Days</CardTitle>
-                                <CardDescription>A summary of sales across the branch.</CardDescription>
+                                <CardTitle>Branch Performance</CardTitle>
+                                <CardDescription>{filterTitle}</CardDescription>
                             </CardHeader>
-                            <CardContent className="h-80">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <RechartsBarChart data={salesChartData}>
-                                        <XAxis
-                                            dataKey="date"
-                                            stroke="#888888"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                        />
-                                        <YAxis
-                                            stroke="#888888"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickFormatter={(value) => `${numberFormat(value as number)}`}
-                                        />
-                                        <Tooltip
-                                            cursor={{fill: 'rgba(128, 128, 128, 0.1)'}}
-                                            contentStyle={{ backgroundColor: 'black', border: '1px solid #333', color: 'white' }}
-                                        />
-                                        <Bar dataKey="sales" fill="currentColor" radius={[4, 4, 0, 0]} className="fill-primary" />
+                            <CardContent className="h-96 -ml-6">
+                                <ChartContainer config={chartConfig} className="w-full h-full">
+                                    <RechartsBarChart accessibilityLayer data={salesChartData}>
+                                        <CartesianGrid vertical={false} />
+                                        <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} stroke="hsl(var(--muted-foreground))"/>
+                                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                        <ChartLegend content={<ChartLegendContent />} />
+                                        <Bar dataKey="sales" fill="var(--color-sales)" radius={4} />
+                                        <Bar dataKey="profit" fill="var(--color-profit)" radius={4} />
                                     </RechartsBarChart>
-                                </ResponsiveContainer>
+                                </ChartContainer>
                             </CardContent>
                         </Card>
                     </div>

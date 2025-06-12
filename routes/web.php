@@ -122,6 +122,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // reports
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/reports', fn() => Inertia::render('Reports/Index'))->name('reports.index');
+    
     Route::get('/reports/sales', [ReportController::class, 'user_sales'])->name('reports.sales');
     Route::get('/reports/outstock', [ReportController::class, 'out_stock'])->name('reports.outstock');
     Route::get('/reports/zerostock', [ReportController::class, 'empty_stock'])->name('reports.zerostock');
@@ -131,6 +133,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/new-stocks', [ReportController::class, 'new_stocks'])->name('reports.newstocks');
     Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('reports.inventory');
     Route::get('/legacy-stock-transfers', [ReportController::class, 'legacy_stock_transfer'])->name('reports.legacyStockTransfers');
+
+    Route::get('/reports/charts/top-products', [ReportController::class, 'topProductsChart'])->name('reports.charts.top-products');
+    Route::get('/reports/charts/supplier-purchases', [ReportController::class, 'supplierPurchasesChart'])->name('reports.charts.supplier-purchases');
 });
 
 // new stocks

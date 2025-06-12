@@ -106,19 +106,37 @@ class CartController extends Controller
 
     public function sales(): Response
     {
-        $products_sold = OrderItem::with(['product'])->select('product_id', DB::raw('SUM(quantity)  as total_qty'), DB::raw('SUM(total)  as total_price'))
-                                ->whereRelation('order', 'user_id', auth()->id())
-                                ->whereDate('created_at', today())
-                                ->orderByDesc('created_at')
-                                ->groupBy(['product_id'])->get();
+        $products_sold = OrderItem::with('product')
+            ->select(
+                'product_id',
+                DB::raw('SUM(quantity) as total_qty'),
+                DB::raw('SUM(total) as total_price'),
+                DB::raw('MAX(created_at) as latest_created_at') // ✅ needed for ordering
+            )
+            ->whereRelation('order', 'user_id', auth()->id())
+            ->whereDate('created_at', today())
+            ->groupBy('product_id') // ✅ group only by product_id
+            ->orderByDesc('latest_created_at') // ✅ safe because it's aggregated
+            ->get();
 
         return Inertia::render('Sales/History', [
-            'orders' => auth()->user()->orderItems()->whereRelation('order', 'status', 'paid')->whereDate('order_items.created_at', today())->orderByDesc('created_at')->sum('total'),
-            'payments' => auth()->user()->creditSalePayments()->whereDate('created_at', today())->sum('amount'),
-            'expenses' => auth()->user()->expenseItems()->whereDate('expense_items.created_at', today())->sum('cost'),
+            'orders' => auth()->user()->orderItems()
+                ->whereRelation('order', 'status', 'paid')
+                ->whereDate('order_items.created_at', today())
+                ->sum('total'),
+
+            'payments' => auth()->user()->creditSalePayments()
+                ->whereDate('created_at', today())
+                ->sum('amount'),
+
+            'expenses' => auth()->user()->expenseItems()
+                ->whereDate('expense_items.created_at', today())
+                ->sum('cost'),
+
             'products_sold' => $products_sold
         ]);
     }
+
 
     public function pricing(): Response
     {

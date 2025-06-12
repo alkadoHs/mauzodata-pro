@@ -24,116 +24,52 @@ class OrderController extends Controller
         $search = request()->search ?? null;
         $userId = request()->user_id;
 
-        // $orders = Order::with(['orderItems.product', 'user'])->paginate(25);
-
         $products_sold = OrderItem::query()
+            ->with('product')
+            ->select(
+                'product_id',
+                DB::raw('SUM(quantity) as total_qty'),
+                DB::raw('SUM(total) as total_price'),
+                DB::raw('SUM(total_buy_price) as total_buy_price'),
+                DB::raw('SUM(profit) as total_profit'),
+                DB::raw('MAX(created_at) as latest_created_at') // ✅ for ordering
+            )
             ->when(!$startDate && !$endDate && !$userId, function (Builder $query) {
-                return $query->with(['product'])->select(
-                        'product_id', 
-                        DB::raw('SUM(quantity)  as total_qty'), 
-                        DB::raw('SUM(total)  as total_price'),
-                        DB::raw('SUM(total_buy_price)  as total_buy_price'), 
-                        DB::raw('SUM(profit)  as total_profit')
-                        )
-                        ->orderByDesc('created_at')
-                        ->whereDate('created_at', today())
-                        ->groupBy(['product_id']);
-                })
-            ->when($userId && $endDate, function (Builder $query) {
-                return $query->with(['product'])->select(
-                    'product_id', 
-                    DB::raw('SUM(quantity)  as total_qty'), 
-                    DB::raw('SUM(total)  as total_price'),
-                    DB::raw('SUM(total_buy_price)  as total_buy_price'), 
-                    DB::raw('SUM(profit)  as total_profit')
-                    )
-                    ->whereDate('created_at', '<=', request()->endDate)
-                    ->whereRelation('order', 'user_id', request()->user_id)
-                    ->orderByDesc('created_at')
-                    ->groupBy(['product_id']);
-                })
-            ->when($userId && $startDate && $endDate, function (Builder $query) {
-                return $query->with(['product'])->select(
-                    'product_id', 
-                    DB::raw('SUM(quantity)  as total_qty'), 
-                    DB::raw('SUM(total)  as total_price'),
-                    DB::raw('SUM(total_buy_price)  as total_buy_price'), 
-                    DB::raw('SUM(profit)  as total_profit')
-                    )
-                    ->whereDate('created_at', '>=', request()->startDate)
-                    ->whereDate('created_at', '<=', request()->endDate)
-                    ->whereRelation('order', 'user_id', request()->user_id)
-                    ->orderByDesc('created_at')
-                    ->groupBy(['product_id']);
-                })
-            ->when($startDate, function (Builder $query) {
-                return $query->with(['product'])->select(
-                        'product_id', 
-                        DB::raw('SUM(quantity)  as total_qty'), 
-                        DB::raw('SUM(total)  as total_price'),
-                        DB::raw('SUM(total_buy_price)  as total_buy_price'), 
-                        DB::raw('SUM(profit)  as total_profit')
-                        )
-                        ->orderByDesc('created_at')
-                        ->whereDate('created_at', '>=', request()->startDate)
-                        ->groupBy(['product_id']);
-                })
-            ->when($endDate, function (Builder $query) {
-                return $query->with(['product'])->select(
-                        'product_id', 
-                        DB::raw('SUM(quantity)  as total_qty'), 
-                        DB::raw('SUM(total)  as total_price'),
-                        DB::raw('SUM(total_buy_price)  as total_buy_price'), 
-                        DB::raw('SUM(profit)  as total_profit')
-                        )
-                        ->whereDate('created_at', '<=', request()->endDate)
-                        ->orderByDesc('created_at')
-                        ->groupBy(['product_id']);
-                })
-            ->when($search, function (Builder $query) {
-                return $query->with(['product'])->select(
-                    'product_id', 
-                    DB::raw('SUM(quantity)  as total_qty'), 
-                    DB::raw('SUM(total)  as total_price'),
-                    DB::raw('SUM(total_buy_price)  as total_buy_price'), 
-                    DB::raw('SUM(profit)  as total_profit')
-                    )
-                    ->whereRelation('product', 'name', 'LIKE', '%'. request()->search . '%')
-                    ->orderByDesc('created_at')
-                    ->groupBy(['product_id']);
-                })
-            ->when($userId && $startDate, function (Builder $query) {
-                return $query->with(['product'])->select(
-                    'product_id', 
-                    DB::raw('SUM(quantity)  as total_qty'), 
-                    DB::raw('SUM(total)  as total_price'),
-                    DB::raw('SUM(total_buy_price)  as total_buy_price'), 
-                    DB::raw('SUM(profit)  as total_profit')
-                    )
-                    ->whereDate('created_at', '>=', request()->startDate)
-                    ->whereRelation('order', 'user_id', request()->user_id)
-                    ->orderByDesc('created_at')
-                    ->groupBy(['product_id']);
-                })
-            
+                return $query->whereDate('created_at', today());
+            })
+            ->when($userId, function (Builder $query) use ($userId) {
+                return $query->whereRelation('order', 'user_id', $userId);
+            })
+            ->when($startDate, function (Builder $query) use ($startDate) {
+                return $query->whereDate('created_at', '>=', $startDate);
+            })
+            ->when($endDate, function (Builder $query) use ($endDate) {
+                return $query->whereDate('created_at', '<=', $endDate);
+            })
+            ->when($search, function (Builder $query) use ($search) {
+                return $query->whereHas('product', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                });
+            })
+            ->groupBy('product_id') // ✅ only group by product_id
+            ->orderByDesc('latest_created_at') // ✅ safe because it's aggregated
             ->get();
-                //   ->whereRelation('order', 'user_id', auth()->id())
-                //   ->whereDate('created_at', today())
 
-        $filters = ['dateBtn' => ['startDate' => null, 'endDate' =>null ], 'search' => null];
-        if(request()->search) {
-            $filters['search'] = request()->search;
-        } elseif (request('startDate')) {
-            $filters['dateBtn']['startDate'] = request()->startDate;
-            $filters['dateBtn']['endDate'] = request()->endDate;
-        }
+        $filters = [
+            'dateBtn' => [
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+            ],
+            'search' => $search,
+        ];
+
         return Inertia::render('Sales/Index', [
-            // 'orders' => $orders,
             'filters' => $filters,
             'users' => User::get(),
             'products_sold' => $products_sold,
         ]);
     }
+
 
 
     public function complete(Request $request)

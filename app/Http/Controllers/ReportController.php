@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Expense;
 use App\Models\NewStock;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductTransfer;
 use App\Models\StockTransfer;
 use App\Models\User;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -288,5 +290,46 @@ class ReportController extends Controller
       ]);
     }
 
+
+    public function topProductsChart(Request $request)
+    {
+        $query = OrderItem::with('product')
+            ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->groupBy('product_id')
+            ->orderBy('total_quantity', 'desc')
+            ->limit(5); // Top 5 products
+
+        // You can add date filtering here later if needed
+        // $query->when($request->start_date, fn($q) => $q->whereDate('created_at', '>=', $request->start_date));
+        // $query->when($request->end_date, fn($q) => $q->whereDate('created_at', '<=', $request->end_date));
+
+        $data = $query->get()->map(fn($item) => [
+            'name' => $item->product->name,
+            'quantity' => (int) $item->total_quantity,
+            'fill' => 'hsl(var(--chart-' . (($item->product_id % 5) + 1) . '))'
+        ]);
+
+        return response()->json($data);
+    }
+
+    public function supplierPurchasesChart(Request $request)
+    {
+        $query = \App\Models\PurchaseOrder::with('supplier')
+            ->join('purchase_order_items', 'purchase_orders.id', '=', 'purchase_order_items.purchase_order_id')
+            ->select(
+                'supplier_id',
+                DB::raw('SUM(purchase_order_items.quantity * purchase_order_items.cost) as total_cost')
+            )
+            ->groupBy('supplier_id')
+            ->orderBy('total_cost', 'desc')
+            ->limit(5); // Top 5 suppliers
+
+        $data = $query->get()->map(fn($item) => [
+            'name' => $item->supplier->name,
+            'total' => (int) $item->total_cost
+        ]);
+
+        return response()->json($data);
+    }
 
 }

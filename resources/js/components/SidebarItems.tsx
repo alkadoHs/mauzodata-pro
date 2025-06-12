@@ -320,6 +320,14 @@ const SidebarItems = ({ user }: { user: User }) => {
                                     <BarChart className="size-5" />
                                     Inventory system
                                 </Link>
+                                <Link
+                                    as="button"
+                                    href={route("reports.index")}
+                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                >
+                                    <BarChart className="size-5" />
+                                    Charts
+                                </Link>
                                 {/* <Link
                                 as="button"
                                 href={route("cart.expenses")}
