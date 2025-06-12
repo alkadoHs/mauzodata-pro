@@ -14,11 +14,13 @@ use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTransferController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StoreProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorProductController;
 use App\Http\Controllers\StockTransferController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Middleware\RemoveCommaFromInput;
 use App\Models\Product;
 use Illuminate\Foundation\Application;
@@ -174,6 +176,15 @@ Route::middleware(['auth', 'verified'])->controller(ProductTransferController::c
     Route::patch('/product-transfers/{item}/cart/update', 'update_cart')->name('product-transfers.cart.update');
     // product-transfers.cart.destroy
     Route::delete('/product-transfers/{item}/cart/destroy', 'destroy_cart')->name('product-transfers.cart.destroy');
+});
+
+// Suppliers
+Route::resource('suppliers', SupplierController::class)->except(['edit', 'update'])->middleware(['auth', 'verified']);
+
+// Purchase Orders
+Route::middleware([RemoveCommaFromInput::class])->group(function () {
+    Route::resource('purchase-orders', PurchaseOrderController::class);
+    Route::post('purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
 });
 
 require __DIR__.'/auth.php';
