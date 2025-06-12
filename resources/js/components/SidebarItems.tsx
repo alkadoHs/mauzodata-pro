@@ -67,6 +67,15 @@ const SidebarItems = ({ user }: { user: User }) => {
                                         <ArrowRight className="size-5" />
                                         Payment Methods
                                     </Link>
+
+                                    <Link
+                                        as="button"
+                                        href={route("suppliers.index")}
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                                    >
+                                        <ArrowRight className="size-5" />
+                                        Suppliers
+                                    </Link>
                                 </div>
                             </AccordionContent>
                         </AccordionItem>
