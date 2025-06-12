@@ -66,4 +66,9 @@ class Product extends Model
         return $this->hasMany(StockTransfer::class);
     }
 
+    public function purchaseOrderItems(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
+
 }
