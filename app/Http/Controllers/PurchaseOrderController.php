@@ -12,23 +12,34 @@ use Inertia\Response;
 
 class PurchaseOrderController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index(): Response
     {
         return Inertia::render('PurchaseOrders/Index', [
             'purchaseOrders' => PurchaseOrder::with('supplier', 'user', 'items')
+                ->where('branch_id', auth()->user()->branch_id)
                 ->latest()
                 ->paginate(20),
         ]);
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create(): Response
     {
         return Inertia::render('PurchaseOrders/Create', [
             'suppliers' => Supplier::where('company_id', auth()->user()->company_id)->get(),
-            'products' => Product::get(['id', 'name', 'unit', 'buy_price']),
+            'products' => Product::where('branch_id', auth()->user()->branch_id)
+                ->get(['id', 'name', 'unit', 'buy_price']),
         ]);
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -54,8 +65,14 @@ class PurchaseOrderController extends Controller
         return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created.');
     }
 
+    /**
+     * Display the specified resource.
+     */
     public function show(PurchaseOrder $purchaseOrder): Response
     {
+        // Ensure the user can only view POs from their own branch
+        abort_if($purchaseOrder->branch_id !== auth()->user()->branch_id, 403);
+
         $purchaseOrder->load('supplier', 'user', 'branch', 'items.product');
 
         return Inertia::render('PurchaseOrders/Show', [
@@ -63,8 +80,14 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
+    /**
+     * Mark the Purchase Order as received and update stock.
+     */
     public function receive(Request $request, PurchaseOrder $purchaseOrder)
     {
+        // Ensure the user can only receive POs for their own branch
+        abort_if($purchaseOrder->branch_id !== auth()->user()->branch_id, 403);
+        
         if ($purchaseOrder->status !== 'pending') {
             return back()->withErrors(['status' => 'This PO has already been processed.']);
         }
@@ -73,11 +96,13 @@ class PurchaseOrderController extends Controller
             foreach ($purchaseOrder->items as $item) {
                 // Find the product and increment its stock
                 $product = Product::find($item->product_id);
-                $product->increment('stock', $item->quantity);
+                if ($product) {
+                    $product->increment('stock', $item->quantity);
 
-                // Optional: Update product's buy_price if it has changed
-                if ($product->buy_price != $item->cost) {
-                    $product->update(['buy_price' => $item->cost]);
+                    // Optional: Update product's buy_price if it has changed
+                    if ($product->buy_price != $item->cost) {
+                        $product->update(['buy_price' => $item->cost]);
+                    }
                 }
             }
 

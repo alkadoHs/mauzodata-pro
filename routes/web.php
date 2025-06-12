@@ -5,6 +5,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CreditSalePaymentController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NewStockController;
@@ -37,11 +38,8 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    $total = Product::select(DB::raw('SUM(stock * buy_price)  as value'))->first()?->value;
-
-    return Inertia::render('Dashboard', ['productsValue' => $total]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -179,11 +177,13 @@ Route::middleware(['auth', 'verified'])->controller(ProductTransferController::c
 });
 
 // Suppliers
-Route::resource('suppliers', SupplierController::class)->except(['edit', 'update'])->middleware(['auth', 'verified']);
+Route::resource('suppliers', SupplierController::class)
+    ->only(['index', 'store'])
+    ->middleware(['auth']);
 
 // Purchase Orders
-Route::middleware([RemoveCommaFromInput::class])->group(function () {
-    Route::resource('purchase-orders', PurchaseOrderController::class);
+Route::middleware(['auth', RemoveCommaFromInput::class])->group(function () {
+    Route::resource('purchase-orders', PurchaseOrderController::class)->except(['edit', 'update', 'destroy']);
     Route::post('purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
 });
 

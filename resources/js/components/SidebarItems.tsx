@@ -171,6 +171,14 @@ const SidebarItems = ({ user }: { user: User }) => {
                     </Link>
                     <Link
                         as="button"
+                        href={route("purchase-orders.index")}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    >
+                        <ShoppingCart className="size-5" />
+                        Purchase Orders
+                    </Link>
+                    <Link
+                        as="button"
                         href={route("users.index")}
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                     >

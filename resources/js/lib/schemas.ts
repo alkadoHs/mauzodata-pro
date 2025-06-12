@@ -1,7 +1,7 @@
 import { User } from "@/types";
 
 export type PaginationLink = {
-    url: string;
+    url: string | null;
     label: string;
     active: boolean;
 };
@@ -208,7 +208,6 @@ export type PaymentMethod = {
     name: string;
 };
 
-
 export interface Inventory {
     id: number;
     name: string;
@@ -241,3 +240,50 @@ export interface PaginatedInventory {
     to: number;
     total: number;
 }
+
+// --- NEW SCHEMAS FOR PURCHASE ORDERS ---
+
+export type Supplier = {
+    id: number;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
+};
+
+export type PurchaseOrderItem = {
+    id: number;
+    product: Product;
+    product_id: number;
+    quantity: number;
+    cost: number;
+};
+
+export type PurchaseOrder = {
+    id: number;
+    branch_id: number;
+    user_id: number;
+    supplier_id: number;
+    status: 'pending' | 'received' | 'cancelled';
+    notes: string | null;
+    created_at: string;
+    user: User;
+    supplier: Supplier;
+    items: PurchaseOrderItem[];
+};
+
+export type PaginatedPurchaseOrder = {
+    data: PurchaseOrder[];
+    links: PaginationLink[];
+    current_page: number;
+    last_page: number;
+    first_page_url: string;
+    last_page_url: string;
+    prev_page_url: string;
+    next_page_url: string;
+    from: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+};
