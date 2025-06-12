@@ -8,6 +8,7 @@ use App\Models\ProductTransfer;
 use App\Models\ProductTransferItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ProductTransferController extends Controller
@@ -42,40 +43,45 @@ class ProductTransferController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
-        ]);
+{
+    $validated = $request->validate([
+        'branch_id' => 'required|exists:branches,id',
+    ]);
 
-        $pendingProductTransferItems = null;
+    $pendingProductTransfer = ProductTransfer::where('status', 'pending')
+                                 ->where('user_id', auth()->id())
+                                 ->first();
 
-        $pendingProductTransfer = ProductTransfer::where('status', 'pending')
-                                     ->where('user_id', auth()->id())
-                                     ->first();
-
-        if ($pendingProductTransfer) {
-            // check if the branch id is the same as the pending product transfer branch id
+    if ($pendingProductTransfer) {
+        // Use a transaction to ensure atomicity
+        DB::transaction(function () use ($pendingProductTransfer, $validated) {
             $pendingProductTransfer->update([
                 'branch_id' => $validated['branch_id'],
             ]);
 
-            // get all the product transfer items of the pending product transfer
-            $pendingProductTransferItems = $pendingProductTransfer->productTransferItems()->get();
+            // Get all the product transfer items of the pending product transfer
+            $pendingProductTransferItems = $pendingProductTransfer->productTransferItems()->with('product')->get();
 
-            // for each pending product transfer item decrement the stock of the product
-            foreach ($pendingProductTransferItems as $pendingProductTransferItem) {
-                $pendingProductTransferItem->product->decrement('stock', $pendingProductTransferItem->stock);
+            foreach ($pendingProductTransferItems as $item) {
+                // Decrement the stock of the product
+                $item->product->decrement('stock', $item->stock);
 
-                // update the status of the product transfer item to 'transferred'
-                $pendingProductTransfer->update(['status' => 'transferred']);
+                // Snapshot the stock level *after* decrementing
+                // We call fresh() to get the updated stock value from the database
+                $item->update(['stock_after' => $item->product->fresh()->stock]);
             }
-        } else {
-            return back()->withErrors(['error' => 'You have no pending product transfer']);
-        }
 
-        return redirect()->route('product-transfers.show', $pendingProductTransfer->id)
-            ->with('success', 'Product transfer completed successfully'); 
+            // Update the status of the entire transfer to 'transferred'
+            $pendingProductTransfer->update(['status' => 'transferred']);
+        });
+
+    } else {
+        return back()->withErrors(['error' => 'You have no pending product transfer']);
     }
+
+    return redirect()->route('product-transfers.show', $pendingProductTransfer->id)
+        ->with('success', 'Product transfer completed successfully'); 
+}
 
     /**
      * Display the specified resource.

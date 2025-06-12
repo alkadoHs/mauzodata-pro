@@ -29,6 +29,12 @@ export function dateFormat(date: string) {
     return dayjs(date).format("DD/MM/YYYY");
 }
 
+
+export function dateTimeFormat(date: string) {
+    return dayjs(date).format("DD/MM/YYYY H:m");
+}
+
+
 export function dateFormatFilter(date: string) {
     return dayjs(date).format("YYYY-MM-DD");
 }

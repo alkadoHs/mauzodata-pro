@@ -11,7 +11,8 @@ class ProductTransferItem extends Model
         'product_transfer_id',
         'product_id',
         'stock',
-        'previous_stock'
+        'previous_stock',
+        'stock_after',
     ];
 
     public function product(): BelongsTo

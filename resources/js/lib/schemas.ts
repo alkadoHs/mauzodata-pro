@@ -211,18 +211,12 @@ export type PaymentMethod = {
 export interface Inventory {
     id: number;
     name: string;
-    new_stocks_sum_stock: number;
-    order_items_avg_profit: number;
-    order_items_avg_quantity: number;
-    order_items_avg_total: number;
-    order_items_count: number;
-    order_items_sum_profit: number;
-    order_items_sum_quantity: number;
-    order_items_sum_total: number;
+    unit: string;
     stock: number;
     stock_alert: number;
-    stock_transfers_sum_stock: number;
-    unit: string;
+    stock_out: number | null;
+    stock_in_new: number | null;
+    stock_in_purchase: number | null;
 }
 
 export interface PaginatedInventory {
@@ -286,4 +280,11 @@ export type PaginatedPurchaseOrder = {
     per_page: number;
     to: number;
     total: number;
+};
+
+export type LedgerEntry = {
+    created_at: string;
+    stock_in: number | null;
+    stock_out: number | null;
+    type: 'Sale' | 'Purchase' | 'New Stock' | 'Transfer In' | 'Transfer Out';
 };
