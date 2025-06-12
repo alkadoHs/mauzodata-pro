@@ -1,5 +1,5 @@
 import React, { FormEventHandler, useState } from "react";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, router } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import { Product, Supplier } from "@/lib/schemas";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
@@ -16,17 +16,18 @@ import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 
+// CHANGE 1: quantity and cost are now strings to allow for empty inputs
 interface POItem {
     product_id: number;
     name: string;
-    quantity: number;
-    cost: number;
+    quantity: string;
+    cost: string;
 }
 
 export default function PurchaseOrderCreate({ auth, suppliers, products }: PageProps<{ suppliers: Supplier[], products: Product[] }>) {
     const [poItems, setPoItems] = useState<POItem[]>([]);
     
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         supplier_id: "",
         notes: "",
         items: [] as { product_id: number; quantity: number; cost: number }[],
@@ -37,40 +38,75 @@ export default function PurchaseOrderCreate({ auth, suppliers, products }: PageP
             toast.warning(`${product.name} is already in the list.`);
             return;
         }
+        // CHANGE 2: Create new items with string values
         const newItem: POItem = {
             product_id: product.id,
             name: product.name,
-            quantity: 1,
-            cost: product.buy_price,
+            quantity: "1",
+            cost: product.buy_price.toString(),
         };
+        
         const updatedItems = [...poItems, newItem];
         setPoItems(updatedItems);
-        setData('items', updatedItems.map(({product_id, quantity, cost}) => ({product_id, quantity, cost})));
+        // Convert to numbers when setting form data for the backend
+        setData('items', updatedItems.map(({product_id, quantity, cost}) => ({
+            product_id, 
+            quantity: parseFloat(quantity) || 0,
+            cost: parseFloat(cost) || 0
+        })));
     };
 
-    const handleItemChange = (index: number, field: 'quantity' | 'cost', value: number) => {
+    // CHANGE 3: The entire handleItemChange function is updated
+    const handleItemChange = (index: number, field: 'quantity' | 'cost', value: string) => {
         const updatedItems = [...poItems];
-        updatedItems[index][field] = value;
+        
+        // Allow empty string but prevent non-numeric characters (except one dot)
+        if (!/^\d*\.?\d*$/.test(value)) {
+            return;
+        }
+        
+        updatedItems[index] = { ...updatedItems[index], [field]: value };
         setPoItems(updatedItems);
-        setData('items', updatedItems.map(({product_id, quantity, cost}) => ({product_id, quantity, cost})));
+        
+        // Always update the main form data with correctly parsed numbers
+        const numericItems = updatedItems.map(item => ({
+            product_id: item.product_id,
+            quantity: parseFloat(item.quantity) || 0,
+            cost: parseFloat(item.cost) || 0,
+        }));
+        setData('items', numericItems);
     };
 
     const handleRemoveItem = (index: number) => {
         const updatedItems = poItems.filter((_, i) => i !== index);
         setPoItems(updatedItems);
-        setData('items', updatedItems.map(({product_id, quantity, cost}) => ({product_id, quantity, cost})));
+        const numericItems = updatedItems.map(item => ({
+            product_id: item.product_id,
+            quantity: parseFloat(item.quantity) || 0,
+            cost: parseFloat(item.cost) || 0,
+        }));
+        setData('items', numericItems);
     };
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+        if (data.items.length === 0) {
+            toast.error("You must add at least one item to the transfer.");
+            return;
+        }
         post(route('purchase-orders.store'), {
             onSuccess: () => {
                 toast.success("Purchase Order created.");
             },
         });
     };
-
-    const totalCost = poItems.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
+    
+    // CHANGE 4: Parse strings to float for total cost calculation
+    const totalCost = poItems.reduce((acc, item) => {
+        const cost = parseFloat(item.cost) || 0;
+        const quantity = parseFloat(item.quantity) || 0;
+        return acc + (cost * quantity);
+    }, 0);
 
     return (
         <Authenticated user={auth.user}>
@@ -100,7 +136,7 @@ export default function PurchaseOrderCreate({ auth, suppliers, products }: PageP
                                     <TableHead>Product</TableHead>
                                     <TableHead className="w-[120px]">Quantity</TableHead>
                                     <TableHead className="w-[150px]">Cost/Unit</TableHead>
-                                    <TableHead className="w-[150px]">Subtotal</TableHead>
+                                    <TableHead className="text-right w-[150px]">Subtotal</TableHead>
                                     <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -108,10 +144,27 @@ export default function PurchaseOrderCreate({ auth, suppliers, products }: PageP
                                 {poItems.length > 0 ? poItems.map((item, index) => (
                                     <TableRow key={item.product_id}>
                                         <TableCell>{item.name}</TableCell>
-                                        <TableCell><Input type="number" value={item.quantity} onChange={e => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}/></TableCell>
-                                        <TableCell><Input type="number" value={item.cost} onChange={e => handleItemChange(index, 'cost', parseFloat(e.target.value) || 0)}/></TableCell>
-                                        <TableCell>{numberFormat(item.quantity * item.cost)}</TableCell>
-                                        <TableCell><Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveItem(index)}><Trash className="size-4" /></Button></TableCell>
+                                        {/* CHANGE 5: Update Inputs */}
+                                        <TableCell>
+                                            <Input 
+                                                type="text" 
+                                                value={item.quantity} 
+                                                onChange={e => handleItemChange(index, 'quantity', e.target.value)}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Input 
+                                                type="text" 
+                                                value={item.cost} 
+                                                onChange={e => handleItemChange(index, 'cost', e.target.value)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {numberFormat((parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0))}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveItem(index)}><Trash className="size-4" /></Button>
+                                        </TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow><TableCell colSpan={5} className="text-center h-24">No items added.</TableCell></TableRow>
@@ -152,7 +205,6 @@ export default function PurchaseOrderCreate({ auth, suppliers, products }: PageP
                         </Button>
                     </div>
                 </div>
-
             </form>
         </Authenticated>
     );
