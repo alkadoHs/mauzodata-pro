@@ -2,63 +2,89 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PurchaseOrder;
+use App\Models\Product;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PurchaseOrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): Response
     {
-        //
+        return Inertia::render('PurchaseOrders/Index', [
+            'purchaseOrders' => PurchaseOrder::with('supplier', 'user', 'items')
+                ->latest()
+                ->paginate(20),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): Response
     {
-        //
+        return Inertia::render('PurchaseOrders/Create', [
+            'suppliers' => Supplier::where('company_id', auth()->user()->company_id)->get(),
+            'products' => Product::get(['id', 'name', 'unit', 'buy_price']),
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'notes' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:0.1',
+            'items.*.cost' => 'required|numeric|min:0',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $po = PurchaseOrder::create([
+                'branch_id' => auth()->user()->branch_id,
+                'user_id' => auth()->id(),
+                'supplier_id' => $validated['supplier_id'],
+                'notes' => $validated['notes'],
+            ]);
+
+            $po->items()->createMany($validated['items']);
+        });
+
+        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(PurchaseOrder $purchaseOrder): Response
     {
-        //
+        $purchaseOrder->load('supplier', 'user', 'branch', 'items.product');
+
+        return Inertia::render('PurchaseOrders/Show', [
+            'purchaseOrder' => $purchaseOrder,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function receive(Request $request, PurchaseOrder $purchaseOrder)
     {
-        //
-    }
+        if ($purchaseOrder->status !== 'pending') {
+            return back()->withErrors(['status' => 'This PO has already been processed.']);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        DB::transaction(function () use ($purchaseOrder) {
+            foreach ($purchaseOrder->items as $item) {
+                // Find the product and increment its stock
+                $product = Product::find($item->product_id);
+                $product->increment('stock', $item->quantity);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+                // Optional: Update product's buy_price if it has changed
+                if ($product->buy_price != $item->cost) {
+                    $product->update(['buy_price' => $item->cost]);
+                }
+            }
+
+            // Mark the Purchase Order as received
+            $purchaseOrder->update(['status' => 'received']);
+        });
+
+        return redirect()->route('purchase-orders.show', $purchaseOrder)->with('success', 'Stock has been received and inventory updated.');
     }
 }
