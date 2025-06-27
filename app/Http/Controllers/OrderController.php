@@ -125,7 +125,7 @@ class OrderController extends Controller
         $order = request()->order_id ?? null;
         $search = request()->search ?? null;
 
-        $orders = Order::with(['customer', 'user', 'orderItems.product'])->orderBy('user_id')->latest()->paginate(50);
+        $orders = Order::with(['customer', 'user', 'orderItems.product'])->latest()->paginate(50);
 
         if($search) {
             $orders = Order::with(['customer', 'user', 'orderItems.product'])->where('id', $search)->orWhereRelation('customer', 'name', "%$search%")->paginate(10);
