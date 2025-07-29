@@ -20,7 +20,7 @@ const Index = ({ auth, invoice }: PageProps<{ invoice: Order}>) => {
         <>
             <Head title={`Invoice ${invoice.id}`} />
 
-            <section className="bg-gray-100 text-gray-900 min-h-dvh">
+            <section className="bg-gray-100 text-gray-900 min-h-dvh text-xs">
                 <div className="max-w-2xl mx-auto py-10">
                     <div>
                     </div>
