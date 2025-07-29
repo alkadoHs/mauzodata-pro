@@ -80,7 +80,6 @@ class DashboardController extends Controller
                 ->sum('cost');
 
             $kpis['totalDebt'] = CreditSale::where('status', 'onprogresss')
-                ->whereHas('order', fn($q) => $q->where('branch_id', $branchId))
                 ->get()
                 ->sum(fn($cs) => $cs->order->orderItems()->sum('total') - $cs->creditSalePayments()->sum('amount'));
 
@@ -110,7 +109,7 @@ class DashboardController extends Controller
                     'date' => Carbon::parse($row->date)->format('M j'),
                     'sales' => (int)$row->total_sales,
                     'profit' => (int)$row->total_profit,
-                ]);
+            ]);
         }
 
         return Inertia::render('Dashboard', [
