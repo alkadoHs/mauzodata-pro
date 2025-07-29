@@ -45,6 +45,7 @@ export type Branch = {
     id: number;
     name: string;
     email: string;
+    phone: string;
     city: string;
     address: string;
     tax_id: string;
@@ -258,7 +259,7 @@ export type PurchaseOrder = {
     branch_id: number;
     user_id: number;
     supplier_id: number;
-    status: 'pending' | 'received' | 'cancelled';
+    status: "pending" | "received" | "cancelled";
     notes: string | null;
     created_at: string;
     user: User;
@@ -286,5 +287,5 @@ export type LedgerEntry = {
     created_at: string;
     stock_in: number | null;
     stock_out: number | null;
-    type: 'Sale' | 'Purchase' | 'New Stock' | 'Transfer In' | 'Transfer Out';
+    type: "Sale" | "Purchase" | "New Stock" | "Transfer In" | "Transfer Out";
 };

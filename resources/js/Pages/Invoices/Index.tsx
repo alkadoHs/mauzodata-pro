@@ -8,13 +8,19 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
-const Index = ({ auth, invoice }: PageProps<{ invoice: Order}>) => {
-    const totalPrice = invoice.order_items.reduce((acc, item) => acc + Number(item.total), 0 )
-    const totalQuantity = invoice.order_items.reduce((acc, item) => acc + Number(item.quantity), 0)
+const Index = ({ auth, invoice }: PageProps<{ invoice: Order }>) => {
+    const totalPrice = invoice.order_items.reduce(
+        (acc, item) => acc + Number(item.total),
+        0
+    );
+    const totalQuantity = invoice.order_items.reduce(
+        (acc, item) => acc + Number(item.quantity),
+        0
+    );
 
     useEffect(() => {
-        print()
-    }, [])
+        print();
+    }, []);
 
     return (
         <>
@@ -22,21 +28,25 @@ const Index = ({ auth, invoice }: PageProps<{ invoice: Order}>) => {
 
             <section className="bg-gray-100 text-gray-900 min-h-dvh text-xs">
                 <div className="max-w-2xl mx-auto py-10">
-                    <div>
-                    </div>
+                    <div></div>
                     <div className="text-center">
                         <p className="text-2xl font-bold">
                             {invoice?.branch?.name}
                         </p>
                         <p>{`${invoice?.branch?.address}, ${invoice.branch.city}`}</p>
-                        <p>{`${auth?.user?.phone}`}</p>
+                        <p>{`${invoice?.branch?.phone}`}</p>
                     </div>
                     <hr />
                     <div className="py-2">
                         <p className="text-lg"></p>
                         <p>
                             <b>INVOICE NO: </b>{" "}
-                            <span>#{invoice?.id < 100 ? `0${invoice.id}` :  invoice.id}</span>
+                            <span>
+                                #
+                                {invoice?.id < 100
+                                    ? `0${invoice.id}`
+                                    : invoice.id}
+                            </span>
                         </p>
                         <p>
                             <b>DATE: </b>{" "}
