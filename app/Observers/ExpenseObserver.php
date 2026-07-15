@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 use App\Models\Expense;
+use App\Support\CurrentBranch;
 
 class ExpenseObserver
 {
@@ -9,7 +10,7 @@ class ExpenseObserver
     {
         if (auth()->check()) {
             // $expense->user_id = auth()->user()->id;
-            $expense->branch_id = auth()->user()->branch_id;
+            $expense->branch_id = app(CurrentBranch::class)->writeBranchId();
         }
     }
 }

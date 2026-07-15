@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use App\Models\OrderItem;
+use App\Support\CurrentBranch;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
@@ -20,10 +21,13 @@ class CartController extends Controller
 {
     public function index(): Response
     {
+        // The product() relation bypasses BranchScope, so line items always resolve
+        // their product even if it "belongs" to another branch (common in historical
+        // cross-branch sales). The add-product list below stays branch-scoped.
         $cart = Cart::with(['cartItems.product', 'customer'])->firstOrCreate();
 
         return Inertia::render('Cart/Index', [
-            'cart'=> Cart::with(['cartItems.product', 'customer'])->firstOrCreate(),
+            'cart' => $cart,
             'total' => $cart->cartItems->reduce(fn ($acc, $item) => $acc + $item->quantity * $item->price, 0) ?? 0,
             'products' => Product::where('stock', '>', 0)->get(),
             'paymentMethods' => PaymentMethod::where('company_id', auth()->user()->company_id)->get(),
@@ -90,7 +94,7 @@ class CartController extends Controller
     
     public function addCustomer(StoreCustomerRequest $request) {
         $cart = Cart::first();
-        $customer = Customer::create([...$request->validated(), 'branch_id' => auth()->user()->branch_id]);
+        $customer = Customer::create([...$request->validated(), 'branch_id' => app(CurrentBranch::class)->writeBranchId()]);
 
         $cart->update(['customer_id' => $customer->id]);
         return back();

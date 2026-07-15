@@ -74,7 +74,7 @@ class OrderController extends Controller
 
     public function complete(Request $request)
     {
-        $cart = Cart::with('cartItems')->first();
+        $cart = Cart::with('cartItems.product')->first();
         $totalPrice = $cart->cartItems->reduce(fn ($acc, $item) => $acc + $item->price * $item->quantity);
         $paid = (float) $request->post('paid');
 
@@ -82,7 +82,12 @@ class OrderController extends Controller
             $order = Order::create(['customer_id' => $cart->customer_id, 'user_id' => auth()->id(), ...$request->all()]);
             
             foreach ($cart->cartItems as $item) {
-                $product = Product::find($item->product_id);
+                // Use the eager-loaded product (relation bypasses BranchScope) so
+                // cross-branch line items still resolve; skip if truly missing.
+                $product = $item->product;
+                if (! $product) {
+                    continue;
+                }
 
                 $order->orderItems()->create([
                     'product_id' => $item->product_id,
@@ -91,7 +96,6 @@ class OrderController extends Controller
                     'quantity' => $item->quantity,
                 ]);
 
-                
                 $product->decrement('stock', $item->quantity);
             }
 

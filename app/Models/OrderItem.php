@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\BranchScope;
+use App\Models\Scopes\OrderBranchScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[ScopedBy(OrderBranchScope::class)]
 class OrderItem extends Model
 {
     use HasFactory;
@@ -25,6 +29,6 @@ class OrderItem extends Model
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withoutGlobalScope(BranchScope::class);
     }
 }

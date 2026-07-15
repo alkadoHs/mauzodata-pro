@@ -108,6 +108,12 @@ export default function CreateUser({ branches }: { branches: Branch[] }) {
                                             ADMIN
                                         </SelectItem>
                                         <SelectItem
+                                            key={"manager"}
+                                            value={"manager"}
+                                        >
+                                            MANAGER
+                                        </SelectItem>
+                                        <SelectItem
                                             key={"seller"}
                                             value={"seller"}
                                         >

@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\OrderBranchScope;
 use App\Observers\CreditSaleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy(CreditSaleObserver::class)]
+#[ScopedBy(OrderBranchScope::class)]
 class CreditSale extends Model
 {
     use HasFactory;

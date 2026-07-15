@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BranchContextController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CompanyController;
@@ -17,6 +18,8 @@ use App\Http\Controllers\ProductTransferController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SalesReportController;
+use App\Http\Controllers\CreditSalesReportController;
 use App\Http\Controllers\StoreProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorProductController;
@@ -45,6 +48,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Switch the active branch (admins/managers only; enforced in the controller).
+    Route::post('/branch/switch', [BranchContextController::class, 'switch'])->name('branch.switch');
 });
 
 Route::resource('users', UserController::class)
@@ -137,6 +143,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/reports/charts/top-products', [ReportController::class, 'topProductsChart'])->name('reports.charts.top-products');
     Route::get('/reports/charts/supplier-purchases', [ReportController::class, 'supplierPurchasesChart'])->name('reports.charts.supplier-purchases');
+
+    // Sales report (Date/Branch/Customer/Seller/Status/Total/Paid/Due/GP) + exports
+    Route::get('/reports/sales-report', [SalesReportController::class, 'index'])->name('reports.salesReport');
+    Route::get('/reports/sales-report/excel', [SalesReportController::class, 'excel'])->name('reports.salesReport.excel');
+    Route::get('/reports/sales-report/pdf', [SalesReportController::class, 'pdf'])->name('reports.salesReport.pdf');
+
+    // Credit sales report + exports
+    Route::get('/reports/credit-report', [CreditSalesReportController::class, 'index'])->name('reports.creditReport');
+    Route::get('/reports/credit-report/excel', [CreditSalesReportController::class, 'excel'])->name('reports.creditReport.excel');
+    Route::get('/reports/credit-report/pdf', [CreditSalesReportController::class, 'pdf'])->name('reports.creditReport.pdf');
 });
 
 // new stocks

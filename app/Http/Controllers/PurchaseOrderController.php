@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PurchaseOrder;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Support\CurrentBranch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -18,8 +19,8 @@ class PurchaseOrderController extends Controller
     public function index(): Response
     {
         return Inertia::render('PurchaseOrders/Index', [
+            // Branch isolation handled by PurchaseOrder's BranchScope (respects the active branch / "all").
             'purchaseOrders' => PurchaseOrder::with('supplier', 'user', 'items')
-                ->where('branch_id', auth()->user()->branch_id)
                 ->latest()
                 ->paginate(20),
         ]);
@@ -32,8 +33,8 @@ class PurchaseOrderController extends Controller
     {
         return Inertia::render('PurchaseOrders/Create', [
             'suppliers' => Supplier::where('company_id', auth()->user()->company_id)->get(),
-            'products' => Product::where('branch_id', auth()->user()->branch_id)
-                ->get(['id', 'name', 'unit', 'buy_price']),
+            // Product's BranchScope already limits these to the active branch.
+            'products' => Product::get(['id', 'name', 'unit', 'buy_price']),
         ]);
     }
 
@@ -53,7 +54,7 @@ class PurchaseOrderController extends Controller
 
         DB::transaction(function () use ($validated) {
             $po = PurchaseOrder::create([
-                'branch_id' => auth()->user()->branch_id,
+                'branch_id' => app(CurrentBranch::class)->writeBranchId(),
                 'user_id' => auth()->id(),
                 'supplier_id' => $validated['supplier_id'],
                 'notes' => $validated['notes'],
@@ -70,9 +71,8 @@ class PurchaseOrderController extends Controller
      */
     public function show(PurchaseOrder $purchaseOrder): Response
     {
-        // Ensure the user can only view POs from their own branch
-        abort_if($purchaseOrder->branch_id !== auth()->user()->branch_id, 403);
-
+        // Branch isolation is enforced by BranchScope on route-model binding:
+        // a PO outside the active branch won't resolve (404); "All" mode sees any.
         $purchaseOrder->load('supplier', 'user', 'branch', 'items.product');
 
         return Inertia::render('PurchaseOrders/Show', [
@@ -85,9 +85,7 @@ class PurchaseOrderController extends Controller
      */
     public function receive(Request $request, PurchaseOrder $purchaseOrder)
     {
-        // Ensure the user can only receive POs for their own branch
-        abort_if($purchaseOrder->branch_id !== auth()->user()->branch_id, 403);
-        
+        // Branch isolation enforced by BranchScope on route-model binding.
         if ($purchaseOrder->status !== 'pending') {
             return back()->withErrors(['status' => 'This PO has already been processed.']);
         }

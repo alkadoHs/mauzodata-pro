@@ -11,7 +11,7 @@ export const cartItemColumns: ColumnDef<CartItem>[] = [
         accessorKey: "product",
         header: "PRODUCT",
         cell: ({ row }) => {
-            return row.original.product.name;
+            return row.original.product?.name ?? "—";
         },
     },
     {

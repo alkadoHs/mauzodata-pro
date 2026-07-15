@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductTransfer;
 use App\Models\StockTransfer;
 use App\Models\User;
+use App\Support\CurrentBranch;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -25,7 +26,11 @@ class ReportController extends Controller
 
         // dd([$startDate, $to_date]);
 
-        $users = User::with([
+        // Limit the seller list to the active branch (all branches when "All" is selected).
+        $branchId = app(CurrentBranch::class)->id();
+
+        $users = User::when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->with([
                 'orders' => fn (Builder $query) => $query
                                                     ->when(!$from_date && !$to_date, function (Builder $query) use($from_date, $to_date) { 
                                                         return $query->where('orders.status', 'paid')->whereDate('orders.created_at', today());
@@ -90,7 +95,7 @@ class ReportController extends Controller
     public function out_stock(): Response
     {
         return Inertia::render('Reports/OutStock', [
-            'products' => Product::where('branch_id', auth()->user()->branch_id)->whereColumn('stock', '<', 'stock_alert')->paginate(25),
+            'products' => Product::whereColumn('stock', '<', 'stock_alert')->paginate(25),
         ]);
     }
 
@@ -98,7 +103,7 @@ class ReportController extends Controller
     public function empty_stock(): Response
     {
         return Inertia::render('Reports/EmptyStock', [
-            'products' => Product::where('branch_id', auth()->user()->branch_id)->where('stock', '<', 1)->paginate(25),
+            'products' => Product::where('stock', '<', 1)->paginate(25),
         ]);
     }
 
@@ -106,7 +111,7 @@ class ReportController extends Controller
     public function credit_sales(): Response
     {
         return Inertia::render('Reports/OutStock', [
-            'products' => Product::where('branch_id', auth()->user()->branch_id)->whereColumn('stock', '<', 'stock_alert')->get(),
+            'products' => Product::whereColumn('stock', '<', 'stock_alert')->get(),
         ]);
     }
 
@@ -174,12 +179,12 @@ class ReportController extends Controller
             'search' => 'nullable|string',
         ]);
 
-        $branchId = auth()->user()->branch_id;
         $search = $request->search;
         $fromDate = $request->from_date ? Carbon::parse($request->from_date)->startOfDay() : null;
         $toDate = $request->to_date ? Carbon::parse($request->to_date)->endOfDay() : null;
 
-        $products = Product::where('branch_id', $branchId)
+        // Product's BranchScope limits these to the active branch (all branches under "All").
+        $products = Product::query()
             ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%"))
             ->withCount([
                 'orderItems as stock_out' => function ($query) use ($fromDate, $toDate) {
@@ -217,9 +222,7 @@ class ReportController extends Controller
             'to_date' => 'nullable|date|after_or_equal:from_date',
         ]);
         
-        $branchId = auth()->user()->branch_id;
-        abort_if($product->branch_id !== $branchId, 403);
-
+        // Branch isolation enforced by Product's BranchScope on route-model binding.
         $fromDate = $request->from_date ? Carbon::parse($request->from_date)->startOfDay() : Carbon::now()->startOfMonth();
         $toDate = $request->to_date ? Carbon::parse($request->to_date)->endOfDay() : Carbon::now()->endOfDay();
 

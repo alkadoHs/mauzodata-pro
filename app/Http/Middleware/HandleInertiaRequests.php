@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Branch;
+use App\Support\CurrentBranch;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -30,14 +32,24 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $currentBranch = app(CurrentBranch::class);
+        $user = $request->user();
+        $canSwitch = $currentBranch->canSwitch();
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
                 'success' => session('success'),
                 'error' => session('error'),
                 'info' => session('info'),
-                // 'branch' => auth()->user()->branch()->first(),
+                // Active branch context for the branch switcher.
+                'activeBranch' => $user ? $currentBranch->shareValue() : null,
+                'branch' => $user ? $currentBranch->branch() : null,
+                'canSwitchBranches' => $canSwitch,
+                'branches' => $canSwitch
+                    ? Branch::where('company_id', $user->company_id)->orderBy('name')->get()
+                    : [],
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),

@@ -6,6 +6,7 @@ use App\Models\CreditSale;
 use App\Models\ExpenseItem;
 use App\Models\Product;
 use App\Models\OrderItem;
+use App\Support\CurrentBranch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -17,7 +18,10 @@ class DashboardController extends Controller
     public function index(Request $request): Response
     {
         $user = auth()->user();
-        $isAdmin = $user->role === 'admin';
+        // Admins and managers get the management view (branch KPIs, chart, date filter).
+        // Branch scoping is automatic via the models' global scopes, so a specific
+        // active branch shows that branch and "All" aggregates across the company.
+        $isAdmin = app(CurrentBranch::class)->canSwitch();
 
         // --- Date Filtering ---
         $request->validate([
@@ -63,38 +67,38 @@ class DashboardController extends Controller
             ->whereBetween('expense_items.created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
             ->sum('cost');
 
-        // --- Calculate Admin-Specific KPIs ---
+        // --- Branch KPIs for admins/managers ---
+        // These models are branch-scoped globally, so they already reflect the
+        // active branch (or the whole company when "All branches" is selected).
         if ($isAdmin) {
-            $branchId = $user->branch_id;
-
-            $kpis['branchSales'] = OrderItem::whereRelation('order.branch', 'id', $branchId)
+            $kpis['branchSales'] = OrderItem::query()
                 ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
                 ->sum('total');
 
-            $kpis['branchProfit'] = OrderItem::whereRelation('order.branch', 'id', $branchId)
+            $kpis['branchProfit'] = OrderItem::query()
                 ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
                 ->sum('profit');
-                
-            $kpis['branchExpenses'] = ExpenseItem::whereRelation('expense.branch', 'id', $branchId)
-                ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+
+            // ExpenseItem has no branch_id; scope it through its (branch-scoped) expense.
+            $kpis['branchExpenses'] = ExpenseItem::whereHas('expense')
+                ->whereBetween('expense_items.created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
                 ->sum('cost');
 
             $kpis['totalDebt'] = CreditSale::where('status', 'onprogresss')
                 ->get()
                 ->sum(fn($cs) => $cs->order->orderItems()->sum('total') - $cs->creditSalePayments()->sum('amount'));
 
-            $kpis['totalCapital'] = Product::where('branch_id', $branchId)
+            $kpis['totalCapital'] = Product::query()
                 ->selectRaw('SUM(stock * buy_price) as value')
                 ->first()
                 ->value ?? 0;
-            
-            // User's profit is only calculated for admins
+
+            // The logged-in admin's/manager's own profit.
             $kpis['myProfit'] = OrderItem::whereRelation('order', 'user_id', $user->id)
                 ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
                 ->sum('profit');
 
-            // Chart data is only calculated for admins
-            $salesChartData = OrderItem::whereRelation('order.branch', 'id', $branchId)
+            $salesChartData = OrderItem::query()
                 ->select(
                     DB::raw('DATE(created_at) as date'),
                     DB::raw('SUM(total) as total_sales'),

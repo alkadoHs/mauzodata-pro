@@ -11,6 +11,7 @@ import {
 import { Link, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ModToggle";
+import { BranchSwitcher } from "@/components/BranchSwitcher";
 import { Input } from "@/components/ui/input";
 import {
     Card,
@@ -139,6 +140,7 @@ export default function Authenticated({
                             </div>
                         </form>
                     </div>
+                    <BranchSwitcher />
                     <ModeToggle />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

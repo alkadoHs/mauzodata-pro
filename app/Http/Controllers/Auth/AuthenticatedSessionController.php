@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if (auth()->user()->role !== 'admin') {
+        if (! in_array(auth()->user()->role, ['admin', 'manager'], true)) {
             return redirect()->intended(route('cart.sales', absolute: false));
         }
 

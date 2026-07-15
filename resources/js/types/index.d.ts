@@ -20,7 +20,7 @@ export interface User {
     name: string;
     email: string;
     phone: string;
-    role: "admin" | "seller" | "vendor";
+    role: "admin" | "manager" | "seller" | "vendor";
     isActive: boolean;
     email_verified_at: string;
 }
@@ -42,7 +42,10 @@ export type PageProps<
 > = T & {
     auth: {
         user: User;
-        branch: Branch;
+        branch: Branch | null;
+        activeBranch: number | "all" | null;
+        canSwitchBranches: boolean;
+        branches: Branch[];
         success: string;
         error: string;
         info: string;
