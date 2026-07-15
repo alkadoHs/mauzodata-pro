@@ -40,7 +40,7 @@ export default function Authenticated({
 
     // const auth = PageProps
     return (
-        <div className="grid items-start min-h-screen w-full bg-gray-100 dark:bg-gray-900 md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <div className="grid items-start min-h-screen w-full bg-background md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
             {/* Sidebar start */}
             <div className="sticky top-0 hidden border-r dark:border-muted/80 bg-muted/40 md:block">
                 <div className="flex h-dvh max-h-screen flex-col gap-2">

@@ -9,7 +9,7 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
         @routes
@@ -17,7 +17,7 @@
         @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
         @inertiaHead
     </head>
-    <body style="" class="font-montserrat antialiased text-foreground bg-zinc-950 dark:bg-gray-950">
+    <body style="" class="font-sans antialiased text-foreground bg-background">
         @inertia
     </body>
 </html>
