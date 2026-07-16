@@ -2,8 +2,7 @@ import ReactDOMServer from "react-dom/server";
 import { createInertiaApp } from "@inertiajs/react";
 import createServer from "@inertiajs/react/server";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
-import { RouteParams, route } from "../../vendor/tightenco/ziggy";
-import { RouteName } from "ziggy-js";
+import { route } from "../../vendor/tightenco/ziggy";
 
 const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 
@@ -18,13 +17,22 @@ createServer((page) =>
                 import.meta.glob("./Pages/**/*.tsx")
             ),
         setup: ({ App, props }) => {
-            global.route<RouteName> = (name, params, absolute) =>
-                route(name, params as RouteParams<string & {}>, absolute, {
-                    // @ts-expect-error
-                    ...page.props.ziggy,
-                    // @ts-expect-error
-                    location: new URL(page.props.ziggy.location),
-                });
+            // Bind the global route() helper to this request's Ziggy config so
+            // server-rendered components resolve URLs against the right location.
+            const ziggy = page.props.ziggy as {
+                location: string;
+                [key: string]: unknown;
+            };
+
+            global.route = ((
+                name?: string,
+                params?: unknown,
+                absolute?: boolean
+            ) =>
+                (route as CallableFunction)(name, params, absolute, {
+                    ...ziggy,
+                    location: new URL(ziggy.location),
+                })) as unknown as typeof route;
 
             return <App {...props} />;
         },
