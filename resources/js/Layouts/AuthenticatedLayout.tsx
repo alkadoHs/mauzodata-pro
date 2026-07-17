@@ -106,25 +106,13 @@ export default function Authenticated({
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="flex flex-col">
-                            <nav className="grid gap-2 text-lg font-medium">
-                                <SidebarItems user={user} />
-                            </nav>
-                            <div className="mt-auto">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Upgrade to Pro</CardTitle>
-                                        <CardDescription>
-                                            Unlock all features and get
-                                            unlimited access to our support
-                                            team.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <Button size="sm" className="w-full">
-                                            Upgrade
-                                        </Button>
-                                    </CardContent>
-                                </Card>
+                            {/* The sheet is a fixed inset-y-0 panel, so the nav
+                                needs its own scroll area or anything past the
+                                fold is unreachable. Mirrors the desktop rail. */}
+                            <div className="-mx-2 flex-1 overflow-y-auto px-2">
+                                <nav className="grid items-start gap-2 text-lg font-medium">
+                                    <SidebarItems user={user} />
+                                </nav>
                             </div>
                         </SheetContent>
                     </Sheet>
