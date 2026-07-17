@@ -24,17 +24,23 @@ export default function AddCustomer() {
         e.preventDefault();
 
         post(route("cart.addCustomer"), {
-            onSuccess: () => toast.success("Added customer successfully."),
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                setOpen(false);
+                toast.success("Customer added to this sale.");
+            },
         });
     };
 
     return (
         <>
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger>
+                {/* asChild — without it Radix renders its own <button>, nesting our
+                    Button inside it (invalid DOM, React warns). */}
+                <DialogTrigger asChild>
                     <Button size={"sm"} variant={"outline"}>
-                        <Plus className="size-5 text-foreground mr-2" /> Add
-                        Customer
+                        <Plus className="size-4 mr-2" /> Add Customer
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="">

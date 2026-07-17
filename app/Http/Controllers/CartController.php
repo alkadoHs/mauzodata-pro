@@ -36,59 +36,108 @@ class CartController extends Controller
 
     public function add(Request $request)
     {
-        $product = Product::find($request->input('product_id'));
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
 
-        $cart = Cart::first();
-        
-        $productExist = CartItem::where('product_id', $product->id)->first();
-        if($productExist) {
-            if($product->stock < $productExist->quantity) {
-                return back()->withErrors([
-                    'quantity' => 'Product exceed the available stock.',
-                ]);
-            } 
-            // $productExist->increment('quantity');
-        } else {
-            $cart->cartItems()->create([
-                'product_id' => $product->id,
-                'quantity' => 1,
-                'price' => $product->sale_price
-            ]);
+        $product = Product::find($validated['product_id']);
+
+        if (! $product) {
+            return back()->withErrors(['product_id' => 'That product is not available in this branch.']);
         }
+
+        $cart = Cart::firstOrCreate();
+
+        // Scope the duplicate check to THIS cart. It used to query CartItem globally,
+        // so another seller holding the same product silently blocked the add.
+        $existing = $cart->cartItems()->where('product_id', $product->id)->first();
+
+        if ($existing) {
+            // Re-adding a product bumps the quantity (standard POS behaviour).
+            $quantity = $existing->quantity + 1;
+
+            if ($product->stock < $quantity) {
+                return back()->withErrors([
+                    'quantity' => "Only {$product->stock} {$product->unit} of {$product->name} left in stock.",
+                ]);
+            }
+
+            $existing->update([
+                'quantity' => $quantity,
+                'price' => $this->priceFor($product, $quantity),
+            ]);
+
+            return back();
+        }
+
+        if ($product->stock < 1) {
+            return back()->withErrors(['quantity' => "{$product->name} is out of stock."]);
+        }
+
+        $cart->cartItems()->create([
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => $this->priceFor($product, 1),
+        ]);
 
         return back();
     }
 
     public function update(Request $request, $item_id)
     {
-        $quantity = $request->input('quantity');
-        $item = CartItem::find($item_id);
-        $product = Product::find($item->product_id);
+        $validated = $request->validate([
+            'quantity' => 'required|numeric|min:0.01',
+        ]);
 
-        // dd($item);
-    
-        if($product->stock < $quantity) {
+        $quantity = (float) $validated['quantity'];
+
+        // Scope to the caller's own cart — this used to be CartItem::find($id),
+        // which let any user edit another seller's line by guessing an id.
+        $cart = Cart::firstOrCreate();
+        $item = $cart->cartItems()->find($item_id);
+
+        if (! $item) {
+            return back()->withErrors(['quantity' => 'That item is not in your cart.']);
+        }
+
+        // Relation bypasses BranchScope, so a cross-branch product still resolves.
+        $product = $item->product;
+
+        if (! $product) {
+            return back()->withErrors(['quantity' => 'That product is no longer available.']);
+        }
+
+        if ($product->stock < $quantity) {
             return back()->withErrors([
-                'quantity' => 'Quantity exceed the available stock.'
-            ]);
-        } else {
-            if($product->whole_sale > 0 && $quantity >= $product->whole_sale ) {
-                $item->update([
-                    'quantity' => $quantity,
-                    'price' => $product->whole_price,
-                ]);
-
-                return back()->with(
-                    'message', "Whole sale price applied to this item."
-                );
-            }
-            $item->update([
-                'quantity' => $quantity,
-                'price' => $product->sale_price,
+                'quantity' => "Only {$product->stock} {$product->unit} left in stock.",
             ]);
         }
 
-        return redirect()->back();
+        $price = $this->priceFor($product, $quantity);
+        $item->update(['quantity' => $quantity, 'price' => $price]);
+
+        // 'info' is actually shared to the front end; the old 'message' key never was,
+        // so sellers never saw why the price changed.
+        if ($this->isWholesale($product, $quantity)) {
+            return back()->with('info', "Wholesale price applied to {$product->name}.");
+        }
+
+        return back();
+    }
+
+    /**
+     * Wholesale kicks in once the quantity reaches the product's threshold.
+     */
+    private function isWholesale(Product $product, float $quantity): bool
+    {
+        return $product->whole_sale > 0 && $quantity >= $product->whole_sale;
+    }
+
+    private function priceFor(Product $product, float $quantity): float
+    {
+        return $this->isWholesale($product, $quantity)
+            ? (float) $product->whole_price
+            : (float) $product->sale_price;
     }
 
     
@@ -103,9 +152,23 @@ class CartController extends Controller
 
     public function remove(Request $request, $item_id)
     {
-        $item = CartItem::find($item_id);
-        $item->delete();
+        // Scoped to the caller's own cart (was CartItem::find, i.e. any seller's line).
+        $cart = Cart::firstOrCreate();
+        $cart->cartItems()->where('id', $item_id)->delete();
+
         return back();
+    }
+
+    /**
+     * Take the customer off this sale. Deliberately does NOT delete the customer:
+     * carts.customer_id and credit_sales.customer_id are ON DELETE CASCADE, so
+     * deleting would wipe the in-progress cart and the customer's credit history.
+     */
+    public function removeCustomer()
+    {
+        Cart::firstOrCreate()->update(['customer_id' => null]);
+
+        return back()->with('success', 'Customer removed from this sale.');
     }
 
     public function sales(): Response
@@ -154,35 +217,69 @@ class CartController extends Controller
     }
 
 
-    public function credit_sales(): Response
+    public function credit_sales(Request $request): Response
     {
-        $creditSales = auth()->user()->creditSales()->where('status', 'onprogresss')->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])->orderByDesc('created_at')->paginate(25);
+        $search = trim((string) $request->input('search'));
 
-        if(auth()->user()->role == 'admin') {
-            $creditSales = CreditSale::where('status', 'onprogresss')->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])->orderByDesc('created_at')->paginate(50);
-        }
+        // Admins/managers see the whole (active) branch; everyone else sees only
+        // their own. This used to key off role === 'admin', which left managers
+        // looking like sellers — and the search branch overwrote the user filter
+        // entirely, so a searching seller saw everybody's credit sales.
+        $seesAllSellers = app(CurrentBranch::class)->canSwitch();
 
-        if(request()->search) {
-            if(auth()->user()->role == 'admin') {
-                $creditSales = CreditSale::where('status', 'onprogresss')->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])
-                             ->whereRelation('customer', 'name', 'LIKE', '%'. request()->search . '%')
-                             ->orderByDesc('created_at')->paginate(25);
-            }
-            $creditSales = CreditSale::where('status', 'onprogresss')->with(['creditSalePayments.user', 'user', 'order' => ['customer', 'orderItems']])
-                             ->whereRelation('customer', 'name', 'LIKE', '%'. request()->search . '%')
-                             ->orderByDesc('created_at')->paginate(25);
-        }
+        $creditSales = CreditSale::query()
+            ->where('status', 'onprogresss')
+            ->when(! $seesAllSellers, fn ($q) => $q->where('user_id', auth()->id()))
+            ->when($search, fn ($q) => $q->whereRelation('customer', 'name', 'LIKE', "%{$search}%"))
+            ->with([
+                'user:id,name',
+                'customer:id,name,contact',
+                'creditSalePayments.user:id,name',
+                // Totals come from SQL instead of shipping every order line.
+                'order' => fn ($q) => $q->select('id', 'invoice_number', 'user_id', 'created_at')
+                    ->withSum('orderItems as billed_total', 'total'),
+            ])
+            ->withSum('creditSalePayments as paid_total', 'amount')
+            ->latest()
+            ->paginate(25)
+            ->withQueryString();
 
         return Inertia::render('Credits/UserCreditSales', [
             'creditSales' => $creditSales,
+            'filters' => ['search' => $search],
+            'scope' => $seesAllSellers ? 'branch' : 'mine',
+            'outstandingTotal' => $this->outstandingTotal($seesAllSellers, $search),
         ]);
+    }
+
+    /**
+     * Total still owed across every matching credit sale (not just this page).
+     */
+    private function outstandingTotal(bool $seesAllSellers, string $search): float
+    {
+        return (float) CreditSale::query()
+            ->where('status', 'onprogresss')
+            ->when(! $seesAllSellers, fn ($q) => $q->where('user_id', auth()->id()))
+            ->when($search, fn ($q) => $q->whereRelation('customer', 'name', 'LIKE', "%{$search}%"))
+            ->withSum('creditSalePayments as paid_total', 'amount')
+            ->with(['order' => fn ($q) => $q->withSum('orderItems as billed_total', 'total')])
+            ->get()
+            ->sum(fn ($cs) => (float) ($cs->order->billed_total ?? 0) - (float) ($cs->paid_total ?? 0));
     }
 
     public function expenses(): Response
     {
+        $items = auth()->user()->expenseItems()
+            ->whereDate('expenses.created_at', today())
+            ->select('expense_items.*')
+            ->latest('expense_items.created_at')
+            ->get();
+
         return Inertia::render('Expenses/UserExpenses', [
-            'expenseItems' => auth()->user()->expenseItems()->whereDate('expenses.created_at', now())->get(),
-            'users' => User::where('id', auth()->id())->orWhere('role', 'vendor')->get(),
+            'expenseItems' => $items,
+            'total' => (float) $items->sum('cost'),
+            // Yourself or one of your company's vendors (company-scoped).
+            'users' => ExpenseController::loggableUsers(),
         ]);
     }
 }

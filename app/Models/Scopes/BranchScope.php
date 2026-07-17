@@ -23,7 +23,16 @@ class BranchScope implements Scope
             return;
         }
 
-        $branchId = app(CurrentBranch::class)->id();
+        $current = app(CurrentBranch::class);
+
+        // Fail closed: a branchless non-switcher sees nothing.
+        if ($current->deniesAll()) {
+            $builder->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $branchId = $current->id();
 
         if ($branchId === null) {
             return;

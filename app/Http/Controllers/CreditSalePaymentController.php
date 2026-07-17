@@ -3,36 +3,56 @@
 namespace App\Http\Controllers;
 
 use App\Models\CreditSale;
-use App\Models\Order;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CreditSalePaymentController extends Controller
 {
-    public function add_payment(Request $request, CreditSale $creditSale)
+    public function add_payment(Request $request, CreditSale $creditSale): RedirectResponse
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|max:99999999999',
+            // min:0.01 matters — without it a negative amount was accepted and
+            // silently *increased* the customer's debt.
+            'amount' => 'required|numeric|min:0.01|max:99999999999',
         ]);
-        $order = Order::find($creditSale->order_id);
-        $totalPayments = $creditSale->creditSalePayments()->sum('amount');
-        $totalPrice = $order->orderItems()->sum('total');
 
-        $totalDept = $totalPrice - $totalPayments;
+        // Branch isolation comes from CreditSale's OrderBranchScope on route-model
+        // binding; use the relation rather than a branch-scoped Order::find().
+        $order = $creditSale->order;
 
-        if($totalDept > 0 && $validated['amount'] >= $totalDept) {
-            $validated['amount'] = $totalDept;
-
-            //complete debt
-            $creditSale->update(['status' => 'paid']);
-
-        } elseif($totalDept <= 0) {
-            $creditSale->update(['status' => 'paid']);
-            return back()->with('error', "Deni limelipwa tayari");
+        if (! $order) {
+            return back()->withErrors(['amount' => 'This credit sale has no order attached.']);
         }
 
-        $creditSale->creditSalePayments()->create($validated);
+        $settled = false;
 
+        DB::transaction(function () use ($creditSale, $order, $validated, &$settled) {
+            // Lock so two people taking a payment at once can't both overpay.
+            $paid = (float) $creditSale->creditSalePayments()->lockForUpdate()->sum('amount');
+            $billed = (float) $order->orderItems()->sum('total');
+            $outstanding = $billed - $paid;
 
-        return back();
+            if ($outstanding <= 0) {
+                $creditSale->update(['status' => 'paid']);
+                $settled = true;
+
+                return;
+            }
+
+            // Never take more than what's owed — clamp, then settle if cleared.
+            $amount = min((float) $validated['amount'], $outstanding);
+            $creditSale->creditSalePayments()->create(['amount' => $amount]);
+
+            if ($amount >= $outstanding) {
+                $creditSale->update(['status' => 'paid']);
+            }
+        });
+
+        if ($settled) {
+            return back()->withErrors(['amount' => 'This debt has already been paid off.']);
+        }
+
+        return back()->with('success', 'Payment recorded.');
     }
 }

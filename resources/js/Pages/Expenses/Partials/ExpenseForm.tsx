@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { router } from "@inertiajs/react";
+import { useForm } from "@inertiajs/react";
 import {
     Select,
     SelectContent,
@@ -13,129 +13,163 @@ import {
 } from "@/components/ui/select";
 import { User } from "@/types";
 import { Label } from "@/components/ui/label";
+import InputError from "@/Components/InputError";
+import { numberFormat } from "@/lib/utils";
 
-interface Expense {
-    item: string;
-    cost: string;
-}
+type Line = { item: string; cost: string };
 
 const ExpenseForm = ({ user, vendors }: { user: User; vendors: User[] }) => {
-    const [expenses, setExpenses] = useState<Expense[]>([
-        { item: "", cost: "" },
-    ]);
-    const [userId, setUserId] = useState(user.id.toString());
+    const [lines, setLines] = useState<Line[]>([{ item: "", cost: "" }]);
 
-    const handleChange = (
-        index: number,
-        field: keyof Expense,
-        value: string
-    ) => {
-        const newExpenses = [...expenses];
-        newExpenses[index][field] = value;
-        setExpenses(newExpenses);
+    const { data, setData, post, processing, errors, reset } = useForm<{
+        user_id: string;
+        expenses: Line[];
+    }>({
+        user_id: String(user.id),
+        expenses: [],
+    });
+
+    const sync = (next: Line[]) => {
+        setLines(next);
+        setData("expenses", next);
     };
 
-    const handleAddExpense = () => {
-        setExpenses([...expenses, { item: "", cost: "" }]);
+    const change = (index: number, field: keyof Line, value: string) => {
+        // Copy the row too — spreading the array alone still shares the row object.
+        const next = lines.map((l, i) => (i === index ? { ...l, [field]: value } : l));
+        sync(next);
     };
 
-    const handleRemoveExpense = (index: number) => {
-        const newExpenses = [...expenses];
-        newExpenses.splice(index, 1);
-        setExpenses(newExpenses);
-    };
+    const addLine = () => sync([...lines, { item: "", cost: "" }]);
+    const removeLine = (index: number) => sync(lines.filter((_, i) => i !== index));
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const filled = (l: Line) => l.item.trim() !== "" && l.cost.trim() !== "";
+    const canAdd = lines.length === 0 || filled(lines[lines.length - 1]);
+    const total = lines.reduce((acc, l) => acc + (parseFloat(l.cost) || 0), 0);
 
-        // Check if any expense fields are empty
-        if (
-            expenses.some(
-                (expense) =>
-                    expense.item.trim() === "" || expense.cost.trim() === ""
-            )
-        ) {
-            toast.error("Please fill all the inputs.");
+    const submit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if (lines.length === 0 || lines.some((l) => !filled(l))) {
+            toast.error("Fill in every item and cost first.");
             return;
         }
 
-        router.post(
-            route("expenses.store"),
-            { expenses: expenses as any, user_id: userId },
-            {
-                onSuccess: () => toast.success("Submitted successfully."),
-                preserveState: false,
-            }
-        );
+        post(route("expenses.store"), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success("Expenses recorded.");
+                reset();
+                setLines([{ item: "", cost: "" }]);
+            },
+            onError: (errs) =>
+                toast.error(errs.user_id ?? errs.expenses ?? "Could not save."),
+        });
     };
 
-    const isExpenseFilled = (expense: Expense) => {
-        return expense.item.trim() !== "" && expense.cost.trim() !== "";
-    };
-
-    const canAddExpense =
-        expenses.length === 0 || isExpenseFilled(expenses[expenses.length - 1]);
+    const forVendor = data.user_id !== String(user.id);
 
     return (
-        <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid gap-2 mb-2">
-                <Label htmlFor="user_id">User(Vendor/Seller)</Label>
+        <form
+            onSubmit={submit}
+            className="space-y-4 rounded-xl border border-border bg-card p-4"
+        >
+            <div className="space-y-1.5 sm:max-w-xs">
+                <Label htmlFor="user_id">Logged for</Label>
                 <Select
-                    value={userId}
-                    name="user_id"
-                    onValueChange={(value) => setUserId(value)}
+                    value={data.user_id}
+                    onValueChange={(v) => setData("user_id", v)}
                 >
-                    <SelectTrigger>
-                        <SelectValue id="user_id" placeholder="Salect seller" />
+                    <SelectTrigger id="user_id">
+                        <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
-                        {vendors.map((vendor) => (
-                            <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                                {vendor.name}
+                        {vendors.map((v) => (
+                            <SelectItem key={v.id} value={String(v.id)}>
+                                {v.id === user.id ? `${v.name} (you)` : v.name}
                             </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
+                {forVendor && (
+                    <p className="text-xs text-muted-foreground">
+                        These expenses will be recorded against this vendor, not you.
+                    </p>
+                )}
+                <InputError message={errors.user_id} />
             </div>
 
-            {expenses.map((expense, index) => (
-                <div key={index} className="flex gap-4 items-center">
-                    <Input
-                        type="text"
-                        placeholder="Item"
-                        value={expense.item}
-                        onChange={(e) =>
-                            handleChange(index, "item", e.target.value)
-                        }
-                    />
-                    <Input
-                        type="number"
-                        placeholder="Cost"
-                        value={expense.cost}
-                        onChange={(e) =>
-                            handleChange(index, "cost", e.target.value)
-                        }
-                    />
-                    <Button
-                        variant={"destructive"}
-                        size={"icon"}
-                        className="px-2"
-                        onClick={() => handleRemoveExpense(index)}
-                    >
-                        <Trash className="size-5" />
+            <div className="space-y-2">
+                {lines.map((line, index) => {
+                    const itemErr = (errors as Record<string, string>)[
+                        `expenses.${index}.item`
+                    ];
+                    const costErr = (errors as Record<string, string>)[
+                        `expenses.${index}.cost`
+                    ];
+
+                    return (
+                        <div key={index}>
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    placeholder="What was it for?"
+                                    value={line.item}
+                                    onChange={(e) => change(index, "item", e.target.value)}
+                                    className="flex-1"
+                                />
+                                <Input
+                                    inputMode="decimal"
+                                    placeholder="Cost"
+                                    value={line.cost}
+                                    onChange={(e) => {
+                                        // Digits + one decimal point; no negatives.
+                                        if (!/^\d*\.?\d*$/.test(e.target.value)) return;
+                                        change(index, "cost", e.target.value);
+                                    }}
+                                    className="w-32"
+                                />
+                                {/* type="button" — without it these submit the form */}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="shrink-0 text-destructive"
+                                    aria-label="Remove line"
+                                    disabled={lines.length === 1}
+                                    onClick={() => removeLine(index)}
+                                >
+                                    <Trash2 className="size-4" />
+                                </Button>
+                            </div>
+                            <InputError message={itemErr || costErr} className="mt-1" />
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={addLine}
+                    disabled={!canAdd}
+                >
+                    <Plus className="size-4" /> Add line
+                </Button>
+
+                <div className="flex items-center gap-4">
+                    <span className="text-sm text-muted-foreground">
+                        Total{" "}
+                        <b className="text-foreground tabular-nums">
+                            {numberFormat(total)}
+                        </b>
+                    </span>
+                    <Button type="submit" disabled={processing || total <= 0}>
+                        {processing ? "Saving…" : "Save expenses"}
                     </Button>
                 </div>
-            ))}
-
-            <div className="space-x-4">
-                <Button
-                    variant={"outline"}
-                    onClick={handleAddExpense}
-                    disabled={!canAddExpense}
-                >
-                    Add Expense
-                </Button>
-                <Button type="submit">Submit</Button>
             </div>
         </form>
     );

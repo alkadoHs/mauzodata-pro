@@ -40,7 +40,19 @@ class CurrentBranch
      */
     public function isAll(): bool
     {
-        return $this->id() === null && auth()->check();
+        return $this->id() === null && auth()->check() && ! $this->deniesAll();
+    }
+
+    /**
+     * Fail-closed guard: a user who cannot switch branches but has no branch of
+     * their own (e.g. orphaned by a branch deletion, since users.branch_id is
+     * ON DELETE SET NULL) must see NOTHING rather than everything.
+     */
+    public function deniesAll(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ! $this->canSwitch() && $user->branch_id === null;
     }
 
     /**

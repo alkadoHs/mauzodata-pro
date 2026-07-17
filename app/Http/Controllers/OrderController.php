@@ -12,6 +12,7 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -74,13 +75,44 @@ class OrderController extends Controller
 
     public function complete(Request $request)
     {
-        $cart = Cart::with('cartItems.product')->first();
-        $totalPrice = $cart->cartItems->reduce(fn ($acc, $item) => $acc + $item->price * $item->quantity);
-        $paid = (float) $request->post('paid');
+        $validated = $request->validate([
+            'status' => 'required|in:paid,credit',
+            'paid' => 'nullable|numeric|min:0',
+            'print_invoice' => 'nullable|boolean',
+            'payment_method_id' => [
+                'nullable',
+                // Optional (a company may have no methods configured), but when
+                // given it must belong to the caller's own company.
+                Rule::exists('payment_methods', 'id')
+                    ->where('company_id', auth()->user()->company_id),
+            ],
+        ]);
 
-        DB::transaction(function () use ($request, $cart, $totalPrice, $paid) {
-            $order = Order::create(['customer_id' => $cart->customer_id, 'user_id' => auth()->id(), ...$request->all()]);
-            
+        $cart = Cart::with('cartItems.product')->first();
+
+        if (! $cart || $cart->cartItems->isEmpty()) {
+            return back()->withErrors(['cart' => 'Add at least one product before selling.']);
+        }
+
+        // A credit sale has to be owed by somebody.
+        if ($validated['status'] === 'credit' && ! $cart->customer_id) {
+            return back()->withErrors(['status' => 'Select a customer before making a credit sale.']);
+        }
+
+        $paid = (float) ($validated['paid'] ?? 0);
+
+        DB::transaction(function () use ($validated, $cart, $paid) {
+            // Built explicitly — this used to spread $request->all() into the model,
+            // so status/paid/payment_method_id arrived unvalidated.
+            $order = Order::create([
+                'customer_id' => $cart->customer_id,
+                'user_id' => auth()->id(),
+                'status' => $validated['status'],
+                'paid' => $paid,
+                'payment_method_id' => $validated['payment_method_id'] ?? null,
+                'print_invoice' => $validated['print_invoice'] ?? true,
+            ]);
+
             foreach ($cart->cartItems as $item) {
                 // Use the eager-loaded product (relation bypasses BranchScope) so
                 // cross-branch line items still resolve; skip if truly missing.
@@ -100,7 +132,7 @@ class OrderController extends Controller
             }
 
             //if amount paid is less than total price add order to the credit sales
-            if($request->post('status') == 'credit') {
+            if ($validated['status'] === 'credit') {
                 $creditSale = $order->creditSale()->create([
                     'customer_id' => $order->customer_id
                 ]);
@@ -126,16 +158,29 @@ class OrderController extends Controller
 
     public function invoices(Request $request)
     {
-        $order = request()->order_id ?? null;
-        $search = request()->search ?? null;
+        $search = trim((string) $request->input('search'));
 
-        $orders = Order::with(['customer', 'user', 'orderItems.product'])->orderBy('user_id')->latest()->paginate(50);
+        $orders = Order::query()
+            ->with(['customer', 'user', 'orderItems.product'])
+            ->withSum('orderItems as total_amount', 'total')
+            ->when($search, function (Builder $query) use ($search) {
+                // Grouped so the OR can't escape the branch scope's WHERE, and the
+                // customer match actually uses LIKE — it compared with `=` against
+                // "%term%" before, so searching by name never matched anything.
+                $query->where(function (Builder $inner) use ($search) {
+                    if (is_numeric($search)) {
+                        $inner->where('id', (int) $search);
+                    }
+                    $inner->orWhereRelation('customer', 'name', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(50)
+            ->withQueryString();
 
-        if($search) {
-            $orders = Order::with(['customer', 'user', 'orderItems.product'])->where('id', $search)->orWhereRelation('customer', 'name', "%$search%")->paginate(10);
-        }
         return Inertia::render('Sales/Invoices', [
-            'orders'  => $orders,
+            'orders' => $orders,
+            'filters' => ['search' => $search],
         ]);
     }
 

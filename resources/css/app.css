@@ -35,9 +35,12 @@ body {
     --ring: 243 75% 63%;
     --radius: 0.75rem;
 
+    /* Categorical series, fixed order — never cycled.
+       chart-1/chart-2 are the dashboard pair and are validated together against
+       the card surface (CVD ΔE 22.8 deutan / 8.8 tritan, contrast >= 3:1). */
     --chart-1: 243 75% 63%;
-    --chart-2: 199 89% 58%;
-    --chart-3: 162 63% 41%;
+    --chart-2: 162 63% 36%;
+    --chart-3: 199 89% 48%;
     --chart-4: 38 92% 58%;
     --chart-5: 340 75% 60%;
   }
@@ -63,9 +66,12 @@ body {
     --input: 170 15% 17%;
     --ring: 243 85% 72%;
 
+    /* Dark steps are chosen for the dark surface, not flipped from light:
+       they sit in the dark lightness band (0.48–0.67) and are validated
+       against the dark card (CVD ΔE 19.8 deutan / 7.4 tritan, contrast >= 3:1). */
     --chart-1: 243 85% 72%;
-    --chart-2: 199 89% 58%;
-    --chart-3: 162 63% 45%;
+    --chart-2: 162 63% 40%;
+    --chart-3: 199 89% 58%;
     --chart-4: 38 92% 58%;
     --chart-5: 340 75% 60%;
   }

@@ -2,159 +2,142 @@ import Authenticated from "@/Layouts/AuthenticatedLayout";
 import {
     Table,
     TableBody,
-    TableCell, TableHead,
+    TableCell,
+    TableHead,
     TableHeader,
-    TableRow
+    TableRow,
 } from "@/components/ui/table";
 import { paginatedOrder } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
-import { Head, router } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useDebouncedCallback } from "use-debounce";
-import { ChangeEvent } from "react";
+import { useState } from "react";
 import dayjs from "dayjs";
-import { ExternalLink, History } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink, SearchIcon } from "lucide-react";
 import { OrderDetail } from "./Partials/OrderDetail";
 import OrderStatus from "./Partials/OrderStatus";
 import DeleteOrderAction from "./Partials/DeleteOrderAction";
 
 dayjs.extend(relativeTime);
 
-export default function SalesHistory({
+const totalOf = (order: any) =>
+    Number(order.total_amount ?? 0) ||
+    order.order_items?.reduce((acc: number, i: any) => acc + Number(i.total), 0) ||
+    0;
+
+export default function Invoices({
     auth,
     orders,
-}: // filters,
-// users,
-// products_sold,
-PageProps<{
-    orders: paginatedOrder;
-    // filters: Filter;
-    // users: User[];
-    // products_sold: product_sold[];
-}>) {
-    const onSearchChange = useDebouncedCallback(
-        (value?: ChangeEvent<HTMLInputElement>) => {
-            if (value && value?.target.value) {
-                router.visit(route("orders.invoices"), {
-                    data: { search: value.target.value },
-                    preserveScroll: true,
-                    preserveState: true,
-                });
-            } else {
-                router.visit(route("orders.invoices"));
-            }
-        },
-        1000
-    );
+    filters,
+}: PageProps<{ orders: paginatedOrder; filters: { search: string } }>) {
+    const [search, setSearch] = useState(filters?.search ?? "");
+
+    const onSearchChange = useDebouncedCallback((value: string) => {
+        router.get(
+            route("orders.invoices"),
+            value ? { search: value } : {},
+            { preserveState: true, preserveScroll: true, replace: true }
+        );
+    }, 400);
 
     return (
         <Authenticated user={auth.user}>
-            <Head title="Sales History" />
+            <Head title="Invoices" />
 
-            <section className="max-w-full">
-                <div className="lg:px-4 space-y-4">
-                    <div className="rounded-md whitespace-nowrap border bg-slate-50 dark:bg-transparent dark:border-gray-800">
-                        <div className="flex gap-4 py-3 justify-between items-center border-x border-t px-3 rounded-t-md dark:border-slate-800">
-                            <div className="text-default-400 text-lg font-semibold">
-                                Invoices
-                                <span className="text-primary">
-                                    ({orders.total})
-                                </span>{" "}
-                            </div>
+            <section className="space-y-4">
+                <header className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <h1 className="text-xl font-semibold tracking-tight">
+                            Invoices
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {orders.total.toLocaleString()} sale
+                            {orders.total === 1 ? "" : "s"} recorded.
+                        </p>
+                    </div>
+                    <div className="relative w-full sm:max-w-xs">
+                        <SearchIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            value={search}
+                            placeholder="Search invoice no. or customer…"
+                            className="pl-8"
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                onSearchChange(e.target.value);
+                            }}
+                        />
+                    </div>
+                </header>
 
-                            <Input
-                                type="search"
-                                placeholder="search by invoice no..."
-                                className="max-w-sm"
-                                onChange={onSearchChange}
-                            />
-                            {/* <div className="w-full flex gap-2 items-center justify-end">
-                                <Input
-                                    type="search"
-                                    value={filters?.search}
-                                    placeholder="Search product"
-                                    className="bg-slate-50 dark:bg-transparent sm:max-w-[44%]"
-                                    onChange={onSearchChange}
-                                />
-                                <OrderFilter
-                                    orders={orders}
-                                    filters={filters}
-                                    users={users}
-                                />
-                                <Button
-                                    size={"icon"}
-                                    onClick={() =>
-                                        router.visit(route("orders.index"))
-                                    }
-                                >
-                                    <ReloadIcon className="size-5" />
-                                </Button>
-                            </div> */}
-                        </div>
+                {/* Desktop */}
+                <div className="hidden rounded-xl border border-border bg-card md:block">
+                    <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>SELLER</TableHead>
-                                    <TableHead>INV-NO</TableHead>
-                                    <TableHead>STATUS</TableHead>
-                                    <TableHead>PRICE</TableHead>
-                                    <TableHead>DATE</TableHead>
-                                    <TableHead></TableHead>
-                                    <TableHead></TableHead>
+                                    <TableHead>Invoice</TableHead>
+                                    <TableHead>Seller</TableHead>
+                                    <TableHead>Customer</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead className="w-24" />
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {orders?.data.map((order) => (
-                                    <TableRow key={order.id}>
-                                        <TableCell>
-                                            <p className="px-2 dark:border-slate-800">
-                                                {order?.user?.name}
-                                            </p>
+                                {orders.data.length === 0 && (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={7}
+                                            className="h-28 text-center text-muted-foreground"
+                                        >
+                                            No invoices found.
                                         </TableCell>
-                                        <TableCell>
-                                            <p className="px-2 border-x dark:border-slate-800">{`0${order.id}`}</p>
+                                    </TableRow>
+                                )}
+                                {orders.data.map((order) => (
+                                    <TableRow key={order.id}>
+                                        <TableCell className="font-medium tabular-nums">
+                                            #{String(order.id).padStart(2, "0")}
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {order?.user?.name ?? "—"}
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {order?.customer?.name ?? "Walk-in"}
                                         </TableCell>
                                         <TableCell>
                                             <OrderStatus order={order} />
                                         </TableCell>
-                                        <TableCell>
-                                            <p className="px-2  dark:border-slate-800">
-                                                {numberFormat(
-                                                    order?.order_items.reduce(
-                                                        (acc, item) =>
-                                                            acc +
-                                                            Number(item.total),
-                                                        0
-                                                    )
-                                                )}
-                                            </p>
+                                        <TableCell className="text-right font-medium tabular-nums">
+                                            {numberFormat(totalOf(order))}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            <p className="px-2 border-l flex gap-2 items-center dark:border-slate-800">
-                                                <History className="size-4 " />
-                                                {dayjs(order.created_at).format(
-                                                    "DD/MM/YYYY HH:mm"
-                                                )}
-                                            </p>
+                                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                                            {dayjs(order.created_at).format(
+                                                "DD/MM/YYYY HH:mm"
+                                            )}
                                         </TableCell>
                                         <TableCell>
-                                            <OrderDetail order={order} />
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex gap-2">
-                                                <a
-                                                    href={route(
-                                                        "orders.invoice",
-                                                        order.id
-                                                    )}
-                                                    className="text-green-500"
+                                            <div className="flex items-center gap-1">
+                                                <OrderDetail order={order} />
+                                                <Link
+                                                    href={route("orders.invoice", order.id)}
+                                                    aria-label={`Open invoice ${order.id}`}
                                                 >
-                                                    <ExternalLink className="size-5" />
-                                                </a>
-
-                                                <DeleteOrderAction order={order}  />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-8"
+                                                    >
+                                                        <ExternalLink className="size-4" />
+                                                    </Button>
+                                                </Link>
+                                                <DeleteOrderAction order={order} />
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -163,6 +146,87 @@ PageProps<{
                         </Table>
                     </div>
                 </div>
+
+                {/* Mobile */}
+                <div className="space-y-2 md:hidden">
+                    {orders.data.length === 0 && (
+                        <p className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+                            No invoices found.
+                        </p>
+                    )}
+                    {orders.data.map((order) => (
+                        <div
+                            key={order.id}
+                            className="rounded-xl border border-border bg-card p-4"
+                        >
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                    <p className="font-medium tabular-nums">
+                                        #{String(order.id).padStart(2, "0")}
+                                    </p>
+                                    <p className="truncate text-sm text-muted-foreground">
+                                        {order?.customer?.name ?? "Walk-in"} ·{" "}
+                                        {order?.user?.name}
+                                    </p>
+                                </div>
+                                <OrderStatus order={order} />
+                            </div>
+                            <div className="mt-3 flex items-end justify-between">
+                                <span className="text-xs text-muted-foreground">
+                                    {dayjs(order.created_at).format("DD/MM/YYYY HH:mm")}
+                                </span>
+                                <span className="font-semibold tabular-nums">
+                                    {numberFormat(totalOf(order))}
+                                </span>
+                            </div>
+                            <div className="mt-3 flex items-center gap-1 border-t border-border pt-2">
+                                <OrderDetail order={order} />
+                                <Link href={route("orders.invoice", order.id)}>
+                                    <Button variant="ghost" size="icon" className="size-8">
+                                        <ExternalLink className="size-4" />
+                                    </Button>
+                                </Link>
+                                <DeleteOrderAction order={order} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Pagination — the page had none at all, so only the first 50 of
+                    thousands of invoices were ever reachable. */}
+                {orders.last_page > 1 && (
+                    <div className="flex items-center justify-center gap-3 text-sm">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1"
+                            disabled={!orders.prev_page_url}
+                            onClick={() =>
+                                orders.prev_page_url &&
+                                router.get(orders.prev_page_url, {}, { preserveScroll: true })
+                            }
+                        >
+                            <ArrowLeft className="size-4" /> Prev
+                        </Button>
+                        <span className="text-muted-foreground">
+                            {orders.from ?? 0}–{orders.to ?? 0} of{" "}
+                            {orders.total.toLocaleString()} · page{" "}
+                            <b>{orders.current_page}</b> / {orders.last_page}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1"
+                            disabled={!orders.next_page_url}
+                            onClick={() =>
+                                orders.next_page_url &&
+                                router.get(orders.next_page_url, {}, { preserveScroll: true })
+                            }
+                        >
+                            Next <ArrowRight className="size-4" />
+                        </Button>
+                    </div>
+                )}
             </section>
         </Authenticated>
     );

@@ -3,63 +3,37 @@
 namespace App\Http\Controllers;
 
 use App\Models\ExpenseItem;
-use Illuminate\Http\Request;
+use App\Support\CurrentBranch;
+use Illuminate\Http\RedirectResponse;
 
 class ExpenseItemController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Remove a single expense line. Previously there was no way at all to undo a
+     * mistyped expense.
+     *
+     * Guards: the line must belong to an expense in the active branch, and to
+     * your own sheet unless you're an admin/manager.
      */
-    public function index()
+    public function destroy(ExpenseItem $expenseItem): RedirectResponse
     {
-        //
-    }
+        $expense = $expenseItem->expense;
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        // Expense is branch-scoped, so a line from another branch won't resolve.
+        if (! $expense) {
+            abort(404);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $canManageOthers = app(CurrentBranch::class)->canSwitch();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(ExpenseItem $expenseItem)
-    {
-        //
-    }
+        abort_unless(
+            $canManageOthers || $expense->user_id === auth()->id(),
+            403,
+            'You can only remove your own expenses.'
+        );
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ExpenseItem $expenseItem)
-    {
-        //
-    }
+        $expenseItem->delete();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, ExpenseItem $expenseItem)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ExpenseItem $expenseItem)
-    {
-        //
+        return back()->with('success', 'Expense removed.');
     }
 }

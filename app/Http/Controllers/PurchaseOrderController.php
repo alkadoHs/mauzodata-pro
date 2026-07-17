@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PurchaseOrder;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Support\CurrentBranch;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -16,59 +18,104 @@ class PurchaseOrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $request->validate([
+            'search' => 'nullable|string',
+            'status' => 'nullable|in:all,pending,received,cancelled',
+        ]);
+
+        $search = $request->string('search')->trim()->value();
+        $status = $request->input('status', 'all');
+
+        // Branch isolation is handled by PurchaseOrder's BranchScope.
+        $query = PurchaseOrder::query()
+            ->with('supplier:id,name', 'user:id,name')
+            ->withCount('items')
+            // Total value of each PO, computed in SQL rather than shipping every item.
+            ->withSum('items as total_value', DB::raw('quantity * cost'))
+            ->when($status !== 'all', fn (Builder $q) => $q->where('status', $status))
+            ->when($search, fn (Builder $q) => $q->where(function (Builder $inner) use ($search) {
+                $inner->where('id', ltrim($search, 'PO-#'))
+                    ->orWhereRelation('supplier', 'name', 'like', "%{$search}%");
+            }))
+            ->latest();
+
         return Inertia::render('PurchaseOrders/Index', [
-            // Branch isolation handled by PurchaseOrder's BranchScope (respects the active branch / "all").
-            'purchaseOrders' => PurchaseOrder::with('supplier', 'user', 'items')
-                ->latest()
-                ->paginate(20),
+            'purchaseOrders' => $query->paginate(20)->withQueryString(),
+            'stats' => $this->stats(),
+            'filters' => ['search' => $search, 'status' => $status],
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Headline numbers for the current branch (respects the active branch).
      */
+    private function stats(): array
+    {
+        $valueOf = fn (string $status) => (float) PurchaseOrder::where('status', $status)
+            ->join('purchase_order_items', 'purchase_orders.id', '=', 'purchase_order_items.purchase_order_id')
+            ->sum(DB::raw('purchase_order_items.quantity * purchase_order_items.cost'));
+
+        return [
+            'pending_count' => PurchaseOrder::where('status', 'pending')->count(),
+            'pending_value' => $valueOf('pending'),
+            'received_count' => PurchaseOrder::where('status', 'received')->count(),
+            'received_value' => $valueOf('received'),
+        ];
+    }
+
     public function create(): Response
     {
         return Inertia::render('PurchaseOrders/Create', [
-            'suppliers' => Supplier::where('company_id', auth()->user()->company_id)->get(),
+            'suppliers' => Supplier::where('company_id', auth()->user()->company_id)
+                ->orderBy('name')
+                ->get(['id', 'name']),
             // Product's BranchScope already limits these to the active branch.
-            'products' => Product::get(['id', 'name', 'unit', 'buy_price']),
+            'products' => Product::orderBy('name')->get(['id', 'name', 'unit', 'buy_price', 'stock']),
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
+            'supplier_id' => [
+                'required',
+                // Must be a supplier of the caller's own company.
+                \Illuminate\Validation\Rule::exists('suppliers', 'id')
+                    ->where('company_id', auth()->user()->company_id),
+            ],
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:0.1',
+            'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.cost' => 'required|numeric|min:0',
+        ], [
+            'items.required' => 'Add at least one product to this purchase order.',
+            'supplier_id.exists' => 'The selected supplier does not belong to your company.',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $po = DB::transaction(function () use ($validated) {
             $po = PurchaseOrder::create([
                 'branch_id' => app(CurrentBranch::class)->writeBranchId(),
                 'user_id' => auth()->id(),
                 'supplier_id' => $validated['supplier_id'],
-                'notes' => $validated['notes'],
+                'notes' => $validated['notes'] ?? null,
+                // Set explicitly rather than leaning on the column default, so the
+                // in-memory model matches the row straight after create().
+                'status' => 'pending',
             ]);
 
             $po->items()->createMany($validated['items']);
+
+            return $po;
         });
 
-        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created.');
+        return redirect()
+            ->route('purchase-orders.show', $po)
+            ->with('success', 'Purchase order created.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(PurchaseOrder $purchaseOrder): Response
     {
         // Branch isolation is enforced by BranchScope on route-model binding:
@@ -81,33 +128,58 @@ class PurchaseOrderController extends Controller
     }
 
     /**
-     * Mark the Purchase Order as received and update stock.
+     * Mark the Purchase Order as received and move the stock in.
      */
-    public function receive(Request $request, PurchaseOrder $purchaseOrder)
+    public function receive(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
-        // Branch isolation enforced by BranchScope on route-model binding.
         if ($purchaseOrder->status !== 'pending') {
-            return back()->withErrors(['status' => 'This PO has already been processed.']);
+            return back()->withErrors(['status' => 'This purchase order has already been processed.']);
         }
 
         DB::transaction(function () use ($purchaseOrder) {
-            foreach ($purchaseOrder->items as $item) {
-                // Find the product and increment its stock
-                $product = Product::find($item->product_id);
-                if ($product) {
-                    $product->increment('stock', $item->quantity);
+            // Lock the items so a double-submit can't apply the stock twice.
+            $items = $purchaseOrder->items()->with('product')->lockForUpdate()->get();
 
-                    // Optional: Update product's buy_price if it has changed
-                    if ($product->buy_price != $item->cost) {
-                        $product->update(['buy_price' => $item->cost]);
-                    }
+            foreach ($items as $item) {
+                // Use the relation (it bypasses BranchScope) rather than a scoped
+                // Product::find, which could resolve to null for a cross-branch product.
+                $product = $item->product;
+
+                if (! $product) {
+                    continue;
+                }
+
+                $product->increment('stock', $item->quantity);
+                $product->refresh();
+
+                // Record the resulting stock level so the product ledger has a
+                // complete audit trail (mirrors ProductTransferItem).
+                $item->update(['stock_after' => $product->stock]);
+
+                // Keep the buying price in step with what we actually paid.
+                if ((float) $product->buy_price !== (float) $item->cost) {
+                    $product->update(['buy_price' => $item->cost]);
                 }
             }
 
-            // Mark the Purchase Order as received
             $purchaseOrder->update(['status' => 'received']);
         });
 
-        return redirect()->route('purchase-orders.show', $purchaseOrder)->with('success', 'Stock has been received and inventory updated.');
+        return back()->with('success', 'Stock received and inventory updated.');
+    }
+
+    /**
+     * Cancel a purchase order that hasn't been received yet. Non-destructive:
+     * the record stays for the audit trail, no stock moves.
+     */
+    public function cancel(PurchaseOrder $purchaseOrder): RedirectResponse
+    {
+        if ($purchaseOrder->status !== 'pending') {
+            return back()->withErrors(['status' => 'Only a pending purchase order can be cancelled.']);
+        }
+
+        $purchaseOrder->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Purchase order cancelled.');
     }
 }

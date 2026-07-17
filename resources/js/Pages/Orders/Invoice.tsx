@@ -4,170 +4,147 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { Button } from "@/components/ui/button";
 import { Order } from "@/lib/schemas";
 import { PageProps } from "@/types";
-import { Head, Link, router } from "@inertiajs/react";
-import { ArrowLeftSquare, Printer } from "lucide-react";
+import { Head, Link } from "@inertiajs/react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { numberFormat } from "@/lib/utils";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { ReactSearchAutocomplete } from "react-search-autocomplete";
+import OrderStatus from "@/Pages/Sales/Partials/OrderStatus";
 
 dayjs.extend(relativeTime);
 
-export default function Invoice({ auth, order, orders }: PageProps<{ order: Order, orders: Order[] }>) {
+export default function Invoice({ auth, order }: PageProps<{ order: Order }>) {
+    const items = order.order_items ?? [];
+    const totalPrice = items.reduce((acc, item) => acc + Number(item.total), 0);
+    const paid = order.status === "credit" ? Number(order.paid) : totalPrice;
+    const due = Math.max(totalPrice - paid, 0);
+
     return (
         <Authenticated user={auth.user}>
-            <Head title={`INVOICE ${order.id}`} />
+            <Head title={`Invoice #${order.id}`} />
 
-            <section>
-                <div className="flex items-center justify-between px-4">
-                    <Button onClick={() => router.visit(route('orders.invoices'))}><ArrowLeftSquare className="h-5 w-8" /></Button>
-                    <ReactSearchAutocomplete
-                        items={orders}
-                        placeholder="Find invoice..."
-                        formatResult={(order: Order) =>
-                            `${order.customer.name}}`
-                        }
-                        onSelect={(order) =>
-                            router.get(route('orders.previewinvoice'), { order_id: order.id })
-                        }
-                    />
-
-                    <div className="flex items-center gap-4">
-                        <Link href={route("invoices.download", order.id)}>
-                            <Button>
-                                <Printer className="mr-2" /> Print
+            <section className="space-y-4">
+                <header className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <Link href={route("orders.invoices")}>
+                            <Button variant="outline" size="icon" aria-label="Back to invoices">
+                                <ArrowLeft className="size-4" />
                             </Button>
                         </Link>
-                        {/* <Button>
-                            <Printer className="mr-2" /> Print
-                        </Button> */}
-                    </div>
-                </div>
-
-                <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg p-8 my-8">
-                    <header className="grid grid-cols-2 justify-between">
-                        <h2 className=" w-fit h-fit scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0 p-3 bg-indigo-500">
-                            Invoice #{`0${order.id}`}
-                        </h2>
-
-                        <div className="text-right space-y-1.5">
-                            <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                                {order.branch.name}
-                            </h4>
-                            <p className="text-sm text-gray-300">
-                                {order.branch.address}, {order.branch.city}
-                            </p>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-xl font-semibold tracking-tight">
+                                    Invoice #{String(order.id).padStart(2, "0")}
+                                </h1>
+                                <OrderStatus order={order} />
+                            </div>
                             <p className="text-sm text-muted-foreground">
-                                {dayjs(order.created_at).format(
-                                    "DD MMM YYYY HH:mm"
-                                )}
-                            </p>
-                        </div>
-                    </header>
-
-                    <div>
-                        <h3 className="scroll-m-20 text-xl font-semibold tracking-tight my-4">
-                            BILL TO
-                        </h3>
-
-                        <div className="grid gap-2">
-                            <p>
-                                <span>Name: </span>{" "}
-                                <span className="text-muted-foreground inline-block underline uppercase pb-1">
-                                    {order?.customer?.name}
-                                </span>
-                            </p>
-                            <p>
-                                <span>Contact: </span>{" "}
-                                {order?.customer?.contact ? (
-                                    <span className="text-muted-foreground inline-block underline pb-1">
-                                        {order.customer.contact}
-                                    </span>
-                                ) : (
-                                    <span>___________</span>
-                                )}
+                                {dayjs(order.created_at).format("DD MMM YYYY HH:mm")}
                             </p>
                         </div>
                     </div>
 
-                    <div className="relative overflow-x-auto my-4">
-                        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3">
-                                        Product name
-                                    </th>
-                                    <th scope="col" className="px-6 py-3">
-                                        Qty
-                                    </th>
-                                    <th scope="col" className="px-6 py-3">
-                                        Price
-                                    </th>
-                                    <th scope="col" className="px-6 py-3">
+                    {/* Opens the print-ready receipt, which triggers the print dialog. */}
+                    <a href={route("invoices.download", order.id)}>
+                        <Button className="gap-2">
+                            <Printer className="size-4" /> Print
+                        </Button>
+                    </a>
+                </header>
+
+                <div className="mx-auto w-full max-w-3xl rounded-xl border border-border bg-card p-5 sm:p-8">
+                    {/* Branch / issuer */}
+                    <div className="flex flex-col justify-between gap-4 border-b border-border pb-5 sm:flex-row">
+                        <div>
+                            <p className="text-lg font-semibold">{order.branch?.name}</p>
+                            {(order.branch?.address || order.branch?.city) && (
+                                <p className="text-sm text-muted-foreground">
+                                    {[order.branch?.address, order.branch?.city]
+                                        .filter(Boolean)
+                                        .join(", ")}
+                                </p>
+                            )}
+                            {order.branch?.phone && (
+                                <p className="text-sm text-muted-foreground">
+                                    {order.branch.phone}
+                                </p>
+                            )}
+                        </div>
+                        <dl className="text-sm sm:text-right">
+                            <div className="flex gap-2 sm:justify-end">
+                                <dt className="text-muted-foreground">Bill to</dt>
+                                <dd className="font-medium">
+                                    {order.customer?.name ?? "Walk-in customer"}
+                                </dd>
+                            </div>
+                            {order.customer?.contact && (
+                                <div className="flex gap-2 sm:justify-end">
+                                    <dt className="text-muted-foreground">Contact</dt>
+                                    <dd>{order.customer.contact}</dd>
+                                </div>
+                            )}
+                            <div className="flex gap-2 sm:justify-end">
+                                <dt className="text-muted-foreground">Served by</dt>
+                                <dd>{order.user?.name}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    {/* Items */}
+                    <div className="-mx-5 my-5 overflow-x-auto sm:mx-0">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                                    <th className="px-5 py-2 font-medium sm:px-3">Product</th>
+                                    <th className="px-3 py-2 text-right font-medium">Qty</th>
+                                    <th className="px-3 py-2 text-right font-medium">Price</th>
+                                    <th className="px-5 py-2 text-right font-medium sm:px-3">
                                         Total
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="h last:border-b border-gray-700">
-                                {order.order_items.map((item) => (
-                                    <tr
-                                        key={item.id}
-                                        className="bg-white dark:bg-gray-800 dark:border-gray-700"
-                                    >
-                                        <th
-                                            scope="row"
-                                            className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                                        >
-                                            {item.product.name}
-                                        </th>
-                                        <td className="px-6 py-4">
+                            <tbody>
+                                {items.map((item) => (
+                                    <tr key={item.id} className="border-b border-border/60">
+                                        <td className="px-5 py-2.5 sm:px-3">
+                                            {item.product?.name ?? "—"}
+                                        </td>
+                                        <td className="px-3 py-2.5 text-right tabular-nums">
                                             {item.quantity}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 py-2.5 text-right tabular-nums">
                                             {numberFormat(item.price)}
                                         </td>
-                                        <td className="px-6 py-4">
-                                            {numberFormat(
-                                                item.quantity * item.price
-                                            )}
+                                        <td className="px-5 py-2.5 text-right tabular-nums sm:px-3">
+                                            {numberFormat(item.quantity * item.price)}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+                    </div>
 
-                        <div className="flex justify-end mt-3">
-                            <div className="table w-full max-w-xs space-y-3">
-                                <div className="table-row ">
-                                    <div className="table-cell text-lg text-muted-foreground">
-                                        TOTAL PRICE
-                                    </div>
-                                    <div className="table-cell font-bold">
-                                        {numberFormat(
-                                            order?.order_items.reduce(
-                                                (acc, item) => acc + item.total,
-                                                0
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="table-row">
-                                    <div className="table-cell text-muted-foreground">
-                                        PAID AMOUNT{" "}
-                                    </div>
-                                    <div className="table-cell font-bold">
-                                        {order.status == "credit"
-                                            ? numberFormat(order.paid)
-                                            : numberFormat(
-                                                  order?.order_items.reduce(
-                                                      (acc, item) =>
-                                                          acc + item.total,
-                                                      0
-                                                  )
-                                              )}
-                                    </div>
-                                </div>
+                    {/* Totals */}
+                    <div className="flex justify-end">
+                        <dl className="w-full max-w-xs space-y-1.5 text-sm">
+                            <div className="flex justify-between">
+                                <dt className="text-muted-foreground">Total</dt>
+                                <dd className="font-semibold tabular-nums">
+                                    {numberFormat(totalPrice)}
+                                </dd>
                             </div>
-                        </div>
+                            <div className="flex justify-between">
+                                <dt className="text-muted-foreground">Paid</dt>
+                                <dd className="tabular-nums">{numberFormat(paid)}</dd>
+                            </div>
+                            {due > 0 && (
+                                <div className="flex justify-between border-t border-border pt-1.5 text-destructive">
+                                    <dt className="font-medium">Due</dt>
+                                    <dd className="font-semibold tabular-nums">
+                                        {numberFormat(due)}
+                                    </dd>
+                                </div>
+                            )}
+                        </dl>
                     </div>
                 </div>
             </section>

@@ -8,6 +8,7 @@ import InputError from "@/Components/InputError";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -15,11 +16,18 @@ import {
 } from "@/components/ui/dialog";
 import { CreditSale } from "@/lib/schemas";
 import { NumericFormat } from "react-number-format";
+import { numberFormat } from "@/lib/utils";
 
-export default function AddCreditPayment({ credit }: { credit: CreditSale }) {
+export default function AddCreditPayment({
+    credit,
+    debt,
+}: {
+    credit: CreditSale;
+    debt: number;
+}) {
     const [open, setOpen] = React.useState(false);
 
-    const { data, setData, post, processing, reset, errors } = useForm({
+    const { data, setData, post, processing, reset, errors, clearErrors } = useForm({
         amount: "",
     });
 
@@ -27,54 +35,77 @@ export default function AddCreditPayment({ credit }: { credit: CreditSale }) {
         e.preventDefault();
 
         post(route("credits.payment", credit.id), {
+            preserveScroll: true,
             onSuccess: () => {
-                toast.success("Created successfully.");
+                toast.success("Payment recorded.");
                 setOpen(false);
                 reset();
             },
+            onError: (errs) => errs.amount && toast.error(errs.amount),
         });
     };
 
     return (
-        <>
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger>
-                    <Button>Add Payment</Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader className="flex flex-col gap-1">
-                        <DialogTitle>Add Payment </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={onsubmit}>
-                        <div className="my-4 col-span-6 md:col-span-3 grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="name">Amount</Label>
-                            <NumericFormat
-                                customInput={Input}
-                                id="name"
-                                thousandSeparator=','
-                                allowNegative={false}
-                                value={data.amount}
-                                onChange={(e) =>
-                                    setData("amount", e.target.value)
-                                }
-                            />
-                            <InputError message={errors.amount} />
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant={"outline"}
-                                onClick={() => setOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button type="submit" disabled={processing}>
-                                Create
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        </>
+        <Dialog
+            open={open}
+            onOpenChange={(o) => {
+                setOpen(o);
+                if (o) {
+                    reset();
+                    clearErrors();
+                }
+            }}
+        >
+            {/* asChild — otherwise Radix renders its own <button> around ours */}
+            <DialogTrigger asChild>
+                <Button size="sm">Add payment</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Add payment</DialogTitle>
+                    <DialogDescription>
+                        {numberFormat(debt)} still owed. Anything more than that is
+                        capped at the outstanding amount.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={onsubmit} className="space-y-4">
+                    <div className="space-y-1.5">
+                        <Label htmlFor={`amount-${credit.id}`}>Amount</Label>
+                        <NumericFormat
+                            customInput={Input}
+                            id={`amount-${credit.id}`}
+                            thousandSeparator=","
+                            allowNegative={false}
+                            value={data.amount}
+                            placeholder={String(debt)}
+                            onChange={(e) => setData("amount", e.target.value)}
+                        />
+                        <InputError message={errors.amount} />
+                        <button
+                            type="button"
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => setData("amount", String(debt))}
+                        >
+                            Pay full amount ({numberFormat(debt)})
+                        </button>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                            disabled={processing}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={processing}>
+                            {processing ? "Saving…" : "Record payment"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }

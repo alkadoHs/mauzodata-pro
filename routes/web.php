@@ -8,6 +8,7 @@ use App\Http\Controllers\CreditSalePaymentController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpenseItemController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NewStockController;
 use App\Http\Controllers\OrderController;
@@ -33,12 +34,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect('/login');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -54,15 +50,19 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::resource('users', UserController::class)
-    ->only(['index', 'create', 'store'])
+    ->only(['index', 'store', 'update', 'destroy'])
     ->middleware(['auth']);
+
+Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])
+    ->middleware(['auth'])
+    ->name('users.toggle-active');
 
 Route::resource('companies', CompanyController::class)
     ->only(['index', 'create', 'store'])
     ->middleware(['auth']);
 
 Route::resource('branches', BranchController::class)
-    ->only(['index', 'create', 'show', 'store'])
+    ->only(['index', 'create', 'store', 'update', 'destroy'])
     ->middleware(['auth']);
 
 Route::resource('products', ProductController::class)
@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware([RemoveCommaFromInput::class]);
     Route::delete('/cart/remove/{cartItem}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/customer', [CartController::class, 'addCustomer'])->name('cart.addCustomer');
+    Route::delete('/cart/customer', [CartController::class, 'removeCustomer'])->name('cart.removeCustomer');
 
     Route::get('/cart/sales', [CartController::class, 'sales'])->name('cart.sales');
     Route::get('/cart/pricing', [CartController::class, 'pricing'])->name('cart.pricing');
@@ -109,8 +110,9 @@ Route::middleware(['auth', 'verified', RemoveCommaFromInput::class,])->group(fun
 
 // expenses
 Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->group(function () {
-    Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
     Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    Route::delete('/expenses/items/{expenseItem}', [ExpenseItemController::class, 'destroy'])
+        ->name('expenses.items.destroy');
 });
 
 // customers 
@@ -182,6 +184,7 @@ Route::middleware(['auth', 'verified'])->controller(StockTransferController::cla
 Route::middleware(['auth', 'verified'])->controller(PaymentMethodController::class)->group(function () {
     Route::get('/payments','index')->name('payments.index');
     Route::post('/payments','store')->name('payments.store');
+    Route::patch('/payments/{paymentMethod}', 'update')->name('payments.update');
     Route::delete('/payments/{paymentMethod}/delete', 'destroy')->name('payments.destroy');
 });
 
@@ -207,6 +210,7 @@ Route::resource('suppliers', SupplierController::class)
 Route::middleware(['auth', RemoveCommaFromInput::class])->group(function () {
     Route::resource('purchase-orders', PurchaseOrderController::class)->except(['edit', 'update', 'destroy']);
     Route::post('purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
+    Route::post('purchase-orders/{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
 });
 
 require __DIR__.'/auth.php';
