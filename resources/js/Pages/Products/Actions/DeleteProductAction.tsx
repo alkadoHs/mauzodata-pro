@@ -1,72 +1,55 @@
-import React, { FormEventHandler } from "react";
-import { router, useForm } from "@inertiajs/react";
+import React, { useState } from "react";
+import { router } from "@inertiajs/react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter, DialogTrigger
-} from "@/components/ui/dialog";
 import { Product } from "@/lib/schemas";
 import { DeleteIcon } from "@/Components/icons/DeleteIcon";
+import { KeyPromptDialog } from "@/components/KeyPromptDialog";
 
 export default function DeleteProductAction({ product }: { product: Product }) {
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = useState(false);
+    const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState<string | undefined>();
 
-    const { data, setData, processing, reset, errors } = useForm({
-        id: product.id,
-    });
+    const confirm = (key: string) => {
+        setProcessing(true);
+        setError(undefined);
 
-    const onsubmit: FormEventHandler = (e) => {
-        e.preventDefault();
-
-        router.delete(route("products.destroy", data.id), {
+        router.delete(route("products.destroy", product.id), {
+            // The key is verified server-side by the auth.key middleware.
+            data: { authorization_key: key },
+            preserveScroll: true,
             onSuccess: () => {
-                setOpen(false)
-                toast.success("Deleted successfully!");
-            }
+                setOpen(false);
+                toast.success("Product deleted");
+            },
+            onError: (errors) =>
+                setError(errors.authorization_key ?? "Could not delete this product."),
+            onFinish: () => setProcessing(false),
         });
     };
 
     return (
         <>
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger>
-                    <span className="text-xl text-red-500 cursor-pointer active:opacity-50">
-                        <DeleteIcon />
-                    </span>
-                </DialogTrigger>
-                <DialogContent className="">
-                    <form onSubmit={onsubmit}>
-                        <div className="text-center my-4">
-                            <h4 className="scroll-m-20 text-xl text-destructive font-semibold tracking-tight">
-                                You're about to delete <b>{product.name}</b> !
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                                When this product is deleted it can never be
-                                restored back, and all of the sales associated
-                                with this product will be deleted as well.
-                            </p>
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant={"outline"}
-                                onClick={() => setOpen(false)}
-                            >
-                                No, keep
-                            </Button>
-                            <Button
-                                type="submit"
-                                variant={"destructive"}
-                                disabled={processing}
-                            >
-                                Yes, delete
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <span
+                onClick={() => {
+                    setError(undefined);
+                    setOpen(true);
+                }}
+                className="text-xl text-red-500 cursor-pointer active:opacity-50"
+            >
+                <DeleteIcon />
+            </span>
+
+            <KeyPromptDialog
+                open={open}
+                onOpenChange={setOpen}
+                title={`Delete ${product.name}?`}
+                description="This can't be undone, and every sale linked to this product goes with it. Enter an authorization key to confirm."
+                confirmLabel="Delete product"
+                processing={processing}
+                error={error}
+                onConfirm={confirm}
+            />
         </>
     );
 }

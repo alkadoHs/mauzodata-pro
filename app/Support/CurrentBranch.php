@@ -11,7 +11,7 @@ use App\Models\Branch;
  * memoized for the lifetime of one request.
  *
  * Semantics:
- *  - sellers / vendors are always locked to their own branch (session ignored);
+ *  - sellers are always locked to their own branch (session ignored);
  *  - admins / managers may switch to any branch in their company, or to "all"
  *    (the ALL sentinel) which removes the branch filter entirely.
  */

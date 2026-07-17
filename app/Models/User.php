@@ -55,6 +55,34 @@ class User extends Authenticatable
         ];
     }
 
+    public const ROLES = ['admin', 'manager', 'seller'];
+
+    /**
+     * Roles the given actor is allowed to hand out.
+     *
+     * Only an admin can make an admin. A manager creating one would escalate
+     * past their own level — and straight into the tier that controls
+     * authorization keys.
+     *
+     * @return array<int,string>
+     */
+    public static function assignableRoles(?self $actor): array
+    {
+        return $actor?->isAdmin()
+            ? self::ROLES
+            : ['manager', 'seller'];
+    }
+
+    /**
+     * Admins only — deliberately excludes managers. Used for things a manager
+     * must not control, such as issuing authorization keys (a manager who could
+     * mint their own key would defeat the point of gating destructive actions).
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

@@ -122,6 +122,10 @@ export default function SalesReportView({
         });
     };
 
+    // dompdf can't render huge documents (~0.4MB/row); Excel has no limit.
+    // Keep in step with BuildsSalesReports::PDF_MAX_ROWS.
+    const pdfTooBig = rows.length > 750;
+
     // Client-side pagination (50 per page); totals below are always the full set.
     const PER_PAGE = 50;
     const [page, setPage] = useState(1);
@@ -149,12 +153,25 @@ export default function SalesReportView({
                                 Excel
                             </Button>
                         </a>
-                        <a href={route(pdfRoute, cleanParams())}>
-                            <Button variant="outline" size="sm" className="gap-2">
-                                <FileText className="size-4 text-red-600" />
+                        {pdfTooBig ? (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                disabled
+                                title={`Too many rows (${rows.length}) for a PDF — narrow the dates or use Excel.`}
+                            >
+                                <FileText className="size-4" />
                                 PDF
                             </Button>
-                        </a>
+                        ) : (
+                            <a href={route(pdfRoute, cleanParams())}>
+                                <Button variant="outline" size="sm" className="gap-2">
+                                    <FileText className="size-4 text-red-600" />
+                                    PDF
+                                </Button>
+                            </a>
+                        )}
                     </div>
                 </div>
 

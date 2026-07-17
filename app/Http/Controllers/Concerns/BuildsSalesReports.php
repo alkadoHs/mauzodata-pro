@@ -5,9 +5,36 @@ namespace App\Http\Controllers\Concerns;
 use App\Models\User;
 use App\Support\CurrentBranch;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 trait BuildsSalesReports
 {
+    /**
+     * Most rows we'll render into a PDF.
+     *
+     * dompdf holds the whole document in memory and costs roughly 0.4 MB/row —
+     * measured: 500 rows ≈ 212 MB, 1000 ≈ 514 MB, 1500 ≈ 946 MB, and 2000+ dies
+     * with an uncatchable crash. Excel has no such problem, so past this we send
+     * people there rather than 500-ing.
+     */
+    protected const PDF_MAX_ROWS = 750;
+
+    /**
+     * Call before rendering a PDF: refuses oversized documents and gives dompdf
+     * the headroom it needs for the ones we do allow.
+     */
+    protected function guardPdf(Collection $rows): void
+    {
+        abort_if(
+            $rows->count() > self::PDF_MAX_ROWS,
+            422,
+            "This range has {$rows->count()} rows — too many for a PDF (limit ".self::PDF_MAX_ROWS.
+            "). Narrow the dates, or use the Excel export which has no limit."
+        );
+
+        ini_set('memory_limit', '512M');
+    }
+
     protected function reportFilters(Request $request): array
     {
         // Treat non-numeric seller sentinels (e.g. "all") as no filter so a

@@ -4,30 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "@inertiajs/react";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { User } from "@/types";
-import { Label } from "@/components/ui/label";
 import InputError from "@/Components/InputError";
 import { numberFormat } from "@/lib/utils";
 
 type Line = { item: string; cost: string };
 
-const ExpenseForm = ({ user, vendors }: { user: User; vendors: User[] }) => {
+const ExpenseForm = () => {
     const [lines, setLines] = useState<Line[]>([{ item: "", cost: "" }]);
 
     const { data, setData, post, processing, errors, reset } = useForm<{
-        user_id: string;
         expenses: Line[];
-    }>({
-        user_id: String(user.id),
-        expenses: [],
-    });
+    }>({ expenses: [] });
 
     const sync = (next: Line[]) => {
         setLines(next);
@@ -62,43 +49,15 @@ const ExpenseForm = ({ user, vendors }: { user: User; vendors: User[] }) => {
                 reset();
                 setLines([{ item: "", cost: "" }]);
             },
-            onError: (errs) =>
-                toast.error(errs.user_id ?? errs.expenses ?? "Could not save."),
+            onError: (errs) => toast.error(errs.expenses ?? "Could not save."),
         });
     };
-
-    const forVendor = data.user_id !== String(user.id);
 
     return (
         <form
             onSubmit={submit}
             className="space-y-4 rounded-xl border border-border bg-card p-4"
         >
-            <div className="space-y-1.5 sm:max-w-xs">
-                <Label htmlFor="user_id">Logged for</Label>
-                <Select
-                    value={data.user_id}
-                    onValueChange={(v) => setData("user_id", v)}
-                >
-                    <SelectTrigger id="user_id">
-                        <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {vendors.map((v) => (
-                            <SelectItem key={v.id} value={String(v.id)}>
-                                {v.id === user.id ? `${v.name} (you)` : v.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                {forVendor && (
-                    <p className="text-xs text-muted-foreground">
-                        These expenses will be recorded against this vendor, not you.
-                    </p>
-                )}
-                <InputError message={errors.user_id} />
-            </div>
-
             <div className="space-y-2">
                 {lines.map((line, index) => {
                     const itemErr = (errors as Record<string, string>)[

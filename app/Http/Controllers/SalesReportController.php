@@ -56,6 +56,8 @@ class SalesReportController extends Controller
         $filters = $this->reportFilters($request);
         $rows = $this->report->rows($this->report->query($filters));
 
+        $this->guardPdf($rows);
+
         $pdf = Pdf::loadView('reports.sales', [
             'title' => 'Sales Report',
             'meta' => $this->report->meta($filters, $this->reportBranchLabel($this->branch)),

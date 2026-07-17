@@ -110,6 +110,9 @@ const NavGroup = ({
 const SidebarItems = ({ user }: { user: User }) => {
     // Managers currently share the admin's menu; permissions can be narrowed later.
     const isAdminLike = user.role === "admin" || user.role === "manager";
+    // Authorization keys are admin-only — a manager who could issue keys could
+    // authorize themselves for the actions those keys are meant to gate.
+    const isAdmin = user.role === "admin";
 
     return (
         <>
@@ -121,11 +124,19 @@ const SidebarItems = ({ user }: { user: User }) => {
                     label="Setup"
                     icon={Settings}
                     active={isAnyCurrent([
+                        "company.*",
                         "branches.*",
                         "payments.*",
                         "suppliers.*",
+                        "authorization-keys.*",
                     ])}
                 >
+                    <NavLink
+                        routeName="company.edit"
+                        icon={ArrowRight}
+                        label="Company"
+                        pattern="company.*"
+                    />
                     <NavLink
                         routeName="branches.index"
                         icon={ArrowRight}
@@ -144,6 +155,14 @@ const SidebarItems = ({ user }: { user: User }) => {
                         label="Suppliers"
                         pattern="suppliers.*"
                     />
+                    {isAdmin && (
+                        <NavLink
+                            routeName="authorization-keys.index"
+                            icon={ArrowRight}
+                            label="Authorization keys"
+                            pattern="authorization-keys.*"
+                        />
+                    )}
                 </NavGroup>
             )}
 
@@ -235,20 +254,6 @@ const SidebarItems = ({ user }: { user: User }) => {
                 </>
             )}
 
-            <NavGroup
-                value="vendor"
-                label="Vendor Activities"
-                icon={Scale}
-                active={isCurrent("vendorproducts.*")}
-            >
-                <NavLink
-                    routeName="vendorproducts.index"
-                    icon={ShoppingBasket}
-                    label="Vendor products"
-                    pattern="vendorproducts.*"
-                />
-            </NavGroup>
-
             {isAdminLike && (
                 <NavGroup
                     value="reports"
@@ -267,6 +272,16 @@ const SidebarItems = ({ user }: { user: User }) => {
                         label="Credit Sales Report"
                     />
                     <NavLink
+                        routeName="reports.productSales"
+                        icon={BarChart}
+                        label="Sales by Product"
+                    />
+                    <NavLink
+                        routeName="reports.expensesReport"
+                        icon={FileCheck2}
+                        label="Expenses Report"
+                    />
+                    <NavLink
                         routeName="reports.sales"
                         icon={FileCheck2}
                         label="Sellers Reports"
@@ -274,7 +289,7 @@ const SidebarItems = ({ user }: { user: User }) => {
                     <NavLink
                         routeName="reports.expenses"
                         icon={FileCheck2}
-                        label="Expenses Reports"
+                        label="Daily Expenses"
                     />
                     <NavLink
                         routeName="reports.stocktransfers"

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
-import { VendorProduct } from "@/lib/schemas";
+import { StockTransfer } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";

@@ -8,7 +8,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { Branch, Product, VendorProduct } from "@/lib/schemas";
+import { Branch, Product, StockTransfer } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
@@ -23,7 +23,7 @@ const Index = ({
     branches,
     products,
 }: PageProps<{
-    stockTransfers: VendorProduct[];
+    stockTransfers: StockTransfer[];
     branches: Branch[];
     products: Product[];
 }>) => {

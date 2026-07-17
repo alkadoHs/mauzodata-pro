@@ -8,21 +8,40 @@ import { PageProps } from "@/types";
 import { router, useForm } from "@inertiajs/react";
 import React, { FormEventHandler } from "react";
 import { toast } from "sonner";
+import { KeyPromptDialog } from "@/components/KeyPromptDialog";
 
 const Edit = ({ auth, product }: PageProps<{ product: Product }>) => {
     const [open, setOpen] = React.useState(false);
+    const [keyOpen, setKeyOpen] = React.useState(false);
+    const [keyError, setKeyError] = React.useState<string | undefined>();
 
-    const { data, setData, patch, processing, reset, errors } = useForm({
+    const { data, setData, patch, processing, reset, errors, transform } = useForm({
         ...product,
     });
 
+    // The key is required and checked server-side when the change is saved.
     const onsubmit: FormEventHandler = (e) => {
         e.preventDefault();
+        setKeyError(undefined);
+        setKeyOpen(true);
+    };
+
+    const saveWithKey = (key: string) => {
+        transform((d) => ({ ...d, authorization_key: key }));
 
         patch(route("products.update", product.id), {
+            preserveScroll: true,
             onSuccess: () => {
-                toast.success("Updated successfully.");
+                toast.success("Product updated.");
+                setKeyOpen(false);
                 setOpen(false);
+            },
+            onError: (errs) => {
+                if (errs.authorization_key) {
+                    setKeyError(errs.authorization_key);
+                } else {
+                    setKeyOpen(false);
+                }
             },
         });
     };
@@ -185,6 +204,17 @@ const Edit = ({ auth, product }: PageProps<{ product: Product }>) => {
                     </div>
                 </form>
             </section>
+
+            <KeyPromptDialog
+                open={keyOpen}
+                onOpenChange={setKeyOpen}
+                title={`Save changes to ${product.name}?`}
+                description="Editing a product needs an authorization key."
+                confirmLabel="Save changes"
+                processing={processing}
+                error={keyError}
+                onConfirm={saveWithKey}
+            />
         </Authenticated>
     );
 };

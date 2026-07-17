@@ -14,7 +14,7 @@ const ALL = "all";
 export function BranchSwitcher() {
     const { auth } = usePage<PageProps>().props;
 
-    // Sellers/vendors can't switch — show a static chip of their branch instead.
+    // Sellers can't switch — show a static chip of their branch instead.
     if (!auth.canSwitchBranches) {
         if (!auth.branch) return null;
         return (

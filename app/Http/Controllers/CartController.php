@@ -278,8 +278,6 @@ class CartController extends Controller
         return Inertia::render('Expenses/UserExpenses', [
             'expenseItems' => $items,
             'total' => (float) $items->sum('cost'),
-            // Yourself or one of your company's vendors (company-scoped).
-            'users' => ExpenseController::loggableUsers(),
         ]);
     }
 }

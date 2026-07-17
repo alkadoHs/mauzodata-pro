@@ -21,13 +21,17 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->route('user')?->id;
+        /** @var User|null $target */
+        $target = $this->route('user');
+        $userId = $target?->id;
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($userId)],
             'phone' => ['required', 'string', 'max:13', Rule::unique(User::class)->ignore($userId)],
-            'role' => ['required', Rule::in(['admin', 'manager', 'seller', 'vendor'])],
+            // Only an admin may assign the admin role; a manager can't promote
+            // anyone (including themselves) into it.
+            'role' => ['required', Rule::in(User::assignableRoles(auth()->user()))],
             'password' => ['nullable', 'string', 'min:6', 'max:255'],
             'branch_id' => [
                 'required',
@@ -40,6 +44,7 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'branch_id.exists' => 'The selected branch does not belong to your company.',
+            'role.in' => 'Only an admin can grant the admin role. Choose Manager or Seller.',
         ];
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthorizationKeyController;
 use App\Http\Controllers\BranchContextController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CartController;
@@ -18,12 +19,13 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTransferController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\ExpensesReportController;
+use App\Http\Controllers\ProductSalesReportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\CreditSalesReportController;
 use App\Http\Controllers\StoreProductController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\VendorProductController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Middleware\RemoveCommaFromInput;
@@ -66,8 +68,28 @@ Route::resource('branches', BranchController::class)
     ->middleware(['auth']);
 
 Route::resource('products', ProductController::class)
-    ->only(['index', 'store', 'show', 'edit', 'update', 'destroy'])
+    ->only(['index', 'store', 'show', 'edit'])
     ->middleware(['auth', 'verified', RemoveCommaFromInput::class]);
+
+// Mutating a product is gated by an authorization key — enforced server-side, so
+// every path (edit page, update dialog, direct request) is covered.
+Route::match(['put', 'patch'], '/products/{product}', [ProductController::class, 'update'])
+    ->middleware(['auth', 'verified', RemoveCommaFromInput::class, 'auth.key:product.update'])
+    ->name('products.update');
+
+Route::delete('/products/{product}', [ProductController::class, 'destroy'])
+    ->middleware(['auth', 'verified', 'auth.key:product.delete'])
+    ->name('products.destroy');
+
+// Company settings + authorization keys (Setup)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/company', [CompanyController::class, 'edit'])->name('company.edit');
+    Route::patch('/company', [CompanyController::class, 'update'])->name('company.update');
+
+    Route::get('/authorization-keys', [AuthorizationKeyController::class, 'index'])->name('authorization-keys.index');
+    Route::post('/authorization-keys', [AuthorizationKeyController::class, 'store'])->name('authorization-keys.store');
+    Route::delete('/authorization-keys/{authorizationKey}', [AuthorizationKeyController::class, 'destroy'])->name('authorization-keys.destroy');
+});
 
 
 // cart area 
@@ -155,6 +177,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/credit-report', [CreditSalesReportController::class, 'index'])->name('reports.creditReport');
     Route::get('/reports/credit-report/excel', [CreditSalesReportController::class, 'excel'])->name('reports.creditReport.excel');
     Route::get('/reports/credit-report/pdf', [CreditSalesReportController::class, 'pdf'])->name('reports.creditReport.pdf');
+
+    Route::get('/reports/expenses-report', [ExpensesReportController::class, 'index'])->name('reports.expensesReport');
+    Route::get('/reports/expenses-report/excel', [ExpensesReportController::class, 'excel'])->name('reports.expensesReport.excel');
+    Route::get('/reports/expenses-report/pdf', [ExpensesReportController::class, 'pdf'])->name('reports.expensesReport.pdf');
+
+    Route::get('/reports/product-sales', [ProductSalesReportController::class, 'index'])->name('reports.productSales');
+    Route::get('/reports/product-sales/excel', [ProductSalesReportController::class, 'excel'])->name('reports.productSales.excel');
+    Route::get('/reports/product-sales/pdf', [ProductSalesReportController::class, 'pdf'])->name('reports.productSales.pdf');
 });
 
 // new stocks
@@ -163,14 +193,6 @@ Route::middleware(['auth', 'verified'])->controller(NewStockController::class)->
     Route::post('/new-stocks/create', 'store')->name('newstocks.store');
 });
 
-
-//vendors
-Route::middleware(['auth', 'verified'])->controller(VendorProductController::class)->group(function () {
-    Route::get('/vendor-products', 'index')->name('vendorproducts.index');
-    Route::post('/vendor-products', 'store')->name('vendorproducts.store');
-    Route::patch('/vendor-products/{vendorProduct}', 'update')->name('vendorproducts.update');
-    Route::post('/vendor-products/{vendorProduct}/confirm', 'confirm_stock')->name('vendorproducts.confirm');
-});
 
 // products transfer
 Route::middleware(['auth', 'verified'])->controller(StockTransferController::class)->group(function () {

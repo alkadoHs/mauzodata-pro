@@ -92,9 +92,9 @@ class StockTransferController extends Controller
 
 
 
-    public function destroy(Request $request, StockTransfer $vendorProduct): RedirectResponse
+    public function destroy(Request $request, StockTransfer $stockTransfer): RedirectResponse
     {
-        $vendorProduct->delete();
+        $stockTransfer->delete();
         return redirect()->back();
     }
 

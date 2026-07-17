@@ -1,5 +1,5 @@
 import { ExpenseItem } from "@/lib/schemas";
-import { PageProps, User } from "@/types";
+import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
 import ExpenseForm from "./Partials/ExpenseForm";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
@@ -21,8 +21,7 @@ const UserExpenses = ({
     auth,
     expenseItems,
     total,
-    users,
-}: PageProps<{ expenseItems: ExpenseItem[]; total: number; users: User[] }>) => {
+}: PageProps<{ expenseItems: ExpenseItem[]; total: number }>) => {
     const remove = (item: ExpenseItem) =>
         router.delete(route("expenses.items.destroy", item.id), {
             preserveScroll: true,
@@ -50,7 +49,7 @@ const UserExpenses = ({
                     </div>
                 </header>
 
-                <ExpenseForm user={auth.user} vendors={users} />
+                <ExpenseForm />
 
                 <div className="rounded-xl border border-border bg-card">
                     <div className="border-b border-border p-4">

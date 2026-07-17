@@ -108,19 +108,12 @@ export const productColumns: ColumnDef<Product>[] = [
                     >
                         <EyeIcon />
                     </span>
+                    {/* The old prompt compared against a key compiled into the JS
+                        bundle and only blocked navigation. The real check now runs
+                        server-side when the change is saved. */}
                     <span
-                        onClick={() => {
-                            const key = prompt(
-                                "Enter superadmin key to continue...",
-                            );
-                            if(key == "SHOP900") {
-                                router.visit(
-                                    route("products.edit", row.original.id)
-                                )
-                            } else {
-                                alert("Hujaruhusiwa kurekebisha hii bidhaa.")
-                            }
-                        }
+                        onClick={() =>
+                            router.visit(route("products.edit", row.original.id))
                         }
                         className="text-xl text-indigo-500 cursor-pointer active:opacity-50"
                     >

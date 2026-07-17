@@ -22,7 +22,8 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
             'phone' => ['required', 'string', 'max:13', Rule::unique(User::class)],
-            'role' => ['required', Rule::in(['admin', 'manager', 'seller', 'vendor'])],
+            // Only an admin may assign the admin role (see User::assignableRoles).
+            'role' => ['required', Rule::in(User::assignableRoles(auth()->user()))],
             'password' => ['required', 'string', 'min:6', 'max:255'],
             // Must be a branch of the caller's own company.
             'branch_id' => [
@@ -36,6 +37,7 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'branch_id.exists' => 'The selected branch does not belong to your company.',
+            'role.in' => 'Only an admin can create an admin. Choose Manager or Seller.',
         ];
     }
 }

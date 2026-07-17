@@ -178,21 +178,17 @@ export type product_sold = {
     total_profit: number;
 };
 
-export type VendorProduct = {
+export type StockTransfer = {
     id: number;
-    user_id: number;
-    user: User;
-    released_by: User;
-    confirmed_by: User;
-    product_id: number;
     branch_id: number;
     branch: Branch;
+    product_id: number;
     product: Product;
-    buy_price: number;
-    sale_price: number;
+    released_by: number;
+    releasedBy?: User;
     stock: number;
-    sold: number;
     status: string;
+    created_at: string;
 };
 
 export type NewStock = {

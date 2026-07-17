@@ -20,7 +20,7 @@ export interface User {
     name: string;
     email: string;
     phone: string;
-    role: "admin" | "manager" | "seller" | "vendor";
+    role: "admin" | "manager" | "seller";
     isActive: boolean;
     email_verified_at: string;
 }

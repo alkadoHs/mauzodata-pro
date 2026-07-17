@@ -43,6 +43,9 @@ class HandleInertiaRequests extends Middleware
                 'success' => session('success'),
                 'error' => session('error'),
                 'info' => session('info'),
+                // Flashed once by AuthorizationKeyController@store — the only
+                // moment a key's plaintext is ever available.
+                'newKey' => session('newKey'),
                 // Active branch context for the branch switcher.
                 'activeBranch' => $user ? $currentBranch->shareValue() : null,
                 'branch' => $user ? $currentBranch->branch() : null,

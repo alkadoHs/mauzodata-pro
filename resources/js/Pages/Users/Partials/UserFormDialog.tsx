@@ -23,11 +23,11 @@ import { useForm } from "@inertiajs/react";
 import { FormEventHandler, useEffect } from "react";
 import { toast } from "sonner";
 
+/** Only an admin may grant `admin` — mirrors User::assignableRoles(). */
 const ROLES = [
-    { value: "admin", label: "Admin", hint: "Full access, can switch branches" },
-    { value: "manager", label: "Manager", hint: "Like admin, can switch branches" },
+    { value: "admin", label: "Admin", hint: "Full access, incl. authorization keys", adminOnly: true },
+    { value: "manager", label: "Manager", hint: "Can switch branches; no authorization keys" },
     { value: "seller", label: "Seller", hint: "Locked to their own branch" },
-    { value: "vendor", label: "Vendor", hint: "Vendor products only" },
 ];
 
 type Props = {
@@ -36,10 +36,13 @@ type Props = {
     branches: Branch[];
     /** Present = edit mode; absent = create mode. */
     user?: User | null;
+    /** The signed-in user — decides which roles may be granted. */
+    actor: User;
 };
 
-export function UserFormDialog({ open, onOpenChange, branches, user }: Props) {
+export function UserFormDialog({ open, onOpenChange, branches, user, actor }: Props) {
     const editing = !!user;
+    const roles = ROLES.filter((r) => !r.adminOnly || actor.role === "admin");
 
     const { data, setData, errors, post, patch, processing, reset, clearErrors } =
         useForm({
@@ -147,7 +150,7 @@ export function UserFormDialog({ open, onOpenChange, branches, user }: Props) {
                                     <SelectValue placeholder="Select role" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {ROLES.map((role) => (
+                                    {roles.map((role) => (
                                         <SelectItem
                                             key={role.value}
                                             value={role.value}

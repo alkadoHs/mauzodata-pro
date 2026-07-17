@@ -8,7 +8,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { VendorProduct } from "@/lib/schemas";
+import { StockTransfer } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 const LegacyStockTransfers = ({
     stockTransfers,
     auth,
-}: PageProps<{ stockTransfers: VendorProduct[] }>) => {
+}: PageProps<{ stockTransfers: StockTransfer[] }>) => {
     return (
         <Authenticated user={auth.user}>
             <Head title="Legacy Stock Transfers" />

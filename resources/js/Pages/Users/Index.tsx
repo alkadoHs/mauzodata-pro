@@ -309,6 +309,7 @@ const UsersIndex = ({
                 onOpenChange={setFormOpen}
                 branches={branches}
                 user={editing}
+                actor={auth.user}
             />
 
             <ConfirmDialog

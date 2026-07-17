@@ -58,8 +58,17 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $this->authorizeCompany($user);
+        $this->authorizeTarget($user);
 
         $validated = $request->validated();
+
+        // Never demote the last admin — that would leave the company with nobody
+        // able to manage authorization keys or other admins.
+        if ($user->isAdmin() && $validated['role'] !== 'admin' && $this->adminCount() <= 1) {
+            return back()->withErrors([
+                'role' => 'This is the only admin. Promote someone else to admin first.',
+            ]);
+        }
 
         // Only change the password when one was actually entered.
         if (blank($validated['password'] ?? null)) {
@@ -79,6 +88,7 @@ class UserController extends Controller
     public function toggleActive(User $user): RedirectResponse
     {
         $this->authorizeCompany($user);
+        $this->authorizeTarget($user);
 
         if ($user->id === auth()->id()) {
             return back()->withErrors(['isActive' => 'You cannot deactivate your own account.']);
@@ -97,6 +107,7 @@ class UserController extends Controller
     public function destroy(User $user): RedirectResponse
     {
         $this->authorizeCompany($user);
+        $this->authorizeTarget($user);
 
         if ($user->id === auth()->id()) {
             return back()->withErrors(['delete' => 'You cannot delete your own account.']);
@@ -124,5 +135,22 @@ class UserController extends Controller
     private function authorizeCompany(User $user): void
     {
         abort_unless($user->company_id === auth()->user()->company_id, 403);
+    }
+
+    /**
+     * Only an admin may act on an admin. Without this a manager could edit the
+     * admin's email/password and simply take the account over — a full
+     * escalation past their own level.
+     */
+    private function authorizeTarget(User $user): void
+    {
+        abort_if($user->isAdmin() && ! auth()->user()->isAdmin(), 403);
+    }
+
+    private function adminCount(): int
+    {
+        return User::where('company_id', auth()->user()->company_id)
+            ->where('role', 'admin')
+            ->count();
     }
 }

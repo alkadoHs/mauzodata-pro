@@ -15,22 +15,43 @@ import {
 } from "@/components/ui/dialog";
 import { Product } from "@/lib/schemas";
 import { EditIcon } from "@/Components/icons/EditIcon";
+import { KeyPromptDialog } from "@/components/KeyPromptDialog";
 
 
 export default function UpdateProductAction({ product }: { product: Product }) {
     const [open, setOpen] = React.useState(false);
+    const [keyOpen, setKeyOpen] = React.useState(false);
+    const [keyError, setKeyError] = React.useState<string | undefined>();
 
-    const { data, setData, patch, processing, reset, errors } = useForm({
+    const { data, setData, patch, processing, reset, errors, transform } = useForm({
         ...product,
     });
 
+    // This dialog used to save with no key at all — the old prompt only guarded
+    // the separate Edit page. The key is now required and checked server-side.
     const onsubmit: FormEventHandler = (e) => {
         e.preventDefault();
+        setKeyError(undefined);
+        setKeyOpen(true);
+    };
+
+    const saveWithKey = (key: string) => {
+        transform((d) => ({ ...d, authorization_key: key }));
 
         patch(route("products.update", product.id), {
+            preserveScroll: true,
             onSuccess: () => {
-                toast.success("Updated successfully.");
-                setOpen(false)
+                toast.success("Product updated.");
+                setKeyOpen(false);
+                setOpen(false);
+            },
+            onError: (errs) => {
+                if (errs.authorization_key) {
+                    setKeyError(errs.authorization_key);
+                } else {
+                    // A field error on the product itself — back to the form.
+                    setKeyOpen(false);
+                }
             },
         });
     };
@@ -209,6 +230,17 @@ export default function UpdateProductAction({ product }: { product: Product }) {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            <KeyPromptDialog
+                open={keyOpen}
+                onOpenChange={setKeyOpen}
+                title={`Save changes to ${product.name}?`}
+                description="Editing a product needs an authorization key."
+                confirmLabel="Save changes"
+                processing={processing}
+                error={keyError}
+                onConfirm={saveWithKey}
+            />
         </>
     );
 }
