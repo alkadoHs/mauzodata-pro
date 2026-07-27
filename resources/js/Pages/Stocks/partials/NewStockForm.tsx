@@ -135,14 +135,14 @@ export default function NewStockForm({ products }: { products: Product[] }) {
                 </div>
 
                 <div className="space-y-1.5 sm:w-40">
-                    <Label htmlFor="new_stock">Quantity to add</Label>
+                    <Label htmlFor="new_stock">Stock adjustment</Label>
                     <Input
                         id="new_stock"
                         inputMode="decimal"
                         value={data.new_stock}
                         onChange={(e) => {
-                            // Digits + one decimal point — never a negative.
-                            if (!/^\d*\.?\d*$/.test(e.target.value)) return;
+                            // Allow a leading minus sign for removing stock.
+                            if (!/^-?\d*\.?\d*$/.test(e.target.value)) return;
                             setData("new_stock", e.target.value);
                         }}
                         placeholder="0"
@@ -153,7 +153,7 @@ export default function NewStockForm({ products }: { products: Product[] }) {
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
                 <p className="text-sm text-muted-foreground">
-                    {picked && added > 0 ? (
+                    {picked && added !== 0 ? (
                         <>
                             {picked.name}: {numberFormat(picked.stock)} →{" "}
                             <b className="text-foreground tabular-nums">
@@ -162,16 +162,16 @@ export default function NewStockForm({ products }: { products: Product[] }) {
                             {picked.unit}
                         </>
                     ) : (
-                        "Pick a product and the amount received."
+                        "Use a positive number to add stock or a negative number to remove it."
                     )}
                 </p>
                 <Button
                     type="submit"
                     className="gap-2"
-                    disabled={processing || !picked || added <= 0}
+                    disabled={processing || !picked || added === 0}
                 >
                     <PackagePlus className="size-4" />
-                    {processing ? "Adding…" : "Add stock"}
+                    {processing ? "Saving…" : "Adjust stock"}
                 </Button>
             </div>
         </form>

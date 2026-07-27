@@ -36,13 +36,13 @@ const Index = ({
                             New stock
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Stock received into this branch today ·{" "}
+                            Stock adjustments for this branch today ·{" "}
                             {dayjs().format("DD MMM YYYY")}
                         </p>
                     </div>
                     <div className="rounded-xl border border-border bg-card px-4 py-2 text-right">
                         <span className="text-xs text-muted-foreground">
-                            Units added today
+                            Net adjustment today
                         </span>
                         <p className="text-xl font-semibold tabular-nums">
                             {numberFormat(total)}
@@ -55,7 +55,7 @@ const Index = ({
                 <div className="rounded-xl border border-border bg-card">
                     <div className="border-b border-border p-4">
                         <h2 className="font-medium">
-                            Received today{" "}
+                            Adjusted today{" "}
                             <span className="text-sm font-normal text-muted-foreground">
                                 ({newStocks.length})
                             </span>
@@ -66,7 +66,7 @@ const Index = ({
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Product</TableHead>
-                                    <TableHead className="text-right">Added</TableHead>
+                                    <TableHead className="text-right">Adjustment</TableHead>
                                     <TableHead className="text-right">
                                         Stock before
                                     </TableHead>
@@ -82,7 +82,7 @@ const Index = ({
                                         >
                                             <span className="flex flex-col items-center gap-2">
                                                 <PackagePlus className="size-6 opacity-50" />
-                                                No stock received today.
+                                                No stock adjustments today.
                                             </span>
                                         </TableCell>
                                     </TableRow>
@@ -98,7 +98,8 @@ const Index = ({
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-right font-medium tabular-nums">
-                                                +{numberFormat(stock.new_stock)}
+                                                {Number(stock.new_stock) > 0 ? "+" : ""}
+                                                {numberFormat(stock.new_stock)}
                                             </TableCell>
                                             <TableCell className="text-right tabular-nums text-muted-foreground">
                                                 {numberFormat(stock.stock)}

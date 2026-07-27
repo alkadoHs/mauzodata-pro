@@ -31,9 +31,7 @@ class NewStockController extends Controller
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
-            // min:0.01 matters — new_stock had no minimum, so a negative was
-            // accepted and silently *decremented* the product's stock.
-            'new_stock' => 'required|numeric|min:0.01|max:99999999',
+            'new_stock' => 'required|numeric|min:-99999999|max:99999999|not_in:0',
         ]);
 
         // Branch-scoped: a product outside the active branch won't resolve.
@@ -45,9 +43,7 @@ class NewStockController extends Controller
             ]);
         }
 
-        $incremented = false;
-
-        DB::transaction(function () use ($validated, $product, &$incremented) {
+        DB::transaction(function () use ($validated, $product) {
             // One row per product per day — top it up if it already exists.
             $newStock = NewStock::where('product_id', $product->id)
                 ->whereDate('created_at', today())
@@ -56,7 +52,6 @@ class NewStockController extends Controller
 
             if ($newStock) {
                 $newStock->increment('new_stock', $validated['new_stock']);
-                $incremented = true;
             } else {
                 NewStock::create([
                     'product_id' => $product->id,
@@ -73,9 +68,7 @@ class NewStockController extends Controller
 
         return back()->with(
             'success',
-            $incremented
-                ? "Added to today's stock for {$product->name} — now {$product->stock} {$product->unit}."
-                : "Stock added for {$product->name} — now {$product->stock} {$product->unit}."
+            "Stock adjusted for {$product->name} — now {$product->stock} {$product->unit}."
         );
     }
 }
