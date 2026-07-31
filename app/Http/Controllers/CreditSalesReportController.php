@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\MultiSheetExport;
 use App\Exports\ReportExport;
 use App\Http\Controllers\Concerns\BuildsSalesReports;
 use App\Support\CurrentBranch;
@@ -27,10 +28,14 @@ class CreditSalesReportController extends Controller
     {
         $filters = $this->reportFilters($request);
         $rows = $this->report->rows($this->report->query($filters, creditOnly: true, allWhenNoDates: true), creditView: true);
+        // Empty on the default (all-dates) view — nothing predates "all time".
+        $collections = $this->report->collections($filters, allWhenNoDates: true);
 
         return Inertia::render('Reports/CreditSalesReport', [
             'rows' => $rows,
             'totals' => $this->report->totals($rows),
+            'collections' => $collections,
+            'summary' => $this->report->summary($rows, $collections),
             'filters' => $filters,
             'sellers' => $this->reportSellers($this->branch),
             'branchLabel' => $this->reportBranchLabel($this->branch),
@@ -41,12 +46,20 @@ class CreditSalesReportController extends Controller
     {
         $filters = $this->reportFilters($request);
         $rows = $this->report->rows($this->report->query($filters, creditOnly: true, allWhenNoDates: true), creditView: true);
+        $collections = $this->report->collections($filters, allWhenNoDates: true);
 
-        $export = new ReportExport(
-            $this->report->headings(),
-            $this->report->orderedRows($rows),
-            'Credit Sales Report',
-        );
+        $export = new MultiSheetExport([
+            new ReportExport(
+                $this->report->headings(),
+                $this->report->orderedRows($rows),
+                'Credit Sales Report',
+            ),
+            new ReportExport(
+                $this->report->collectionHeadings(),
+                $this->report->orderedCollectionRows($collections),
+                'Credit Collections',
+            ),
+        ]);
 
         return Excel::download($export, $this->exportFilename('credit-sales-report', $filters).'.xlsx');
     }
@@ -55,14 +68,17 @@ class CreditSalesReportController extends Controller
     {
         $filters = $this->reportFilters($request);
         $rows = $this->report->rows($this->report->query($filters, creditOnly: true, allWhenNoDates: true), creditView: true);
+        $collections = $this->report->collections($filters, allWhenNoDates: true);
 
-        $this->guardPdf($rows);
+        $this->guardPdf($rows, $collections);
 
         $pdf = Pdf::loadView('reports.sales', [
             'title' => 'Credit Sales Report',
             'meta' => $this->report->meta($filters, $this->reportBranchLabel($this->branch), allWhenNoDates: true),
             'rows' => $rows,
             'totals' => $this->report->totals($rows),
+            'collections' => $collections,
+            'summary' => $this->report->summary($rows, $collections),
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download($this->exportFilename('credit-sales-report', $filters).'.pdf');

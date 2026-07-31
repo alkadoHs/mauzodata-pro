@@ -26,6 +26,16 @@
             border-top: 2px solid #c7d2fe; background: #eef2ff; color: #3730a3;
         }
         .empty { padding: 20px; text-align: center; color: #9ca3af; }
+        .summary { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        .summary td {
+            border: 1px solid #e5e7eb; padding: 6px 8px; width: 25%;
+            background: #fafafa;
+        }
+        .summary .label { display: block; font-size: 9px; color: #6b7280; text-transform: uppercase; }
+        .summary .value { display: block; font-size: 13px; font-weight: bold; }
+        .summary .in { color: #047857; }
+        h2 { font-size: 13px; color: #3730a3; margin: 18px 0 6px; }
+        .note { font-size: 9px; color: #6b7280; margin: 0 0 6px; }
     </style>
 </head>
 <body>
@@ -37,6 +47,31 @@
             @endforeach
         </div>
     </div>
+
+    @isset ($summary)
+        <table class="summary">
+            <tr>
+                <td>
+                    <span class="label">Sales billed</span>
+                    <span class="value">{{ number_format($summary['sales'], 2) }}</span>
+                </td>
+                <td>
+                    <span class="label">Collected on these sales</span>
+                    <span class="value">{{ number_format($summary['collected_on_sales'], 2) }}</span>
+                </td>
+                <td>
+                    <span class="label">Collected on earlier credit</span>
+                    <span class="value">{{ number_format($summary['collected_on_previous'], 2) }}</span>
+                </td>
+                <td>
+                    <span class="label">Total money collected</span>
+                    <span class="value in">{{ number_format($summary['collected_total'], 2) }}</span>
+                </td>
+            </tr>
+        </table>
+    @endisset
+
+    <p class="note">Paid = money actually received in this period. Due = balance left at the end of it.</p>
 
     <table>
         <thead>
@@ -83,5 +118,45 @@
             </tfoot>
         @endif
     </table>
+
+    @if (! empty($collections) && count($collections))
+        <h2>Credit collections received in this period (from earlier sales)</h2>
+        <p class="note">Repayments banked in this period against credit sales made before it.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Paid on</th>
+                    <th>Branch</th>
+                    <th>Customer</th>
+                    <th>Received by</th>
+                    <th>Invoice</th>
+                    <th>Sale date</th>
+                    <th class="num">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($collections as $i => $c)
+                    <tr>
+                        <td>{{ $i + 1 }}</td>
+                        <td>{{ $c['date'] }}</td>
+                        <td>{{ $c['branch'] }}</td>
+                        <td>{{ $c['customer'] }}</td>
+                        <td>{{ $c['received_by'] }}</td>
+                        <td>{{ $c['invoice'] }}</td>
+                        <td>{{ $c['sale_date'] }}</td>
+                        <td class="num">{{ number_format($c['amount'], 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="7">TOTAL COLLECTED ({{ count($collections) }} payments)</td>
+                    <td class="num">{{ number_format(collect($collections)->sum('amount'), 2) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    @endif
 </body>
 </html>

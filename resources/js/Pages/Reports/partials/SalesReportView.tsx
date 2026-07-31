@@ -51,6 +51,28 @@ export interface ReportTotals {
     count: number;
 }
 
+/** A repayment banked in this period against a credit sale made before it. */
+export interface CollectionRow {
+    id: number;
+    date: string | null;
+    branch: string | null;
+    customer: string | null;
+    received_by: string | null;
+    invoice: string | null;
+    sale_date: string | null;
+    amount: number;
+}
+
+export interface ReportSummary {
+    sales: number;
+    collected_on_sales: number;
+    collected_on_previous: number;
+    collected_total: number;
+    outstanding: number;
+    gp: number;
+    collections_count: number;
+}
+
 interface Seller {
     id: number;
     name: string;
@@ -63,6 +85,8 @@ type Props = {
     pdfRoute: string;
     rows: ReportRow[];
     totals: ReportTotals;
+    collections: CollectionRow[];
+    summary: ReportSummary;
     filters: { from_date?: string; to_date?: string; user_id?: string | number };
     sellers: Seller[];
     branchLabel: string;
@@ -94,6 +118,8 @@ export default function SalesReportView({
     pdfRoute,
     rows,
     totals,
+    collections = [],
+    summary,
     filters,
     sellers,
     branchLabel,
@@ -123,8 +149,9 @@ export default function SalesReportView({
     };
 
     // dompdf can't render huge documents (~0.4MB/row); Excel has no limit.
-    // Keep in step with BuildsSalesReports::PDF_MAX_ROWS.
-    const pdfTooBig = rows.length > 750;
+    // Keep in step with BuildsSalesReports::PDF_MAX_ROWS — the collections table
+    // prints in the same document, so it counts too.
+    const pdfTooBig = rows.length + collections.length > 750;
 
     // Client-side pagination (50 per page); totals below are always the full set.
     const PER_PAGE = 50;
@@ -221,6 +248,39 @@ export default function SalesReportView({
                         Apply
                     </Button>
                 </form>
+
+                {summary && (
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <SummaryCard
+                            label="Sales billed"
+                            value={summary.sales}
+                            hint="Value of sales made in this period"
+                        />
+                        <SummaryCard
+                            label="Collected on these sales"
+                            value={summary.collected_on_sales}
+                            hint="Cash + down payments received in this period"
+                        />
+                        <SummaryCard
+                            label="Collected on earlier credit"
+                            value={summary.collected_on_previous}
+                            hint={`${summary.collections_count} repayment(s) on sales made before this period`}
+                        />
+                        <SummaryCard
+                            label="Total money collected"
+                            value={summary.collected_total}
+                            hint="What the till should hold for this period"
+                            accent
+                        />
+                    </div>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                    <b>Paid</b> is money actually received during the selected
+                    period — a repayment made on a later day is reported on that
+                    day, not on the sale date. <b>Due</b> is the balance left at
+                    the end of the period.
+                </p>
 
                 <div className="rounded-md border overflow-x-auto">
                     <Table>
@@ -336,7 +396,119 @@ export default function SalesReportView({
                         </Button>
                     </div>
                 )}
+
+                {collections.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                        <div>
+                            <Heading4>
+                                Credit collections received in this period
+                            </Heading4>
+                            <p className="text-sm text-muted-foreground">
+                                Repayments banked in this period against credit
+                                sales made earlier — the sale itself was counted
+                                on its own day.
+                            </p>
+                        </div>
+
+                        <div className="rounded-md border overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Paid on</TableHead>
+                                        <TableHead>Branch</TableHead>
+                                        <TableHead>Customer</TableHead>
+                                        <TableHead>Received by</TableHead>
+                                        <TableHead>Invoice</TableHead>
+                                        <TableHead>Sale date</TableHead>
+                                        <TableHead className="text-right">
+                                            Amount
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {collections.map((c) => (
+                                        <TableRow key={c.id}>
+                                            <TableCell className="whitespace-nowrap">
+                                                {c.date}
+                                            </TableCell>
+                                            <TableCell>{c.branch}</TableCell>
+                                            <TableCell>{c.customer}</TableCell>
+                                            <TableCell>
+                                                {c.received_by}
+                                            </TableCell>
+                                            <TableCell>{c.invoice}</TableCell>
+                                            <TableCell className="whitespace-nowrap">
+                                                {c.sale_date}
+                                            </TableCell>
+                                            <TableCell className="text-right tabular-nums">
+                                                {numberFormat(c.amount)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={6}
+                                            className="font-semibold"
+                                        >
+                                            Total collected (
+                                            {collections.length} payments)
+                                        </TableCell>
+                                        <TableCell className="text-right font-semibold tabular-nums">
+                                            {numberFormat(
+                                                collections.reduce(
+                                                    (acc, c) =>
+                                                        acc + Number(c.amount),
+                                                    0
+                                                )
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                </TableFooter>
+                            </Table>
+                        </div>
+                    </div>
+                )}
             </section>
         </Authenticated>
+    );
+}
+
+function SummaryCard({
+    label,
+    value,
+    hint,
+    accent = false,
+}: {
+    label: string;
+    value: number;
+    hint?: string;
+    accent?: boolean;
+}) {
+    return (
+        <div
+            className={cn(
+                "rounded-lg border bg-card p-3",
+                accent && "border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10"
+            )}
+        >
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                {label}
+            </div>
+            <div
+                className={cn(
+                    "text-xl font-semibold tabular-nums",
+                    accent && "text-emerald-700 dark:text-emerald-400"
+                )}
+            >
+                {numberFormat(value)}
+            </div>
+            {hint && (
+                <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    {hint}
+                </div>
+            )}
+        </div>
     );
 }

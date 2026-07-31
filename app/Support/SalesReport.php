@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\CreditSalePayment;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -13,9 +14,18 @@ use Illuminate\Support\Collection;
  * Domain rules (verified against the data):
  *  - Total = SUM(order_items.total)   [quantity * price]
  *  - GP    = SUM(order_items.profit)  [(price - buy_price) * quantity]
- *  - Paid  = credit order -> SUM(credit_sale_payments.amount) (incl. down payment)
+ *  - Paid  = credit order -> SUM(credit_sale_payments.amount) RECEIVED INSIDE the
+ *            selected date window (incl. the down payment, which is written at
+ *            checkout so it always lands on the sale date)
  *            paid order   -> Total (fully paid by definition; order.paid is unreliable)
- *  - Due   = Total - Paid
+ *  - Due   = Total - Paid, i.e. the balance as at the end of the window.
+ *
+ * Money is reported on the day it was actually received. A credit sale made on
+ * Monday and cleared on Friday shows only Monday's down payment in Monday's
+ * report; Friday's instalment belongs to Friday and reaches that day's report
+ * through collections() below. (Paid + Due = Total still holds on every order
+ * row: an order's payments can never predate the order, so "received in the
+ * window" and "received up to the end of the window" are the same number.)
  *
  * Branch isolation is automatic: Order is branch-scoped, so every query here
  * respects the active branch (or aggregates across all when "All" is selected).
@@ -41,7 +51,13 @@ class SalesReport
             ])
             ->withSum('orderItems as total_amount', 'total')
             ->withSum('orderItems as gross_profit', 'profit')
-            ->withSum('creditSalePayments as credit_paid', 'amount')
+            // Only the money that came in during the window — a repayment made
+            // later belongs to the day it was collected, not to the sale date.
+            ->withSum([
+                'creditSalePayments as credit_paid' => fn (Builder $q) => $q
+                    ->when($from, fn (Builder $p) => $p->whereDate('credit_sale_payments.created_at', '>=', $from))
+                    ->when($to, fn (Builder $p) => $p->whereDate('credit_sale_payments.created_at', '<=', $to)),
+            ], 'amount')
             ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
             ->when(
@@ -99,6 +115,108 @@ class SalesReport
     }
 
     /**
+     * Repayments banked inside the window against credit sales made BEFORE it.
+     *
+     * These are real money-in for the day being closed, but they carry no sale
+     * of their own inside the window, so they would otherwise be invisible.
+     * Payments on sales made *inside* the window are deliberately excluded —
+     * those already sit in that sale's own "Paid" column.
+     *
+     * The seller filter matches whoever *received* the payment (the person
+     * closing their day), not whoever originally made the sale.
+     */
+    public function collectionsQuery(array $filters, bool $allWhenNoDates = false): Builder
+    {
+        [$from, $to] = $this->resolveDates($filters, $allWhenNoDates);
+
+        $query = CreditSalePayment::query()
+            ->with([
+                'user:id,name',
+                'creditSale:id,order_id,customer_id,status',
+                'creditSale.customer:id,name',
+                'creditSale.order:id,branch_id,customer_id,invoice_number,created_at',
+                'creditSale.order.branch:id,name',
+                'creditSale.order.customer:id,name',
+            ]);
+
+        // Without a start date the window is "all time", so no sale predates it
+        // and there is nothing to carry over.
+        if (! $from) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query
+            // Branch isolation: CreditSale carries OrderBranchScope, so this
+            // whereHas keeps us inside the active branch's credit sales.
+            ->whereHas('creditSale', fn (Builder $q) => $q->whereHas(
+                'order',
+                fn (Builder $o) => $o->whereDate('orders.created_at', '<', $from)
+            ))
+            ->whereDate('credit_sale_payments.created_at', '>=', $from)
+            ->when($to, fn (Builder $q) => $q->whereDate('credit_sale_payments.created_at', '<=', $to))
+            ->when(
+                ! empty($filters['user_id']) && is_numeric($filters['user_id']),
+                fn (Builder $q) => $q->where('credit_sale_payments.user_id', $filters['user_id'])
+            )
+            ->latest('credit_sale_payments.created_at');
+    }
+
+    /**
+     * @return Collection<int,array<string,mixed>>
+     */
+    public function collections(array $filters, bool $allWhenNoDates = false): Collection
+    {
+        return $this->collectionsQuery($filters, $allWhenNoDates)
+            ->get()
+            ->map(fn (CreditSalePayment $p) => $this->collectionRow($p));
+    }
+
+    public function collectionRow(CreditSalePayment $payment): array
+    {
+        $order = $payment->creditSale?->order;
+
+        return [
+            'id' => $payment->id,
+            'date' => optional($payment->created_at)->format('Y-m-d H:i'),
+            'branch' => $order?->branch?->name,
+            'customer' => $payment->creditSale?->customer?->name
+                ?? $order?->customer?->name
+                ?? 'Walk-in',
+            'received_by' => $payment->user?->name,
+            'invoice' => $order?->invoice_number,
+            'sale_date' => optional($order?->created_at)->format('Y-m-d'),
+            'amount' => round((float) $payment->amount, 2),
+        ];
+    }
+
+    public function collectionsTotal(Collection $collections): float
+    {
+        return round($collections->sum('amount'), 2);
+    }
+
+    /**
+     * Cash-in view of the window — what the day actually closes with.
+     *
+     * collected_total is the money that physically came in: what was banked
+     * against sales made in the window, plus repayments on older credit sales.
+     */
+    public function summary(Collection $rows, Collection $collections): array
+    {
+        $totals = $this->totals($rows);
+        $previous = $this->collectionsTotal($collections);
+
+        return [
+            'sales' => $totals['total'],
+            'collected_on_sales' => $totals['paid'],
+            'collected_on_previous' => $previous,
+            'collected_total' => round($totals['paid'] + $previous, 2),
+            'outstanding' => $totals['due'],
+            'gp' => $totals['gp'],
+            'collections_count' => $collections->count(),
+        ];
+    }
+
+    /**
      * Column headings for exports (order matches orderedRows()).
      *
      * @return array<int,string>
@@ -125,6 +243,33 @@ class SalesReport
             $r['paid'],
             $r['due'],
             $r['gp'],
+        ])->values()->all();
+    }
+
+    /**
+     * Headings for the credit-collections sheet (order matches
+     * orderedCollectionRows()).
+     *
+     * @return array<int,string>
+     */
+    public function collectionHeadings(): array
+    {
+        return ['Paid on', 'Branch', 'Customer', 'Received by', 'Invoice', 'Sale date', 'Amount'];
+    }
+
+    /**
+     * @return array<int,array<int,mixed>>
+     */
+    public function orderedCollectionRows(Collection $collections): array
+    {
+        return $collections->map(fn (array $r) => [
+            $r['date'],
+            $r['branch'],
+            $r['customer'],
+            $r['received_by'],
+            $r['invoice'],
+            $r['sale_date'],
+            $r['amount'],
         ])->values()->all();
     }
 

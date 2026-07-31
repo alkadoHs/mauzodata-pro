@@ -38,6 +38,7 @@ type DashboardProps = {
         branchSales: number;
         branchProfit: number;
         branchExpenses: number;
+        branchCreditCollected: number;
         totalDebt: number;
         totalCapital: number;
     };
@@ -157,12 +158,18 @@ export default function Dashboard({
                         <h2 className="text-sm font-medium text-muted-foreground">
                             Branch overview
                         </h2>
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                             <Stat
                                 label="Sales"
                                 value={numberFormat(kpis.branchSales)}
                                 icon={ShoppingCart}
                                 trend={trends?.sales}
+                            />
+                            <Stat
+                                label="Credit collected"
+                                value={numberFormat(kpis.branchCreditCollected)}
+                                icon={HandCoins}
+                                hint="repayments banked in this period"
                             />
                             <Stat
                                 label="Est. profit"

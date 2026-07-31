@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CreditSale;
+use App\Models\CreditSalePayment;
 use App\Models\ExpenseItem;
 use App\Models\Product;
 use App\Models\OrderItem;
@@ -57,6 +58,7 @@ class DashboardController extends Controller
             'branchSales' => 0,
             'branchProfit' => 0,
             'branchExpenses' => 0,
+            'branchCreditCollected' => 0,
             'totalDebt' => 0,
             'totalCapital' => 0,
         ];
@@ -71,6 +73,9 @@ class DashboardController extends Controller
             $kpis['branchSales'] = (float) $this->items($startDate, $endDate)->sum('total');
             $kpis['branchProfit'] = (float) $this->items($startDate, $endDate)->sum('profit');
             $kpis['branchExpenses'] = $this->expenses($startDate, $endDate);
+            // Credit money banked in this window, dated by when it was received
+            // (not by the sale date) — the other half of a day's takings.
+            $kpis['branchCreditCollected'] = $this->creditCollected($startDate, $endDate);
             $kpis['totalDebt'] = $this->outstandingDebt();
             $kpis['totalCapital'] = (float) (Product::query()
                 ->selectRaw('SUM(stock * buy_price) as value')->value('value') ?? 0);
@@ -146,6 +151,20 @@ class DashboardController extends Controller
     {
         return (float) $user->expenseItems()
             ->whereBetween('expense_items.created_at', [$from, $to])->sum('cost');
+    }
+
+    /**
+     * Credit repayments received in the window, across the active branch.
+     *
+     * CreditSalePayment has no branch_id; CreditSale's OrderBranchScope supplies
+     * the isolation through the whereHas.
+     */
+    private function creditCollected(Carbon $from, Carbon $to): float
+    {
+        return (float) CreditSalePayment::query()
+            ->whereHas('creditSale')
+            ->whereBetween('credit_sale_payments.created_at', [$from, $to])
+            ->sum('amount');
     }
 
     /** ExpenseItem has no branch_id; scope it through its (branch-scoped) expense. */
