@@ -252,34 +252,34 @@ export default function SalesReportView({
                 {summary && (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <SummaryCard
-                            label="Sales billed"
+                            label="Total sales"
                             value={summary.sales}
-                            hint="Value of sales made in this period"
+                            hint="Value of everything sold"
                         />
                         <SummaryCard
-                            label="Collected on these sales"
+                            label="Paid amount"
                             value={summary.collected_on_sales}
-                            hint="Cash + down payments received in this period"
+                            hint="Money received for these sales"
                         />
                         <SummaryCard
-                            label="Collected on earlier credit"
+                            label="Credit collections"
                             value={summary.collected_on_previous}
-                            hint={`${summary.collections_count} repayment(s) on sales made before this period`}
+                            hint={`${summary.collections_count} payment(s) for older credit sales`}
                         />
                         <SummaryCard
-                            label="Total money collected"
+                            label="Total money received"
                             value={summary.collected_total}
-                            hint="What the till should hold for this period"
+                            hint="All money that came in"
                             accent
                         />
                     </div>
                 )}
 
                 <p className="text-xs text-muted-foreground">
-                    <b>Paid</b> is money actually received during the selected
-                    period — a repayment made on a later day is reported on that
-                    day, not on the sale date. <b>Due</b> is the balance left at
-                    the end of the period.
+                    <b>Paid</b> is the money received on these days. If a
+                    customer pays later, that money is counted on the day they
+                    paid, not on the day of the sale. <b>Due</b> is what was
+                    still not paid at the end of these days.
                 </p>
 
                 <div className="rounded-md border overflow-x-auto">
@@ -400,13 +400,11 @@ export default function SalesReportView({
                 {collections.length > 0 && (
                     <div className="flex flex-col gap-2">
                         <div>
-                            <Heading4>
-                                Credit collections received in this period
-                            </Heading4>
+                            <Heading4>Credit collections</Heading4>
                             <p className="text-sm text-muted-foreground">
-                                Repayments banked in this period against credit
-                                sales made earlier — the sale itself was counted
-                                on its own day.
+                                Money paid on these days for credit sales made
+                                on earlier days. The sales themselves were
+                                already counted on the day they were made.
                             </p>
                         </div>
 
@@ -452,7 +450,7 @@ export default function SalesReportView({
                                             colSpan={6}
                                             className="font-semibold"
                                         >
-                                            Total collected (
+                                            Total credit collections (
                                             {collections.length} payments)
                                         </TableCell>
                                         <TableCell className="text-right font-semibold tabular-nums">

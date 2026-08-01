@@ -52,26 +52,26 @@
         <table class="summary">
             <tr>
                 <td>
-                    <span class="label">Sales billed</span>
+                    <span class="label">Total sales</span>
                     <span class="value">{{ number_format($summary['sales'], 2) }}</span>
                 </td>
                 <td>
-                    <span class="label">Collected on these sales</span>
+                    <span class="label">Paid amount</span>
                     <span class="value">{{ number_format($summary['collected_on_sales'], 2) }}</span>
                 </td>
                 <td>
-                    <span class="label">Collected on earlier credit</span>
+                    <span class="label">Credit collections</span>
                     <span class="value">{{ number_format($summary['collected_on_previous'], 2) }}</span>
                 </td>
                 <td>
-                    <span class="label">Total money collected</span>
+                    <span class="label">Total money received</span>
                     <span class="value in">{{ number_format($summary['collected_total'], 2) }}</span>
                 </td>
             </tr>
         </table>
     @endisset
 
-    <p class="note">Paid = money actually received in this period. Due = balance left at the end of it.</p>
+    <p class="note">Paid = money received on these days. Due = what was still not paid at the end of them.</p>
 
     <table>
         <thead>
@@ -120,8 +120,8 @@
     </table>
 
     @if (! empty($collections) && count($collections))
-        <h2>Credit collections received in this period (from earlier sales)</h2>
-        <p class="note">Repayments banked in this period against credit sales made before it.</p>
+        <h2>Credit collections</h2>
+        <p class="note">Money paid on these days for credit sales made on earlier days.</p>
 
         <table>
             <thead>
@@ -152,7 +152,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="7">TOTAL COLLECTED ({{ count($collections) }} payments)</td>
+                    <td colspan="7">TOTAL CREDIT COLLECTIONS ({{ count($collections) }} payments)</td>
                     <td class="num">{{ number_format(collect($collections)->sum('amount'), 2) }}</td>
                 </tr>
             </tfoot>

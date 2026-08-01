@@ -166,10 +166,10 @@ export default function Dashboard({
                                 trend={trends?.sales}
                             />
                             <Stat
-                                label="Credit collected"
+                                label="Credit collections"
                                 value={numberFormat(kpis.branchCreditCollected)}
                                 icon={HandCoins}
-                                hint="repayments banked in this period"
+                                hint="money paid on credit sales"
                             />
                             <Stat
                                 label="Est. profit"
