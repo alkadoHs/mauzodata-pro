@@ -39,7 +39,7 @@ class SalesReport
      */
     public function query(array $filters, bool $creditOnly = false, bool $allWhenNoDates = false): Builder
     {
-        [$from, $to] = $this->resolveDates($filters, $allWhenNoDates);
+        [$from, $to] = $this->dateBounds($filters, $allWhenNoDates);
 
         return Order::query()
             ->when($creditOnly, fn (Builder $q) => $q->where('status', 'credit'))
@@ -55,11 +55,11 @@ class SalesReport
             // later belongs to the day it was collected, not to the sale date.
             ->withSum([
                 'creditSalePayments as credit_paid' => fn (Builder $q) => $q
-                    ->when($from, fn (Builder $p) => $p->whereDate('credit_sale_payments.created_at', '>=', $from))
-                    ->when($to, fn (Builder $p) => $p->whereDate('credit_sale_payments.created_at', '<=', $to)),
+                    ->when($from, fn (Builder $p) => $p->where('credit_sale_payments.created_at', '>=', $from))
+                    ->when($to, fn (Builder $p) => $p->where('credit_sale_payments.created_at', '<=', $to)),
             ], 'amount')
-            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('orders.created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('orders.created_at', '<=', $to))
             ->when(
                 ! empty($filters['user_id']) && is_numeric($filters['user_id']),
                 fn (Builder $q) => $q->where('user_id', $filters['user_id'])
@@ -127,7 +127,7 @@ class SalesReport
      */
     public function collectionsQuery(array $filters, bool $allWhenNoDates = false): Builder
     {
-        [$from, $to] = $this->resolveDates($filters, $allWhenNoDates);
+        [$from, $to] = $this->dateBounds($filters, $allWhenNoDates);
 
         $query = CreditSalePayment::query()
             ->with([
@@ -150,10 +150,10 @@ class SalesReport
             // whereHas keeps us inside the active branch's credit sales.
             ->whereHas('creditSale', fn (Builder $q) => $q->whereHas(
                 'order',
-                fn (Builder $o) => $o->whereDate('orders.created_at', '<', $from)
+                fn (Builder $o) => $o->where('orders.created_at', '<', $from)
             ))
-            ->whereDate('credit_sale_payments.created_at', '>=', $from)
-            ->when($to, fn (Builder $q) => $q->whereDate('credit_sale_payments.created_at', '<=', $to))
+            ->where('credit_sale_payments.created_at', '>=', $from)
+            ->when($to, fn (Builder $q) => $q->where('credit_sale_payments.created_at', '<=', $to))
             ->when(
                 ! empty($filters['user_id']) && is_numeric($filters['user_id']),
                 fn (Builder $q) => $q->where('credit_sale_payments.user_id', $filters['user_id'])
@@ -199,20 +199,31 @@ class SalesReport
      *
      * collected_total is the money that physically came in: what was banked
      * against sales made in the window, plus repayments on older credit sales.
+     * net_sales takes the expenses spent in the same window back off it.
+     *
+     * @param  Collection|null  $expenses  rows from ExpenseReport::rows()
      */
-    public function summary(Collection $rows, Collection $collections): array
+    public function summary(Collection $rows, Collection $collections, ?Collection $expenses = null): array
     {
         $totals = $this->totals($rows);
         $previous = $this->collectionsTotal($collections);
+        $expenses ??= new Collection;
+
+        $collected = round($totals['paid'] + $previous, 2);
+        $spent = round($expenses->sum('cost'), 2);
 
         return [
             'sales' => $totals['total'],
             'collected_on_sales' => $totals['paid'],
             'collected_on_previous' => $previous,
-            'collected_total' => round($totals['paid'] + $previous, 2),
+            'collected_total' => $collected,
+            'expenses' => $spent,
+            'net_sales' => round($collected - $spent, 2),
+            'net_profit' => round($totals['gp'] - $spent, 2),
             'outstanding' => $totals['due'],
             'gp' => $totals['gp'],
             'collections_count' => $collections->count(),
+            'expenses_count' => $expenses->count(),
         ];
     }
 
@@ -311,5 +322,24 @@ class SalesReport
         }
 
         return [$from, $to];
+    }
+
+    /**
+     * The same window as resolveDates(), but as timestamps for use in queries.
+     *
+     * Reports compare against these with plain >= / <= rather than whereDate():
+     * whereDate() wraps the column in DATE(), which makes any index on
+     * created_at unusable and forces a full scan of orders / payments.
+     *
+     * @return array{0:?Carbon,1:?Carbon}
+     */
+    public function dateBounds(array $filters, bool $allWhenNoDates = false): array
+    {
+        [$from, $to] = $this->resolveDates($filters, $allWhenNoDates);
+
+        return [
+            $from ? Carbon::parse($from)->startOfDay() : null,
+            $to ? Carbon::parse($to)->endOfDay() : null,
+        ];
     }
 }

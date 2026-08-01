@@ -63,14 +63,28 @@ export interface CollectionRow {
     amount: number;
 }
 
+/** One expense line spent inside the selected period. */
+export interface ExpenseRow {
+    id: number;
+    date: string | null;
+    branch: string | null;
+    user: string | null;
+    item: string;
+    cost: number;
+}
+
 export interface ReportSummary {
     sales: number;
     collected_on_sales: number;
     collected_on_previous: number;
     collected_total: number;
+    expenses: number;
+    net_sales: number;
+    net_profit: number;
     outstanding: number;
     gp: number;
     collections_count: number;
+    expenses_count: number;
 }
 
 interface Seller {
@@ -86,6 +100,7 @@ type Props = {
     rows: ReportRow[];
     totals: ReportTotals;
     collections: CollectionRow[];
+    expenses: ExpenseRow[];
     summary: ReportSummary;
     filters: { from_date?: string; to_date?: string; user_id?: string | number };
     sellers: Seller[];
@@ -119,6 +134,7 @@ export default function SalesReportView({
     rows,
     totals,
     collections = [],
+    expenses = [],
     summary,
     filters,
     sellers,
@@ -151,7 +167,7 @@ export default function SalesReportView({
     // dompdf can't render huge documents (~0.4MB/row); Excel has no limit.
     // Keep in step with BuildsSalesReports::PDF_MAX_ROWS — the collections table
     // prints in the same document, so it counts too.
-    const pdfTooBig = rows.length + collections.length > 750;
+    const pdfTooBig = rows.length + collections.length + expenses.length > 750;
 
     // Client-side pagination (50 per page); totals below are always the full set.
     const PER_PAGE = 50;
@@ -250,7 +266,7 @@ export default function SalesReportView({
                 </form>
 
                 {summary && (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <SummaryCard
                             label="Total sales"
                             value={summary.sales}
@@ -269,8 +285,19 @@ export default function SalesReportView({
                         <SummaryCard
                             label="Total money received"
                             value={summary.collected_total}
-                            hint="All money that came in"
-                            accent
+                            hint="Paid amount + credit collections"
+                        />
+                        <SummaryCard
+                            label="Total expenses"
+                            value={summary.expenses}
+                            hint={`${summary.expenses_count} item(s) spent`}
+                            tone="out"
+                        />
+                        <SummaryCard
+                            label="Net sales"
+                            value={summary.net_sales}
+                            hint="Total money received − total expenses"
+                            tone="in"
                         />
                     </div>
                 )}
@@ -468,6 +495,69 @@ export default function SalesReportView({
                         </div>
                     </div>
                 )}
+
+                {expenses.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                        <div>
+                            <Heading4>Expenses</Heading4>
+                            <p className="text-sm text-muted-foreground">
+                                Money spent on these days. It is taken off the
+                                total money received to give net sales.
+                            </p>
+                        </div>
+
+                        <div className="rounded-md border overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Branch</TableHead>
+                                        <TableHead>Spent by</TableHead>
+                                        <TableHead>Item</TableHead>
+                                        <TableHead className="text-right">
+                                            Cost
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {expenses.map((e) => (
+                                        <TableRow key={e.id}>
+                                            <TableCell className="whitespace-nowrap">
+                                                {e.date}
+                                            </TableCell>
+                                            <TableCell>{e.branch}</TableCell>
+                                            <TableCell>{e.user}</TableCell>
+                                            <TableCell>{e.item}</TableCell>
+                                            <TableCell className="text-right tabular-nums">
+                                                {numberFormat(e.cost)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={4}
+                                            className="font-semibold"
+                                        >
+                                            Total expenses ({expenses.length}{" "}
+                                            items)
+                                        </TableCell>
+                                        <TableCell className="text-right font-semibold tabular-nums">
+                                            {numberFormat(
+                                                expenses.reduce(
+                                                    (acc, e) =>
+                                                        acc + Number(e.cost),
+                                                    0
+                                                )
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                </TableFooter>
+                            </Table>
+                        </div>
+                    </div>
+                )}
             </section>
         </Authenticated>
     );
@@ -477,18 +567,22 @@ function SummaryCard({
     label,
     value,
     hint,
-    accent = false,
+    tone,
 }: {
     label: string;
     value: number;
     hint?: string;
-    accent?: boolean;
+    /** "in" = money kept (green), "out" = money spent (red). */
+    tone?: "in" | "out";
 }) {
     return (
         <div
             className={cn(
                 "rounded-lg border bg-card p-3",
-                accent && "border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10"
+                tone === "in" &&
+                    "border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10",
+                tone === "out" &&
+                    "border-red-500/30 bg-red-50 dark:bg-red-500/10"
             )}
         >
             <div className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -497,7 +591,8 @@ function SummaryCard({
             <div
                 className={cn(
                     "text-xl font-semibold tabular-nums",
-                    accent && "text-emerald-700 dark:text-emerald-400"
+                    tone === "in" && "text-emerald-700 dark:text-emerald-400",
+                    tone === "out" && "text-red-700 dark:text-red-400"
                 )}
             >
                 {numberFormat(value)}

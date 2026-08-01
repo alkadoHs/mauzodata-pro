@@ -28,12 +28,13 @@
         .empty { padding: 20px; text-align: center; color: #9ca3af; }
         .summary { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
         .summary td {
-            border: 1px solid #e5e7eb; padding: 6px 8px; width: 25%;
+            border: 1px solid #e5e7eb; padding: 6px 8px; width: 33.33%;
             background: #fafafa;
         }
         .summary .label { display: block; font-size: 9px; color: #6b7280; text-transform: uppercase; }
         .summary .value { display: block; font-size: 13px; font-weight: bold; }
         .summary .in { color: #047857; }
+        .summary .out { color: #b91c1c; }
         h2 { font-size: 13px; color: #3730a3; margin: 18px 0 6px; }
         .note { font-size: 9px; color: #6b7280; margin: 0 0 6px; }
     </style>
@@ -63,12 +64,23 @@
                     <span class="label">Credit collections</span>
                     <span class="value">{{ number_format($summary['collected_on_previous'], 2) }}</span>
                 </td>
+            </tr>
+            <tr>
                 <td>
                     <span class="label">Total money received</span>
                     <span class="value in">{{ number_format($summary['collected_total'], 2) }}</span>
                 </td>
+                <td>
+                    <span class="label">Total expenses</span>
+                    <span class="value out">{{ number_format($summary['expenses'], 2) }}</span>
+                </td>
+                <td>
+                    <span class="label">Net sales</span>
+                    <span class="value in">{{ number_format($summary['net_sales'], 2) }}</span>
+                </td>
             </tr>
         </table>
+        <p class="note">Net sales = total money received &minus; total expenses.</p>
     @endisset
 
     <p class="note">Paid = money received on these days. Due = what was still not paid at the end of them.</p>
@@ -154,6 +166,42 @@
                 <tr>
                     <td colspan="7">TOTAL CREDIT COLLECTIONS ({{ count($collections) }} payments)</td>
                     <td class="num">{{ number_format(collect($collections)->sum('amount'), 2) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    @endif
+
+    @if (! empty($expenses) && count($expenses))
+        <h2>Expenses</h2>
+        <p class="note">Money spent on these days.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Branch</th>
+                    <th>Spent by</th>
+                    <th>Item</th>
+                    <th class="num">Cost</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($expenses as $i => $e)
+                    <tr>
+                        <td>{{ $i + 1 }}</td>
+                        <td>{{ $e['date'] }}</td>
+                        <td>{{ $e['branch'] }}</td>
+                        <td>{{ $e['user'] }}</td>
+                        <td>{{ $e['item'] }}</td>
+                        <td class="num">{{ number_format($e['cost'], 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5">TOTAL EXPENSES ({{ count($expenses) }} items)</td>
+                    <td class="num">{{ number_format(collect($expenses)->sum('cost'), 2) }}</td>
                 </tr>
             </tfoot>
         </table>

@@ -21,13 +21,14 @@ class ExpenseReport
      */
     public function query(array $filters, bool $allWhenNoDates = false): Builder
     {
-        [$from, $to] = $this->dates->resolveDates($filters, $allWhenNoDates);
+        // Timestamp bounds, not whereDate() — see SalesReport::dateBounds().
+        [$from, $to] = $this->dates->dateBounds($filters, $allWhenNoDates);
 
         return ExpenseItem::query()
             ->whereHas('expense')
             ->with(['expense.user:id,name', 'expense.branch:id,name'])
-            ->when($from, fn (Builder $q) => $q->whereDate('expense_items.created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('expense_items.created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('expense_items.created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('expense_items.created_at', '<=', $to))
             ->when(
                 ! empty($filters['user_id']) && is_numeric($filters['user_id']),
                 fn (Builder $q) => $q->whereRelation('expense', 'user_id', $filters['user_id'])

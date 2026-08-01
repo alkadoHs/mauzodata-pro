@@ -23,11 +23,11 @@ trait BuildsSalesReports
      * Call before rendering a PDF: refuses oversized documents and gives dompdf
      * the headroom it needs for the ones we do allow.
      */
-    protected function guardPdf(Collection $rows, ?Collection $extraRows = null): void
+    protected function guardPdf(Collection $rows, Collection ...$extraTables): void
     {
-        // The collections table is printed in the same document, so it counts
-        // against the same memory budget.
-        $count = $rows->count() + ($extraRows?->count() ?? 0);
+        // The collections / expenses tables print in the same document, so they
+        // count against the same memory budget.
+        $count = $rows->count() + array_sum(array_map(fn (Collection $t) => $t->count(), $extraTables));
 
         abort_if(
             $count > self::PDF_MAX_ROWS,
