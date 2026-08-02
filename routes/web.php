@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CreditSalePaymentController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataMigrationController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseItemController;
 use App\Http\Controllers\InvoiceController;
@@ -89,6 +90,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/authorization-keys', [AuthorizationKeyController::class, 'index'])->name('authorization-keys.index');
     Route::post('/authorization-keys', [AuthorizationKeyController::class, 'store'])->name('authorization-keys.store');
     Route::delete('/authorization-keys/{authorizationKey}', [AuthorizationKeyController::class, 'destroy'])->name('authorization-keys.destroy');
+
+    // Import a backup of the old system into a new branch (admin-only; the
+    // controller enforces it on every action).
+    Route::get('/data-migrations', [DataMigrationController::class, 'index'])->name('data-migrations.index');
+    Route::post('/data-migrations', [DataMigrationController::class, 'store'])->name('data-migrations.store');
+    Route::delete('/data-migrations/{dataMigration}', [DataMigrationController::class, 'destroy'])->name('data-migrations.destroy');
 });
 
 

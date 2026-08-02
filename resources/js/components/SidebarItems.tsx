@@ -156,12 +156,20 @@ const SidebarItems = ({ user }: { user: User }) => {
                         pattern="suppliers.*"
                     />
                     {isAdmin && (
-                        <NavLink
-                            routeName="authorization-keys.index"
-                            icon={ArrowRight}
-                            label="Authorization keys"
-                            pattern="authorization-keys.*"
-                        />
+                        <>
+                            <NavLink
+                                routeName="authorization-keys.index"
+                                icon={ArrowRight}
+                                label="Authorization keys"
+                                pattern="authorization-keys.*"
+                            />
+                            <NavLink
+                                routeName="data-migrations.index"
+                                icon={ArrowRight}
+                                label="Data migration"
+                                pattern="data-migrations.*"
+                            />
+                        </>
                     )}
                 </NavGroup>
             )}

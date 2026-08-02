@@ -18,3 +18,7 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Old-system dumps used for data migration — customer data, never committed.
+# (Uploaded ones live under storage/app, which is already ignored.)
+/*.sql
