@@ -150,7 +150,11 @@ class OrderController extends Controller
 
     public function preview()
     {
-        $latesOrder = Order::where('user_id', auth()->id())->with(['customer', 'user', 'branch', 'orderItems.product'])->latest()->first();
+        // branch.company backs the receipt's address / phone fallback.
+        $latesOrder = Order::where('user_id', auth()->id())
+            ->with(['customer', 'user', 'branch.company', 'orderItems.product'])
+            ->latest()
+            ->first();
         return Inertia::render('Orders/Preview', [
             'order' => $latesOrder,
         ]);
@@ -186,7 +190,9 @@ class OrderController extends Controller
 
     public function invoice(Request $request, Order $invoice)
     {
-        $currentOrder = Order::where('id', $invoice->id)->with(['customer', 'user', 'branch', 'orderItems.product'])->first();
+        $currentOrder = Order::where('id', $invoice->id)
+            ->with(['customer', 'user', 'branch.company', 'orderItems.product'])
+            ->first();
         return Inertia::render('Orders/Invoice', [
             'order' => $currentOrder,
         ]);

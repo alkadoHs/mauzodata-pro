@@ -41,6 +41,15 @@ export type Customer = {
     contact: string;
 };
 
+export type Company = {
+    id: number;
+    name: string;
+    phone: string | null;
+    email: string | null;
+    address: string | null;
+    tax_id: string | null;
+};
+
 export type Branch = {
     id: number;
     name: string;
@@ -49,6 +58,8 @@ export type Branch = {
     city: string;
     address: string;
     tax_id: string;
+    /** Loaded on receipts — a branch falls back to it for address and phone. */
+    company?: Company | null;
 };
 
 export type Order = {
