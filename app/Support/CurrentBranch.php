@@ -36,6 +36,36 @@ class CurrentBranch
     }
 
     /**
+     * Whether this session has explicitly picked a branch.
+     *
+     * Absence of the key means "not yet chosen": logging out invalidates the
+     * session, and a fresh login starts without it.
+     */
+    public function hasChosen(): bool
+    {
+        return session()->has(self::SESSION_KEY);
+    }
+
+    /**
+     * Whether the user has to pick a branch before doing anything else.
+     *
+     * Someone who can switch would otherwise silently land on whichever branch
+     * happens to be their default and could sell, spend or report against the
+     * wrong shop without ever noticing. Only asked when there is a real choice
+     * to make — a one-branch company is never interrupted.
+     */
+    public function mustChoose(): bool
+    {
+        $user = auth()->user();
+
+        if ($user === null || ! $this->canSwitch() || $this->hasChosen()) {
+            return false;
+        }
+
+        return Branch::where('company_id', $user->company_id)->count() > 1;
+    }
+
+    /**
      * True when the active context is "all branches" (no branch filter).
      */
     public function isAll(): bool

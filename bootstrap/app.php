@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            // Multi-branch admins/managers pick their branch before anything
+            // else; it no-ops for everyone else.
+            \App\Http\Middleware\EnsureBranchChosen::class,
         ]);
 
         $middleware->alias([

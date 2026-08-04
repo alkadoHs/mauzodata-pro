@@ -46,8 +46,15 @@ export default function Invoice({ auth, order }: PageProps<{ order: Order }>) {
                         </div>
                     </div>
 
-                    {/* Opens the print-ready receipt, which triggers the print dialog. */}
-                    <a href={route("invoices.download", order.id)}>
+                    {/* Opens the print-ready receipt, which triggers the print
+                        dialog. `from=invoice` returns here afterwards rather
+                        than to the till — this is a reprint, not a new sale. */}
+                    <a
+                        href={route("invoices.download", {
+                            id: order.id,
+                            from: "invoice",
+                        })}
+                    >
                         <Button className="gap-2">
                             <Printer className="size-4" /> Print
                         </Button>

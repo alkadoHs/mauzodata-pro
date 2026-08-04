@@ -50,6 +50,9 @@ Route::middleware('auth')->group(function () {
 
     // Switch the active branch (admins/managers only; enforced in the controller).
     Route::post('/branch/switch', [BranchContextController::class, 'switch'])->name('branch.switch');
+
+    // Forced on login when a multi-branch user hasn't picked one yet.
+    Route::get('/branch/choose', [BranchContextController::class, 'choose'])->name('branch.choose');
 });
 
 Route::resource('users', UserController::class)
