@@ -245,6 +245,10 @@ class DumpImporter
      */
     private function findExisting(string $table, array $spec, array $row): ?int
     {
+        if ($table === 'users') {
+            return $this->existingUser($row);
+        }
+
         $column = $spec['match'];
         $value = $row[$column] ?? null;
 
@@ -252,17 +256,43 @@ class DumpImporter
             return null;
         }
 
-        if ($table === 'users') {
-            $user = DB::table('users')->where('email', $value)->first(['id', 'company_id']);
-
-            // Same company: the same person, already here. Another company's
-            // account is untouchable — remap() gives the import a free address.
-            return $user && (int) $user->company_id === $this->companyId ? (int) $user->id : null;
-        }
-
         $id = DB::table($table)
             ->where('company_id', $this->companyId)
             ->where($column, $value)
+            ->value('id');
+
+        return $id === null ? null : (int) $id;
+    }
+
+    /**
+     * The same person, already in this company — matched on either of the two
+     * things that identify them: the address they log in with or the number
+     * they're reached on. Both are unique system-wide.
+     *
+     * Another company's account is never touched; remap() gives the import a
+     * free address and number instead.
+     */
+    private function existingUser(array $row): ?int
+    {
+        $email = $row['email'] ?? null;
+        $phone = $row['phone'] ?? null;
+
+        // Without either, there is nothing to match on — and an empty OR would
+        // match every user in the company.
+        if (blank($email) && blank($phone)) {
+            return null;
+        }
+
+        $id = DB::table('users')
+            ->where('company_id', $this->companyId)
+            ->where(function ($query) use ($email, $phone) {
+                if (filled($email)) {
+                    $query->orWhere('email', $email);
+                }
+                if (filled($phone)) {
+                    $query->orWhere('phone', $phone);
+                }
+            })
             ->value('id');
 
         return $id === null ? null : (int) $id;
@@ -316,7 +346,10 @@ class DumpImporter
         }
 
         if ($table === 'users') {
+            // Both are unique system-wide, and this person belongs to another
+            // company here, so neither can be taken as-is.
             $values['email'] = $this->freeEmail((string) ($values['email'] ?? ''));
+            $values['phone'] = $this->freePhone($values['phone'] ?? null);
         }
 
         // Match tables let the destination assign ids, so they have no offset.
@@ -438,5 +471,19 @@ class DumpImporter
         }
 
         throw new RuntimeException("Could not find a free email address for {$email}.");
+    }
+
+    /**
+     * Phone numbers are unique system-wide but optional, so a number someone
+     * else already holds is simply left off. A mangled number would be worse
+     * than a blank one — nobody can call it, and it looks real.
+     */
+    private function freePhone(?string $phone): ?string
+    {
+        if (blank($phone)) {
+            return null;
+        }
+
+        return DB::table('users')->where('phone', $phone)->exists() ? null : $phone;
     }
 }

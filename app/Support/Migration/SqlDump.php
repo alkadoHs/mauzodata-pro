@@ -236,18 +236,19 @@ class SqlDump
      */
     private function parse(string $table, string $line): Generator
     {
-        $columns = $this->columns[$table] ?? [];
+        $offset = strpos($line, ' VALUES ');
+
+        if ($offset === false) {
+            return;
+        }
+
+        // What the statement says it is writing beats what the table declares.
+        $columns = $this->insertColumns($line, $offset) ?? $this->columns[$table] ?? [];
 
         if ($columns === []) {
             throw new RuntimeException(
                 "The dump inserts into `{$table}` before declaring its columns — it may be truncated."
             );
-        }
-
-        $offset = strpos($line, ' VALUES ');
-
-        if ($offset === false) {
-            return;
         }
 
         $offset += 8;
@@ -277,6 +278,31 @@ class SqlDump
         if ($batch !== []) {
             yield $batch;
         }
+    }
+
+    /**
+     * The columns an INSERT names for itself, when it names any.
+     *
+     * MySQL 8's mysqldump writes `INSERT INTO t (a, b) VALUES ...` whenever a
+     * table has generated columns, listing only the ones it can actually write
+     * — on order_items that is nine columns against the twelve the table
+     * declares. MariaDB writes a bare `INSERT INTO t VALUES ...` and leans on
+     * the table's own order. So the row width has to come from the statement
+     * when it offers one, and only fall back to the schema when it doesn't.
+     *
+     * @return array<int,string>|null
+     */
+    private function insertColumns(string $line, int $valuesAt): ?array
+    {
+        $open = strpos($line, '(', 0);
+
+        if ($open === false || $open > $valuesAt) {
+            return null;
+        }
+
+        preg_match_all('/`([^`]+)`/', substr($line, $open, $valuesAt - $open), $matches);
+
+        return $matches[1] ?: null;
     }
 
     /**

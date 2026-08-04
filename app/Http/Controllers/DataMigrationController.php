@@ -92,7 +92,12 @@ class DataMigrationController extends Controller
         } catch (Throwable $e) {
             @unlink($fullPath);
 
-            return back()->withErrors(['dump' => 'That file could not be read as a MySQL backup.']);
+            // Say why. The reasons are our own (a truncated dump, a row that
+            // doesn't match its columns) and an admin can act on them; a bare
+            // "could not be read" just means asking us what went wrong.
+            return back()->withErrors([
+                'dump' => 'That file could not be read as a MySQL backup: '.$e->getMessage(),
+            ]);
         }
 
         $missing = array_diff(self::REQUIRED_TABLES, array_keys($scan['tables']));
