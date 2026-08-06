@@ -12,10 +12,13 @@ import { Building2 } from "lucide-react";
 type Company = {
     id: number;
     name: string;
+    owner_name: string | null;
     phone: string | null;
+    alt_phone: string | null;
     email: string | null;
     address: string | null;
     tax_id: string | null;
+    vrn: string | null;
 };
 
 export default function CompanySettings({
@@ -24,10 +27,13 @@ export default function CompanySettings({
 }: PageProps<{ company: Company }>) {
     const { data, setData, patch, processing, errors } = useForm({
         name: company?.name ?? "",
+        owner_name: company?.owner_name ?? "",
         phone: company?.phone ?? "",
+        alt_phone: company?.alt_phone ?? "",
         email: company?.email ?? "",
         address: company?.address ?? "",
         tax_id: company?.tax_id ?? "",
+        vrn: company?.vrn ?? "",
     });
 
     const submit: FormEventHandler = (e) => {
@@ -69,14 +75,33 @@ export default function CompanySettings({
                         </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                        <Label htmlFor="name">Company name *</Label>
-                        <Input
-                            id="name"
-                            value={data.name}
-                            onChange={(e) => setData("name", e.target.value)}
-                        />
-                        <InputError message={errors.name} />
+                    <p className="text-xs text-muted-foreground">
+                        Everything below prints at the top of every receipt and
+                        invoice. Leave a field blank and it simply won't appear.
+                    </p>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="name">Company name *</Label>
+                            <Input
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData("name", e.target.value)}
+                            />
+                            <InputError message={errors.name} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="owner_name">Owner's name</Label>
+                            <Input
+                                id="owner_name"
+                                value={data.owner_name}
+                                onChange={(e) =>
+                                    setData("owner_name", e.target.value)
+                                }
+                                placeholder="Optional"
+                            />
+                            <InputError message={errors.owner_name} />
+                        </div>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -89,6 +114,31 @@ export default function CompanySettings({
                                 placeholder="07xxxxxxxx"
                             />
                             <InputError message={errors.phone} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="alt_phone">Second phone</Label>
+                            <Input
+                                id="alt_phone"
+                                value={data.alt_phone}
+                                onChange={(e) =>
+                                    setData("alt_phone", e.target.value)
+                                }
+                                placeholder="Optional"
+                            />
+                            <InputError message={errors.alt_phone} />
+                        </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="address">Address</Label>
+                            <Input
+                                id="address"
+                                value={data.address}
+                                onChange={(e) => setData("address", e.target.value)}
+                                placeholder="P.O. Box …"
+                            />
+                            <InputError message={errors.address} />
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="email">Email</Label>
@@ -105,17 +155,7 @@ export default function CompanySettings({
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-1.5">
-                            <Label htmlFor="address">Address</Label>
-                            <Input
-                                id="address"
-                                value={data.address}
-                                onChange={(e) => setData("address", e.target.value)}
-                                placeholder="P.O. Box …"
-                            />
-                            <InputError message={errors.address} />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="tax_id">TIN / Tax number</Label>
+                            <Label htmlFor="tax_id">TIN</Label>
                             <Input
                                 id="tax_id"
                                 value={data.tax_id}
@@ -123,6 +163,16 @@ export default function CompanySettings({
                                 placeholder="Optional"
                             />
                             <InputError message={errors.tax_id} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="vrn">VRN</Label>
+                            <Input
+                                id="vrn"
+                                value={data.vrn}
+                                onChange={(e) => setData("vrn", e.target.value)}
+                                placeholder="Optional"
+                            />
+                            <InputError message={errors.vrn} />
                         </div>
                     </div>
 

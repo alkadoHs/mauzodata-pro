@@ -41,7 +41,13 @@ export default function Receipt({ order, agent }: Props) {
         [branch?.address, branch?.city].filter(Boolean).join(", ") ||
         company?.address ||
         "";
-    const phone = branch?.phone || company?.phone || "";
+
+    // The branch's number first when it has one, then the company's — a shop
+    // usually publishes two, and a customer should be able to reach any of them.
+    const phones = [branch?.phone, company?.phone, company?.alt_phone]
+        .map((p) => (p ?? "").trim())
+        .filter((p, i, all) => p !== "" && all.indexOf(p) === i);
+
     const title = company?.name || branch?.name || "";
 
     return (
@@ -53,14 +59,35 @@ export default function Receipt({ order, agent }: Props) {
                 <h1 className="text-base font-bold uppercase tracking-wide">
                     {title}
                 </h1>
+                {company?.owner_name && <p>{company.owner_name}</p>}
                 {address && (
                     <p className="mt-0.5">
                         <span className="font-medium">Address :</span> {address}
                     </p>
                 )}
-                {phone && (
+                {phones.length > 0 && (
                     <p>
-                        <span className="font-medium">Tel :</span> {phone}
+                        <span className="font-medium">Tel :</span>{" "}
+                        {phones.join(" / ")}
+                    </p>
+                )}
+                {(company?.tax_id || company?.vrn) && (
+                    <p className="mt-0.5">
+                        {company.tax_id && (
+                            <span>
+                                <span className="font-medium">TIN :</span>{" "}
+                                {company.tax_id}
+                            </span>
+                        )}
+                        {company.tax_id && company.vrn && (
+                            <span className="px-1.5">·</span>
+                        )}
+                        {company.vrn && (
+                            <span>
+                                <span className="font-medium">VRN :</span>{" "}
+                                {company.vrn}
+                            </span>
+                        )}
                     </p>
                 )}
             </header>

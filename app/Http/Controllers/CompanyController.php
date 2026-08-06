@@ -57,10 +57,14 @@ class CompanyController extends Controller
             // `name` is UNIQUE at the database level — validate so a clash is a
             // field error rather than a SQL error.
             'name' => ['required', 'string', 'max:50', Rule::unique('companies', 'name')->ignore($company->id)],
+            // Printed on every receipt; all optional, and blank ones don't print.
+            'owner_name' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'alt_phone' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'tax_id' => ['nullable', 'string', 'max:50'],
+            'vrn' => ['nullable', 'string', 'max:50'],
         ]);
 
         $company->update($validated);

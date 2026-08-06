@@ -9,5 +9,8 @@ class Company extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'phone', 'email', 'address', 'tax_id'];
+    /** Everything here except `name` is optional and prints on receipts. */
+    protected $fillable = [
+        'name', 'owner_name', 'phone', 'alt_phone', 'email', 'address', 'tax_id', 'vrn',
+    ];
 }

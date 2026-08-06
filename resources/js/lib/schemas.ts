@@ -44,10 +44,16 @@ export type Customer = {
 export type Company = {
     id: number;
     name: string;
+    /** The proprietor, printed under the trading name on receipts. */
+    owner_name: string | null;
     phone: string | null;
+    alt_phone: string | null;
     email: string | null;
     address: string | null;
+    /** Taxpayer Identification Number. */
     tax_id: string | null;
+    /** VAT Registration Number. */
+    vrn: string | null;
 };
 
 export type Branch = {
