@@ -131,7 +131,7 @@ class SqlDump
                 }
 
                 if ($this->isInsert($line) && $this->tableName($line) === $table) {
-                    yield from $this->parse($table, $line);
+                    yield from $this->parse($table, $line, $handle);
                 }
             }
         } finally {
@@ -215,7 +215,7 @@ class SqlDump
                     continue;
                 }
 
-                foreach ($this->parse($table, $line) as $batch) {
+                foreach ($this->parse($table, $line, $handle) as $batch) {
                     $onRows($table, $batch);
                 }
             }
@@ -225,25 +225,32 @@ class SqlDump
     }
 
     /**
-     * Turn one `INSERT INTO x VALUES (..),(..);` line into batches of
-     * column-keyed rows.
+     * Turn one INSERT statement into batches of column-keyed rows.
      *
-     * Tuples are matched one at a time from a moving offset rather than with
-     * preg_match_all: a single line can carry several thousand rows, and we
-     * only ever want BATCH of them alive at once.
+     * The statement may be a single line — `INSERT INTO x VALUES (..),(..);` —
+     * or spread over hundreds of them, which is how MariaDB 10.11 writes it:
+     * `INSERT INTO x VALUES` on its own line and a tuple per line after it. So
+     * this reads on from the handle until the statement's closing semicolon
+     * rather than assuming a line holds the whole thing.
      *
+     * Only complete tuples are taken from the buffer each pass; a half-read one
+     * stays there until the rest arrives. That is safe because mysqldump
+     * escapes newlines inside strings, so a `)` that closes a tuple is never
+     * one sitting inside a value.
+     *
+     * @param  resource  $handle
      * @return Generator<int,array<int,array<string,?string>>>
      */
-    private function parse(string $table, string $line): Generator
+    private function parse(string $table, string $line, $handle): Generator
     {
-        $offset = strpos($line, ' VALUES ');
+        $valuesAt = strpos($line, ' VALUES');
 
-        if ($offset === false) {
+        if ($valuesAt === false) {
             return;
         }
 
         // What the statement says it is writing beats what the table declares.
-        $columns = $this->insertColumns($line, $offset) ?? $this->columns[$table] ?? [];
+        $columns = $this->insertColumns($line, $valuesAt) ?? $this->columns[$table] ?? [];
 
         if ($columns === []) {
             throw new RuntimeException(
@@ -251,28 +258,48 @@ class SqlDump
             );
         }
 
-        $offset += 8;
         $width = count($columns);
         $batch = [];
+        $buffer = substr($line, $valuesAt + 7);
 
-        while (preg_match(self::TUPLE, $line, $m, PREG_OFFSET_CAPTURE, $offset) === 1) {
-            $offset = $m[0][1] + strlen($m[0][0]);
-            $values = $this->values($m[0][0]);
+        while (true) {
+            $offset = 0;
 
-            // A row that doesn't match the declared column count means the
-            // parse drifted; better to stop than to import shifted data.
-            if (count($values) !== $width) {
-                throw new RuntimeException(
-                    "A row in `{$table}` has ".count($values)." values but the table declares {$width} columns."
-                );
+            while (preg_match(self::TUPLE, $buffer, $m, PREG_OFFSET_CAPTURE, $offset) === 1) {
+                $offset = $m[0][1] + strlen($m[0][0]);
+                $values = $this->values($m[0][0]);
+
+                // A row that doesn't match the declared column count means the
+                // parse drifted; better to stop than to import shifted data.
+                if (count($values) !== $width) {
+                    throw new RuntimeException(
+                        "A row in `{$table}` has ".count($values)." values but the table declares {$width} columns."
+                    );
+                }
+
+                $batch[] = array_combine($columns, $values);
+
+                if (count($batch) === self::BATCH) {
+                    yield $batch;
+                    $batch = [];
+                }
             }
 
-            $batch[] = array_combine($columns, $values);
+            // Whatever trails the last complete tuple may be the start of one
+            // split across lines, so it is carried over.
+            $buffer = ltrim(substr($buffer, $offset), ", \t\r\n");
 
-            if (count($batch) === self::BATCH) {
-                yield $batch;
-                $batch = [];
+            if (str_starts_with($buffer, ';')) {
+                break;
             }
+
+            $next = fgets($handle);
+
+            if ($next === false) {
+                break;
+            }
+
+            $buffer .= $next;
         }
 
         if ($batch !== []) {
