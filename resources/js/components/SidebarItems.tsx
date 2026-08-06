@@ -12,6 +12,7 @@ import {
     Settings,
     ArrowRight,
     BarChart,
+    Truck,
     LucideIcon,
 } from "lucide-react";
 import {
@@ -128,6 +129,7 @@ const SidebarItems = ({ user }: { user: User }) => {
                         "branches.*",
                         "payments.*",
                         "suppliers.*",
+                        "expense-categories.*",
                         "authorization-keys.*",
                     ])}
                 >
@@ -154,6 +156,12 @@ const SidebarItems = ({ user }: { user: User }) => {
                         icon={ArrowRight}
                         label="Suppliers"
                         pattern="suppliers.*"
+                    />
+                    <NavLink
+                        routeName="expense-categories.index"
+                        icon={ArrowRight}
+                        label="Expense Categories"
+                        pattern="expense-categories.*"
                     />
                     {isAdmin && (
                         <>
@@ -257,7 +265,13 @@ const SidebarItems = ({ user }: { user: User }) => {
                         routeName="product-transfers.index"
                         icon={BotIcon}
                         label="Stock Transfers"
-                        pattern="product-transfers.*"
+                        pattern="product-transfers.index"
+                    />
+                    <NavLink
+                        routeName="product-transfers.incoming"
+                        icon={Truck}
+                        label="Incoming Stock"
+                        pattern="product-transfers.incoming"
                     />
                 </>
             )}

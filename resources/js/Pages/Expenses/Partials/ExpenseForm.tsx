@@ -1,16 +1,33 @@
-import React, { useState } from "react";
+import InputError from "@/Components/InputError";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { useForm } from "@inertiajs/react";
-import InputError from "@/Components/InputError";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { numberFormat } from "@/lib/utils";
+import { Link, useForm } from "@inertiajs/react";
+import { Plus, Settings2, Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
-type Line = { item: string; cost: string };
+export type ExpenseCategory = { id: number; name: string };
 
-const ExpenseForm = () => {
-    const [lines, setLines] = useState<Line[]>([{ item: "", cost: "" }]);
+type Line = { expense_category_id: string; cost: string };
+
+const blank = (): Line => ({ expense_category_id: "", cost: "" });
+
+const ExpenseForm = ({
+    categories,
+    canManageCategories,
+}: {
+    categories: ExpenseCategory[];
+    canManageCategories: boolean;
+}) => {
+    const [lines, setLines] = useState<Line[]>([blank()]);
 
     const { data, setData, post, processing, errors, reset } = useForm<{
         expenses: Line[];
@@ -23,14 +40,18 @@ const ExpenseForm = () => {
 
     const change = (index: number, field: keyof Line, value: string) => {
         // Copy the row too — spreading the array alone still shares the row object.
-        const next = lines.map((l, i) => (i === index ? { ...l, [field]: value } : l));
+        const next = lines.map((l, i) =>
+            i === index ? { ...l, [field]: value } : l
+        );
         sync(next);
     };
 
-    const addLine = () => sync([...lines, { item: "", cost: "" }]);
-    const removeLine = (index: number) => sync(lines.filter((_, i) => i !== index));
+    const addLine = () => sync([...lines, blank()]);
+    const removeLine = (index: number) =>
+        sync(lines.filter((_, i) => i !== index));
 
-    const filled = (l: Line) => l.item.trim() !== "" && l.cost.trim() !== "";
+    const filled = (l: Line) =>
+        l.expense_category_id !== "" && l.cost.trim() !== "";
     const canAdd = lines.length === 0 || filled(lines[lines.length - 1]);
     const total = lines.reduce((acc, l) => acc + (parseFloat(l.cost) || 0), 0);
 
@@ -38,7 +59,7 @@ const ExpenseForm = () => {
         e.preventDefault();
 
         if (lines.length === 0 || lines.some((l) => !filled(l))) {
-            toast.error("Fill in every item and cost first.");
+            toast.error("Choose a category and a cost on every line.");
             return;
         }
 
@@ -47,11 +68,35 @@ const ExpenseForm = () => {
             onSuccess: () => {
                 toast.success("Expenses recorded.");
                 reset();
-                setLines([{ item: "", cost: "" }]);
+                sync([blank()]);
             },
             onError: (errs) => toast.error(errs.expenses ?? "Could not save."),
         });
     };
+
+    // Nothing to file an expense under yet. Say so plainly rather than showing
+    // a form that cannot be submitted.
+    if (categories.length === 0) {
+        return (
+            <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
+                <p className="font-medium">No expense categories yet</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    Expenses are filed under a category — Chakula, Mafuta and so
+                    on.{" "}
+                    {canManageCategories
+                        ? "Add the first one to get started."
+                        : "Ask an admin or manager to add them."}
+                </p>
+                {canManageCategories && (
+                    <Link href={route("expense-categories.index")}>
+                        <Button className="mt-3 gap-2" variant="outline">
+                            <Settings2 className="size-4" /> Manage categories
+                        </Button>
+                    </Link>
+                )}
+            </div>
+        );
+    }
 
     return (
         <form
@@ -60,8 +105,8 @@ const ExpenseForm = () => {
         >
             <div className="space-y-2">
                 {lines.map((line, index) => {
-                    const itemErr = (errors as Record<string, string>)[
-                        `expenses.${index}.item`
+                    const categoryErr = (errors as Record<string, string>)[
+                        `expenses.${index}.expense_category_id`
                     ];
                     const costErr = (errors as Record<string, string>)[
                         `expenses.${index}.cost`
@@ -70,19 +115,34 @@ const ExpenseForm = () => {
                     return (
                         <div key={index}>
                             <div className="flex items-center gap-2">
-                                <Input
-                                    placeholder="What was it for?"
-                                    value={line.item}
-                                    onChange={(e) => change(index, "item", e.target.value)}
-                                    className="flex-1"
-                                />
+                                <Select
+                                    value={line.expense_category_id}
+                                    onValueChange={(v) =>
+                                        change(index, "expense_category_id", v)
+                                    }
+                                >
+                                    <SelectTrigger className="flex-1">
+                                        <SelectValue placeholder="What was it for?" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem
+                                                key={category.id}
+                                                value={String(category.id)}
+                                            >
+                                                {category.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 <Input
                                     inputMode="decimal"
                                     placeholder="Cost"
                                     value={line.cost}
                                     onChange={(e) => {
                                         // Digits + one decimal point; no negatives.
-                                        if (!/^\d*\.?\d*$/.test(e.target.value)) return;
+                                        if (!/^\d*\.?\d*$/.test(e.target.value))
+                                            return;
                                         change(index, "cost", e.target.value);
                                     }}
                                     className="w-32"
@@ -100,7 +160,10 @@ const ExpenseForm = () => {
                                     <Trash2 className="size-4" />
                                 </Button>
                             </div>
-                            <InputError message={itemErr || costErr} className="mt-1" />
+                            <InputError
+                                message={categoryErr || costErr}
+                                className="mt-1"
+                            />
                         </div>
                     );
                 })}

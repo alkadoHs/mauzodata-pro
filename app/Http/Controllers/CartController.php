@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\CreditSale;
 use App\Models\Customer;
+use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use App\Models\OrderItem;
@@ -278,6 +279,14 @@ class CartController extends Controller
         return Inertia::render('Expenses/UserExpenses', [
             'expenseItems' => $items,
             'total' => (float) $items->sum('cost'),
+            // What staff may file an expense under. Retired categories are left
+            // out, so nobody picks one that's been switched off.
+            'categories' => ExpenseCategory::where('company_id', auth()->user()->company_id)
+                ->active()
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            // Admins and managers get a way to fix an empty list on the spot.
+            'canManageCategories' => app(CurrentBranch::class)->canSwitch(),
         ]);
     }
 }

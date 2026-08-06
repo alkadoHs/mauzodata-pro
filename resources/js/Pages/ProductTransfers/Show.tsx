@@ -1,70 +1,133 @@
-import React from "react";
-import { ProductTransfer } from "./Index";
-import { PageProps } from "@/types";
-import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
-import { dateFormatFilter, numberFormat } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
+import { numberFormat } from "@/lib/utils";
+import { PageProps } from "@/types";
+import { Head } from "@inertiajs/react";
+import dayjs from "dayjs";
 import { Printer } from "lucide-react";
 
+type Item = {
+    id: number;
+    stock: number;
+    received_stock: number | null;
+    product: { id: number; name: string; unit: string } | null;
+    to_product: { id: number; name: string; unit: string } | null;
+};
+
+type Transfer = {
+    id: number;
+    status: "pending" | "transferred" | "received";
+    created_at: string;
+    received_at: string | null;
+    branch: { id: number; name: string } | null;
+    from_branch: { id: number; name: string } | null;
+    user: { id: number; name: string } | null;
+    received_by: { id: number; name: string } | null;
+    product_transfer_items: Item[];
+};
+
+const statusLabel: Record<string, string> = {
+    pending: "Not sent",
+    transferred: "In transit — awaiting confirmation",
+    received: "Received",
+};
+
+/** The delivery note: what left, where it is going, and what landed. */
 const Show = ({
     auth,
     productTransfer,
-}: PageProps<{ productTransfer: ProductTransfer }>) => {
-    console.log("productTransfer", productTransfer);
+}: PageProps<{ productTransfer: Transfer }>) => {
+    const items = productTransfer.product_transfer_items ?? [];
+    const received = productTransfer.status === "received";
 
     return (
         <Authenticated user={auth.user}>
-            <Head title={`Product Transfer #${productTransfer.id}`} />
+            <Head title={`Transfer #${productTransfer.id}`} />
 
-            <section className="max-w-4xl mx-auto w-full bg-gray-600/10 p-4 print:p-0 rounded-lg">
+            <section className="mx-auto w-full max-w-3xl rounded-lg border bg-card p-6 print:border-0 print:p-0">
                 <div className="text-center">
-                    <h1 className="text-2xl font-medium">MASINDE STORE</h1>
+                    <h1 className="text-xl font-semibold uppercase">
+                        Stock transfer note
+                    </h1>
                     <p className="text-lg uppercase">
-                        PRODUCT TRANSFER TO: {productTransfer.branch?.name}
+                        {productTransfer.from_branch?.name ?? "—"} &rarr;{" "}
+                        {productTransfer.branch?.name ?? "—"}
                     </p>
-                    <p>Date: {dateFormatFilter(productTransfer.created_at)}</p>
+                    <p className="text-sm text-muted-foreground">
+                        #{productTransfer.id} ·{" "}
+                        {dayjs(productTransfer.created_at).format(
+                            "DD MMM YYYY HH:mm"
+                        )}{" "}
+                        · sent by {productTransfer.user?.name ?? "—"}
+                    </p>
+                    <p className="mt-1 text-sm font-medium">
+                        {statusLabel[productTransfer.status] ??
+                            productTransfer.status}
+                        {received && productTransfer.received_at && (
+                            <>
+                                {" "}
+                                by{" "}
+                                {productTransfer.received_by?.name ?? "—"} on{" "}
+                                {dayjs(productTransfer.received_at).format(
+                                    "DD MMM YYYY HH:mm"
+                                )}
+                            </>
+                        )}
+                    </p>
                 </div>
 
-                <hr />
-
-                <div>
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="p-3 text-left">Product</th>
-                                <th className="p-3 text-left">Stock</th>
-                                <th className="p-3 text-left">Selling price</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {productTransfer.product_transfer_items.map(
-                                (item) => (
-                                    <tr key={item.id}>
-                                        <td className="p-3">
-                                            {item.product?.name}
-                                        </td>
-                                        <td className="p-3">{item.stock}</td>
-                                        <td className="p-3">
-                                            {numberFormat(
-                                                item.product?.sale_price
-                                            )}
-                                        </td>
-                                    </tr>
-                                )
+                <table className="mt-5 w-full text-sm">
+                    <thead>
+                        <tr className="border-y text-left">
+                            <th className="py-2">Product</th>
+                            <th className="py-2">Added to</th>
+                            <th className="py-2 text-right">Sent</th>
+                            {received && (
+                                <th className="py-2 text-right">Received</th>
                             )}
-                        </tbody>
-                    </table>
-                </div>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items.map((item) => {
+                            const short =
+                                received &&
+                                Number(item.received_stock) < Number(item.stock);
 
-                <hr />
+                            return (
+                                <tr key={item.id} className="border-b">
+                                    <td className="py-2">
+                                        {item.product?.name ?? "—"}
+                                    </td>
+                                    <td className="py-2 text-muted-foreground">
+                                        {item.to_product?.name ?? "—"}
+                                    </td>
+                                    <td className="py-2 text-right tabular-nums">
+                                        {numberFormat(item.stock)}{" "}
+                                        {item.product?.unit}
+                                    </td>
+                                    {received && (
+                                        <td
+                                            className={`py-2 text-right tabular-nums ${
+                                                short
+                                                    ? "font-semibold text-red-600"
+                                                    : ""
+                                            }`}
+                                        >
+                                            {numberFormat(
+                                                item.received_stock ?? 0
+                                            )}{" "}
+                                            {item.product?.unit}
+                                        </td>
+                                    )}
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
 
-                <br />
-
-                <div className="flex justify-center">
-                    <Button className="print:hidden" onClick={() => window.print()}>
-                        <Printer className="size-5" /> Print
+                <div className="mt-6 flex justify-center print:hidden">
+                    <Button onClick={() => window.print()} className="gap-2">
+                        <Printer className="size-4" /> Print
                     </Button>
                 </div>
             </section>

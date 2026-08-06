@@ -9,6 +9,7 @@ use App\Http\Controllers\CreditSalePaymentController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataMigrationController;
+use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseItemController;
 use App\Http\Controllers\InvoiceController;
@@ -89,6 +90,14 @@ Route::delete('/products/{product}', [ProductController::class, 'destroy'])
 Route::middleware(['auth'])->group(function () {
     Route::get('/company', [CompanyController::class, 'edit'])->name('company.edit');
     Route::patch('/company', [CompanyController::class, 'update'])->name('company.update');
+
+    // Expense categories (Chakula, Mafuta, …) — admins and managers keep the
+    // list; the controller enforces it on every action.
+    Route::get('/expense-categories', [ExpenseCategoryController::class, 'index'])->name('expense-categories.index');
+    Route::post('/expense-categories', [ExpenseCategoryController::class, 'store'])->name('expense-categories.store');
+    Route::patch('/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'update'])->name('expense-categories.update');
+    Route::patch('/expense-categories/{expenseCategory}/toggle', [ExpenseCategoryController::class, 'toggle'])->name('expense-categories.toggle');
+    Route::delete('/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'destroy'])->name('expense-categories.destroy');
 
     Route::get('/authorization-keys', [AuthorizationKeyController::class, 'index'])->name('authorization-keys.index');
     Route::post('/authorization-keys', [AuthorizationKeyController::class, 'store'])->name('authorization-keys.store');
@@ -224,11 +233,18 @@ Route::middleware(['auth', 'verified'])->controller(PaymentMethodController::cla
 Route::middleware(['auth', 'verified'])->controller(ProductTransferController::class)->group(function () {
     Route::get('/product-transfers', 'index')->name('product-transfers.index');
 
+    // Deliveries on their way to the branch you're working in.
+    Route::get('/product-transfers/incoming', 'incoming')->name('product-transfers.incoming');
+    Route::post('/product-transfers/{productTransfer}/receive', 'receive')->name('product-transfers.receive');
+
     Route::get('/product-transfers/{productTransfer}/show', 'show')->name('product-transfers.show');
 
     Route::post('/product-transfers', 'store')->name('product-transfers.store');
+    Route::post('/product-transfers/destination', 'destination')->name('product-transfers.destination');
     Route::post('/product-transfers/{product}/cart', 'cart')->name('product-transfers.cart');
     Route::patch('/product-transfers/{item}/cart/update', 'update_cart')->name('product-transfers.cart.update');
+    // Point a line at a specific row in the receiving branch.
+    Route::patch('/product-transfers/{item}/cart/map', 'map')->name('product-transfers.cart.map');
     // product-transfers.cart.destroy
     Route::delete('/product-transfers/{item}/cart/destroy', 'destroy_cart')->name('product-transfers.cart.destroy');
 });
