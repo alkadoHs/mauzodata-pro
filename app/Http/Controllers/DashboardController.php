@@ -58,6 +58,7 @@ class DashboardController extends Controller
             'branchSales' => 0,
             'branchProfit' => 0,
             'branchExpenses' => 0,
+            'branchDiscount' => 0,
             'branchCreditCollected' => 0,
             'totalDebt' => 0,
             'totalCapital' => 0,
@@ -73,6 +74,9 @@ class DashboardController extends Controller
             $kpis['branchSales'] = (float) $this->items($startDate, $endDate)->sum('total');
             $kpis['branchProfit'] = (float) $this->items($startDate, $endDate)->sum('profit');
             $kpis['branchExpenses'] = $this->expenses($startDate, $endDate);
+            // What was given away. branchSales is already net of it, since
+            // order_items.total is a generated column that subtracts it.
+            $kpis['branchDiscount'] = (float) $this->items($startDate, $endDate)->sum('discount');
             // Credit money banked in this window, dated by when it was received
             // (not by the sale date) — the other half of a day's takings.
             $kpis['branchCreditCollected'] = $this->creditCollected($startDate, $endDate);

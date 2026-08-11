@@ -57,15 +57,19 @@
                     <span class="value">{{ number_format($summary['sales'], 2) }}</span>
                 </td>
                 <td>
+                    <span class="label">Discount given</span>
+                    <span class="value">{{ number_format($summary['discount'], 2) }}</span>
+                </td>
+                <td>
                     <span class="label">Paid amount</span>
                     <span class="value">{{ number_format($summary['collected_on_sales'], 2) }}</span>
                 </td>
+            </tr>
+            <tr>
                 <td>
                     <span class="label">Credit collections</span>
                     <span class="value">{{ number_format($summary['collected_on_previous'], 2) }}</span>
                 </td>
-            </tr>
-            <tr>
                 <td>
                     <span class="label">Total money received</span>
                     <span class="value in">{{ number_format($summary['collected_total'], 2) }}</span>
@@ -74,7 +78,9 @@
                     <span class="label">Total expenses</span>
                     <span class="value out">{{ number_format($summary['expenses'], 2) }}</span>
                 </td>
-                <td>
+            </tr>
+            <tr>
+                <td colspan="3">
                     <span class="label">Net sales</span>
                     <span class="value in">{{ number_format($summary['net_sales'], 2) }}</span>
                 </td>
@@ -94,6 +100,7 @@
                 <th>Customer</th>
                 <th>Seller</th>
                 <th>Status</th>
+                <th class="num">Discount</th>
                 <th class="num">Total</th>
                 <th class="num">Paid</th>
                 <th class="num">Due</th>
@@ -109,19 +116,21 @@
                     <td>{{ $row['customer'] }}</td>
                     <td>{{ $row['seller'] }}</td>
                     <td class="status">{{ $row['status'] }}</td>
+                    <td class="num">{{ $row['discount'] ? number_format($row['discount'], 2) : '—' }}</td>
                     <td class="num">{{ number_format($row['total'], 2) }}</td>
                     <td class="num">{{ number_format($row['paid'], 2) }}</td>
                     <td class="num {{ $row['due'] > 0 ? 'due-pos' : '' }}">{{ number_format($row['due'], 2) }}</td>
                     <td class="num">{{ number_format($row['gp'], 2) }}</td>
                 </tr>
             @empty
-                <tr><td class="empty" colspan="10">No records for the selected filters.</td></tr>
+                <tr><td class="empty" colspan="11">No records for the selected filters.</td></tr>
             @endforelse
         </tbody>
         @if (count($rows))
             <tfoot>
                 <tr>
                     <td colspan="6">TOTALS ({{ $totals['count'] }} orders)</td>
+                    <td class="num">{{ number_format($totals['discount'], 2) }}</td>
                     <td class="num">{{ number_format($totals['total'], 2) }}</td>
                     <td class="num">{{ number_format($totals['paid'], 2) }}</td>
                     <td class="num">{{ number_format($totals['due'], 2) }}</td>

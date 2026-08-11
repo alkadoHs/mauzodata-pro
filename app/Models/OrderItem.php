@@ -19,7 +19,10 @@ class OrderItem extends Model
         'product_id',
         'buy_price',
         'price',
-        'quantity'
+        // A fixed amount off this line. `total` and `profit` are generated
+        // columns that already subtract it, so nothing else has to.
+        'discount',
+        'quantity',
     ];
 
     public function order(): BelongsTo

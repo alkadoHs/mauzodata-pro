@@ -125,6 +125,8 @@ class OrderController extends Controller
                     'product_id' => $item->product_id,
                     'buy_price' => $product->buy_price,
                     'price' => $item->price,
+                    // total and profit are generated columns that subtract this.
+                    'discount' => $item->discount,
                     'quantity' => $item->quantity,
                 ]);
 

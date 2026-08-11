@@ -38,6 +38,7 @@ export interface ReportRow {
     seller: string | null;
     status: string;
     total: number;
+    discount: number;
     paid: number;
     due: number;
     gp: number;
@@ -45,6 +46,7 @@ export interface ReportRow {
 
 export interface ReportTotals {
     total: number;
+    discount: number;
     paid: number;
     due: number;
     gp: number;
@@ -75,6 +77,7 @@ export interface ExpenseRow {
 
 export interface ReportSummary {
     sales: number;
+    discount: number;
     collected_on_sales: number;
     collected_on_previous: number;
     collected_total: number;
@@ -99,9 +102,10 @@ type Props = {
     pdfRoute: string;
     rows: ReportRow[];
     totals: ReportTotals;
-    collections: CollectionRow[];
-    expenses: ExpenseRow[];
-    summary: ReportSummary;
+    /** Absent on the credit report, which is about debt, not the day's cash. */
+    collections?: CollectionRow[];
+    expenses?: ExpenseRow[];
+    summary?: ReportSummary;
     filters: { from_date?: string; to_date?: string; user_id?: string | number };
     sellers: Seller[];
     branchLabel: string;
@@ -265,12 +269,19 @@ export default function SalesReportView({
                     </Button>
                 </form>
 
+                {/* The credit report gets no summary: it answers who owes what,
+                    not what the day took in. Its totals sit under the table. */}
                 {summary && (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <SummaryCard
                             label="Total sales"
                             value={summary.sales}
                             hint="Value of everything sold"
+                        />
+                        <SummaryCard
+                            label="Discount given"
+                            value={summary.discount}
+                            hint="Taken off these sales"
                         />
                         <SummaryCard
                             label="Paid amount"
@@ -302,12 +313,19 @@ export default function SalesReportView({
                     </div>
                 )}
 
-                <p className="text-xs text-muted-foreground">
-                    <b>Paid</b> is the money received on these days. If a
-                    customer pays later, that money is counted on the day they
-                    paid, not on the day of the sale. <b>Due</b> is what was
-                    still not paid at the end of these days.
-                </p>
+                {summary ? (
+                    <p className="text-xs text-muted-foreground">
+                        <b>Paid</b> is the money received on these days. If a
+                        customer pays later, that money is counted on the day
+                        they paid, not on the day of the sale. <b>Due</b> is
+                        what was still not paid at the end of these days.
+                    </p>
+                ) : (
+                    <p className="text-xs text-muted-foreground">
+                        <b>Paid</b> is what the customer has put towards each
+                        sale, and <b>Due</b> is what they still owe on it.
+                    </p>
+                )}
 
                 <div className="rounded-md border overflow-x-auto">
                     <Table>
@@ -318,6 +336,9 @@ export default function SalesReportView({
                                 <TableHead>Customer</TableHead>
                                 <TableHead>Seller</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead className="text-right">
+                                    Discount
+                                </TableHead>
                                 <TableHead className="text-right">Total</TableHead>
                                 <TableHead className="text-right">Paid</TableHead>
                                 <TableHead className="text-right">Due</TableHead>
@@ -328,7 +349,7 @@ export default function SalesReportView({
                             {rows.length === 0 && (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={9}
+                                        colSpan={10}
                                         className="py-10 text-center text-muted-foreground"
                                     >
                                         No records for the selected filters.
@@ -352,6 +373,9 @@ export default function SalesReportView({
                                         >
                                             {statusLabel(row.status)}
                                         </span>
+                                    </TableCell>
+                                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                                        {row.discount ? numberFormat(row.discount) : "—"}
                                     </TableCell>
                                     <TableCell className="text-right tabular-nums">
                                         {numberFormat(row.total)}
@@ -378,6 +402,9 @@ export default function SalesReportView({
                                 <TableRow>
                                     <TableCell colSpan={5} className="font-semibold">
                                         Totals ({totals.count} orders)
+                                    </TableCell>
+                                    <TableCell className="text-right font-semibold tabular-nums">
+                                        {numberFormat(totals.discount)}
                                     </TableCell>
                                     <TableCell className="text-right font-semibold tabular-nums">
                                         {numberFormat(totals.total)}

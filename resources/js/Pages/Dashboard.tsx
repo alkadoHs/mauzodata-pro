@@ -11,6 +11,7 @@ import {
     HandCoins,
     PackageX,
     ShoppingCart,
+    Tag,
     TrendingDown,
     TrendingUp,
 } from "lucide-react";
@@ -38,6 +39,7 @@ type DashboardProps = {
         branchSales: number;
         branchProfit: number;
         branchExpenses: number;
+        branchDiscount: number;
         branchCreditCollected: number;
         totalDebt: number;
         totalCapital: number;
@@ -158,7 +160,7 @@ export default function Dashboard({
                         <h2 className="text-sm font-medium text-muted-foreground">
                             Branch overview
                         </h2>
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                             <Stat
                                 label="Sales"
                                 value={numberFormat(kpis.branchSales)}
@@ -170,6 +172,12 @@ export default function Dashboard({
                                 value={numberFormat(kpis.branchCreditCollected)}
                                 icon={HandCoins}
                                 hint="money paid on credit sales"
+                            />
+                            <Stat
+                                label="Discount given"
+                                value={numberFormat(kpis.branchDiscount)}
+                                icon={Tag}
+                                hint="already taken off sales"
                             />
                             <Stat
                                 label="Est. profit"

@@ -1,7 +1,7 @@
 import { router } from "@inertiajs/react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +49,39 @@ function CartLine({ item }: { item: CartItem }) {
     // Free-text while typing; re-synced whenever the server confirms a new qty.
     const [qtyText, setQtyText] = useState(String(item.quantity));
     useEffect(() => setQtyText(String(item.quantity)), [item.quantity]);
+
+    const discount = Number(item.discount ?? 0);
+    const lineValue = Number(item.price) * qty;
+
+    const [discountText, setDiscountText] = useState(discount ? String(discount) : "");
+    useEffect(
+        () => setDiscountText(discount ? String(discount) : ""),
+        [item.discount]
+    );
+
+    // A fixed amount off this line, never a percentage.
+    const commitDiscount = (raw: string) => {
+        const next = raw.trim() === "" ? 0 : parseFloat(raw);
+
+        if (isNaN(next) || next < 0) {
+            setDiscountText(discount ? String(discount) : "");
+            return;
+        }
+
+        if (next === discount) return;
+
+        router.patch(
+            route("cart.discount", item.id),
+            { discount: next },
+            {
+                preserveScroll: true,
+                onError: (errors) => {
+                    toast.error(errors.discount ?? "Could not apply that discount.");
+                    setDiscountText(discount ? String(discount) : "");
+                },
+            }
+        );
+    };
 
     const step = (next: number) => {
         setQtyText(String(next)); // instant feedback, confirmed by the response
@@ -135,7 +168,12 @@ function CartLine({ item }: { item: CartItem }) {
                     </div>
 
                     <span className="w-28 text-right font-medium tabular-nums">
-                        {numberFormat(item.price * qty)}
+                        {discount > 0 && (
+                            <span className="block text-xs font-normal text-muted-foreground line-through">
+                                {numberFormat(lineValue)}
+                            </span>
+                        )}
+                        {numberFormat(lineValue - discount)}
                     </span>
 
                     <Button
@@ -154,6 +192,30 @@ function CartLine({ item }: { item: CartItem }) {
                         <Trash2 className="size-4" />
                     </Button>
                 </div>
+            </div>
+
+            <div className="mt-2 flex items-center gap-2">
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Tag className="size-3.5" />
+                    Discount
+                </label>
+                <Input
+                    inputMode="decimal"
+                    value={discountText}
+                    aria-label={`Discount on ${product?.name ?? "item"}`}
+                    placeholder="0"
+                    className="h-8 w-28 text-right tabular-nums"
+                    onChange={(e) => setDiscountText(e.target.value)}
+                    onBlur={(e) => commitDiscount(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") e.currentTarget.blur();
+                    }}
+                />
+                {discount > 0 && (
+                    <span className="text-xs text-emerald-600">
+                        −{numberFormat(discount)} off this line
+                    </span>
+                )}
             </div>
 
             {overStock && (

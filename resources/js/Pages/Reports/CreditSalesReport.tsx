@@ -1,18 +1,16 @@
 import { PageProps } from "@/types";
 import SalesReportView, {
-    CollectionRow,
-    ExpenseRow,
     ReportRow,
-    ReportSummary,
     ReportTotals,
 } from "./partials/SalesReportView";
 
+/**
+ * Credit sales only — who owes what. No collections, expenses or net-sales
+ * figures: those belong to the sales report, where the day's cash is counted.
+ */
 type Props = {
     rows: ReportRow[];
     totals: ReportTotals;
-    collections: CollectionRow[];
-    expenses: ExpenseRow[];
-    summary: ReportSummary;
     filters: { from_date?: string; to_date?: string; user_id?: string | number };
     sellers: { id: number; name: string }[];
     branchLabel: string;

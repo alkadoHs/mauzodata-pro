@@ -51,6 +51,9 @@ class SalesReport
             ])
             ->withSum('orderItems as total_amount', 'total')
             ->withSum('orderItems as gross_profit', 'profit')
+            // total and profit are generated columns that already net this off;
+            // it is summed separately so the report can show what was given away.
+            ->withSum('orderItems as discount_given', 'discount')
             // Only the money that came in during the window — a repayment made
             // later belongs to the day it was collected, not to the sale date.
             ->withSum([
@@ -79,6 +82,7 @@ class SalesReport
     {
         $total = (float) ($order->total_amount ?? 0);
         $gp = (float) ($order->gross_profit ?? 0);
+        $discount = (float) ($order->discount_given ?? 0);
         $paid = $order->status === 'credit'
             ? (float) ($order->credit_paid ?? 0)
             : $total;
@@ -94,6 +98,7 @@ class SalesReport
                 ? ($order->creditSale?->status ?? $order->status)
                 : $order->status,
             'total' => round($total, 2),
+            'discount' => round($discount, 2),
             'paid' => round($paid, 2),
             'due' => round($total - $paid, 2),
             'gp' => round($gp, 2),
@@ -107,6 +112,7 @@ class SalesReport
     {
         return [
             'total' => round($rows->sum('total'), 2),
+            'discount' => round($rows->sum('discount'), 2),
             'paid' => round($rows->sum('paid'), 2),
             'due' => round($rows->sum('due'), 2),
             'gp' => round($rows->sum('gp'), 2),
@@ -214,6 +220,7 @@ class SalesReport
 
         return [
             'sales' => $totals['total'],
+            'discount' => $totals['discount'],
             'collected_on_sales' => $totals['paid'],
             'collected_on_previous' => $previous,
             'collected_total' => $collected,
@@ -234,7 +241,7 @@ class SalesReport
      */
     public function headings(): array
     {
-        return ['Date', 'Branch', 'Customer', 'Seller', 'Status', 'Total', 'Paid', 'Due', 'GP'];
+        return ['Date', 'Branch', 'Customer', 'Seller', 'Status', 'Discount', 'Total', 'Paid', 'Due', 'GP'];
     }
 
     /**
@@ -250,6 +257,7 @@ class SalesReport
             $r['customer'],
             $r['seller'],
             $r['status'],
+            $r['discount'],
             $r['total'],
             $r['paid'],
             $r['due'],

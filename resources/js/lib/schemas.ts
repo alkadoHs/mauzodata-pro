@@ -87,6 +87,8 @@ export type orderItem = {
     product: Product;
     buy_price: number;
     price: number;
+    /** Fixed amount taken off this line; `total` is already net of it. */
+    discount: number;
     quantity: number;
     total: number;
     profit: number;

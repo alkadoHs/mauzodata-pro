@@ -118,6 +118,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/cart/update/{cartItem}', [CartController::class, 'update'])
         ->name('cart.update')
         ->middleware([RemoveCommaFromInput::class]);
+    // A fixed amount off one line (2000, not 10%).
+    Route::patch('/cart/discount/{cartItem}', [CartController::class, 'discount'])
+        ->name('cart.discount')
+        ->middleware(RemoveCommaFromInput::class);
     Route::delete('/cart/remove/{cartItem}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/customer', [CartController::class, 'addCustomer'])->name('cart.addCustomer');
     Route::delete('/cart/customer', [CartController::class, 'removeCustomer'])->name('cart.removeCustomer');

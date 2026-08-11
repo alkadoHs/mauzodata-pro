@@ -29,6 +29,8 @@ interface CartItem {
     id: number;
     product: Product;
     price: number;
+    /** A fixed amount off this line, not a percentage. */
+    discount: number;
     quantity: number;
 }
 

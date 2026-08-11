@@ -29,7 +29,10 @@ class CartController extends Controller
 
         return Inertia::render('Cart/Index', [
             'cart' => $cart,
-            'total' => $cart->cartItems->reduce(fn ($acc, $item) => $acc + $item->quantity * $item->price, 0) ?? 0,
+            'total' => $cart->cartItems->reduce(
+                fn ($acc, $item) => $acc + ($item->quantity * $item->price) - $item->discount,
+                0
+            ) ?? 0,
             'products' => Product::where('stock', '>', 0)->get(),
             'paymentMethods' => PaymentMethod::where('company_id', auth()->user()->company_id)->get(),
         ]);
@@ -115,13 +118,52 @@ class CartController extends Controller
         }
 
         $price = $this->priceFor($product, $quantity);
-        $item->update(['quantity' => $quantity, 'price' => $price]);
+
+        // Re-pricing can leave a discount worth more than the line itself —
+        // fewer units, or a wholesale price kicking in. Clamp it.
+        $item->update([
+            'quantity' => $quantity,
+            'price' => $price,
+            'discount' => min((float) $item->discount, $quantity * $price),
+        ]);
 
         // 'info' is actually shared to the front end; the old 'message' key never was,
         // so sellers never saw why the price changed.
         if ($this->isWholesale($product, $quantity)) {
             return back()->with('info', "Wholesale price applied to {$product->name}.");
         }
+
+        return back();
+    }
+
+    /**
+     * Take a fixed amount off one line — 2000 off, not 10% off.
+     *
+     * Capped at the line's own value so a discount can never make a line, or
+     * the sale, worth less than nothing.
+     */
+    public function discount(Request $request, $item_id)
+    {
+        $validated = $request->validate([
+            'discount' => 'required|numeric|min:0|max:99999999',
+        ]);
+
+        $cart = Cart::firstOrCreate();
+        $item = $cart->cartItems()->find($item_id);
+
+        if (! $item) {
+            return back()->withErrors(['discount' => 'That item is not in your cart.']);
+        }
+
+        $lineValue = (float) $item->quantity * (float) $item->price;
+
+        if ((float) $validated['discount'] > $lineValue) {
+            return back()->withErrors([
+                'discount' => 'The discount cannot be more than the '.number_format($lineValue).' this line is worth.',
+            ]);
+        }
+
+        $item->update(['discount' => $validated['discount']]);
 
         return back();
     }

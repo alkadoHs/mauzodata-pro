@@ -26,7 +26,9 @@ type Props = {
 
 export default function Receipt({ order, agent }: Props) {
     const items = order.order_items ?? [];
+    // `total` is already net of the line's discount (the database computes it).
     const gross = items.reduce((acc, item) => acc + Number(item.total), 0);
+    const discount = items.reduce((acc, item) => acc + Number(item.discount ?? 0), 0);
 
     // A credit sale only ever banked its down payment; anything else is settled
     // in full by definition (orders.paid is unreliable for non-credit sales).
@@ -141,6 +143,11 @@ export default function Receipt({ order, agent }: Props) {
                         <tr key={item.id} className="align-top">
                             <td className="py-1 pr-2 font-semibold">
                                 {item.product?.name ?? "—"}
+                                {Number(item.discount) > 0 && (
+                                    <span className="block text-[10px] font-normal">
+                                        less {numberFormat(item.discount)}
+                                    </span>
+                                )}
                             </td>
                             <td className="py-1 whitespace-nowrap text-right tabular-nums">
                                 {numberFormat(item.quantity)}{" "}
@@ -161,6 +168,15 @@ export default function Receipt({ order, agent }: Props) {
 
             {/* The stamp sits over the totals, as on a stamped paper receipt. */}
             <section className="relative">
+                {discount > 0 && (
+                    <div className="mb-1.5 flex items-baseline justify-between">
+                        <span>Discount</span>
+                        <span className="tabular-nums">
+                            −{numberFormat(discount)}
+                        </span>
+                    </div>
+                )}
+
                 <div className="flex items-baseline justify-between">
                     <span className="text-[13px] font-bold">Gross_Total:</span>
                     <span className="text-[13px] font-bold tabular-nums">
