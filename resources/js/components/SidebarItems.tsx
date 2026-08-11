@@ -215,6 +215,19 @@ const SidebarItems = ({ user }: { user: User }) => {
                 />
             </NavGroup>
 
+            <NavLink
+                routeName="product-transfers.index"
+                icon={BotIcon}
+                label="Stock Transfers"
+                pattern="product-transfers.index"
+            />
+            <NavLink
+                routeName="product-transfers.incoming"
+                icon={Truck}
+                label="Incoming Stock"
+                pattern="product-transfers.incoming"
+            />
+
             {isAdminLike && (
                 <>
                     <NavLink
@@ -260,18 +273,6 @@ const SidebarItems = ({ user }: { user: User }) => {
                         icon={Users}
                         label="Employees"
                         pattern="users.*"
-                    />
-                    <NavLink
-                        routeName="product-transfers.index"
-                        icon={BotIcon}
-                        label="Stock Transfers"
-                        pattern="product-transfers.index"
-                    />
-                    <NavLink
-                        routeName="product-transfers.incoming"
-                        icon={Truck}
-                        label="Incoming Stock"
-                        pattern="product-transfers.incoming"
                     />
                 </>
             )}
