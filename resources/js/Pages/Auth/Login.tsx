@@ -11,9 +11,12 @@ import { Label } from "@/components/ui/label";
 export default function Login({
     status,
     canResetPassword,
+    canRegister,
 }: {
     status?: string;
     canResetPassword: boolean;
+    /** Only true before the system has been set up. */
+    canRegister: boolean;
 }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
@@ -107,16 +110,20 @@ export default function Login({
                                 Login
                             </Button>
                         </form>
-                        <div className="mt-4 text-center text-sm">
-                            Don't have an account?
-                            <Link
-                                as="button"
-                                className="underline"
-                                href={route("register")}
-                            >
-                                Sign up
-                            </Link>
-                        </div>
+                        {/* Sign-up is the one-time setup; once a company
+                            exists, staff are added from Employees instead. */}
+                        {canRegister && (
+                            <div className="mt-4 text-center text-sm">
+                                Don't have an account?
+                                <Link
+                                    as="button"
+                                    className="underline"
+                                    href={route("register")}
+                                >
+                                    Sign up
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

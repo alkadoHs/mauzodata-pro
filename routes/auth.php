@@ -9,13 +9,17 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Middleware\EnsureSetupIsOpen;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
+    // Registration is the one-time setup: open only until a company exists.
     Route::get('register', [RegisteredUserController::class, 'create'])
+                ->middleware(EnsureSetupIsOpen::class)
                 ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    Route::post('register', [RegisteredUserController::class, 'store'])
+                ->middleware(EnsureSetupIsOpen::class);
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
                 ->name('login');

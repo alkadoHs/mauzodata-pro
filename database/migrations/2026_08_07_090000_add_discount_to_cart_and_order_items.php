@@ -37,20 +37,15 @@ return new class extends Migration
             $table->decimal('discount', 12, 2)->default(0)->after('price');
         });
 
-        // Both are VIRTUAL, so redefining them is a metadata change — no table
-        // rebuild even on a large order_items.
-        DB::statement('ALTER TABLE `order_items`
-            MODIFY COLUMN `total` int GENERATED ALWAYS AS ((`quantity` * `price`) - `discount`) VIRTUAL');
-        DB::statement('ALTER TABLE `order_items`
-            MODIFY COLUMN `profit` int GENERATED ALWAYS AS (((`price` - `buy_price`) * `quantity`) - `discount`) VIRTUAL');
+        $this->redefine(
+            'quantity * price - discount',
+            '(price - buy_price) * quantity - discount'
+        );
     }
 
     public function down(): void
     {
-        DB::statement('ALTER TABLE `order_items`
-            MODIFY COLUMN `total` int GENERATED ALWAYS AS ((`quantity` * `price`)) VIRTUAL');
-        DB::statement('ALTER TABLE `order_items`
-            MODIFY COLUMN `profit` int GENERATED ALWAYS AS (((`price` - `buy_price`) * `quantity`)) VIRTUAL');
+        $this->redefine('quantity * price', '(price - buy_price) * quantity');
 
         Schema::table('order_items', function (Blueprint $table) {
             $table->dropColumn('discount');
@@ -58,6 +53,35 @@ return new class extends Migration
 
         Schema::table('cart_items', function (Blueprint $table) {
             $table->dropColumn('discount');
+        });
+    }
+
+    /**
+     * Point total and profit at new expressions.
+     *
+     * MySQL can MODIFY a virtual column in place, which keeps it where it sits
+     * in the table and costs nothing — the value is computed on read, so there
+     * is no data to rewrite. Everything else (SQLite, which the tests run on)
+     * has no ALTER COLUMN at all, so the columns are dropped and re-added.
+     */
+    private function redefine(string $total, string $profit): void
+    {
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `order_items`
+                MODIFY COLUMN `total` int GENERATED ALWAYS AS ({$total}) VIRTUAL");
+            DB::statement("ALTER TABLE `order_items`
+                MODIFY COLUMN `profit` int GENERATED ALWAYS AS ({$profit}) VIRTUAL");
+
+            return;
+        }
+
+        Schema::table('order_items', function (Blueprint $table) {
+            $table->dropColumn(['total', 'profit']);
+        });
+
+        Schema::table('order_items', function (Blueprint $table) use ($total, $profit) {
+            $table->integer('total')->virtualAs($total);
+            $table->integer('profit')->virtualAs($profit);
         });
     }
 };
