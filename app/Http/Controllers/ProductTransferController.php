@@ -249,6 +249,7 @@ class ProductTransferController extends Controller
                     'user:id,name',
                     'productTransferItems.product:id,name,unit',
                     'productTransferItems.toProduct:id,name,unit,stock',
+                    'productTransferItems.receivedBy:id,name',
                 ])
                 ->latest()
                 ->get(),
@@ -259,81 +260,164 @@ class ProductTransferController extends Controller
     }
 
     /**
-     * Count it in. Stock lands here and nowhere else, on the row fixed at
-     * dispatch — the receiver confirms quantities, never picks the product.
+     * Count in one line. A delivery is unpacked item by item, so each line is
+     * settled on its own and the transfer closes itself once the last one is.
+     *
+     * Stock lands on the row fixed at dispatch — the receiver confirms a
+     * quantity, never picks the product. Whatever didn't arrive goes straight
+     * back onto the sending branch's shelf, so the two branches still add up
+     * to what left.
+     */
+    public function receiveItem(Request $request, ProductTransferItem $item): RedirectResponse
+    {
+        $transfer = $item->productTransfer;
+
+        $this->authorizeReceipt($transfer);
+
+        $validated = $request->validate([
+            'received_stock' => 'required|numeric|min:0|max:99999999',
+        ]);
+
+        try {
+            DB::transaction(fn () => $this->settle($transfer->id, [$item->id => (float) $validated['received_stock']]));
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Line confirmed.');
+    }
+
+    /**
+     * Count in everything still outstanding — the clean-delivery shortcut.
+     * Lines already confirmed are left exactly as they were.
      */
     public function receive(Request $request, ProductTransfer $productTransfer): RedirectResponse
     {
-        $branchId = $this->branch->id();
-
-        // Never another company's delivery, whatever the branch context says.
-        $this->authorizeCompany($productTransfer);
-
-        // Only the branch it was sent to may take it in. In "all branches"
-        // mode there is no single receiving branch to check against, and the
-        // company check above is what holds.
-        abort_unless($branchId === null || $productTransfer->branch_id === $branchId, 403);
+        $this->authorizeReceipt($productTransfer);
 
         $validated = $request->validate([
-            'items' => 'required|array',
+            'items' => 'nullable|array',
             'items.*.id' => 'required|integer',
             'items.*.received_stock' => 'required|numeric|min:0|max:99999999',
         ]);
 
-        $counted = collect($validated['items'])->keyBy('id');
+        $counted = collect($validated['items'] ?? [])
+            ->mapWithKeys(fn ($i) => [(int) $i['id'] => (float) $i['received_stock']])
+            ->all();
 
         try {
-            DB::transaction(function () use ($productTransfer, $counted) {
-                // Lock first: two people confirming the same delivery at once
-                // would otherwise both add the stock.
-                $transfer = ProductTransfer::whereKey($productTransfer->id)->lockForUpdate()->first();
-
-                if ($transfer->status !== ProductTransfer::TRANSFERRED) {
-                    throw new \RuntimeException('This delivery has already been received.');
-                }
-
-                if ($transfer->predatesReceiving()) {
-                    throw new \RuntimeException(
-                        'This transfer was sent before the receiving step existed and was already settled by hand.'
-                    );
-                }
-
-                foreach ($transfer->productTransferItems as $item) {
-                    $received = (float) ($counted[$item->id]['received_stock'] ?? $item->stock);
-
-                    if ($received > (float) $item->stock) {
-                        throw new \RuntimeException('You cannot receive more than was sent.');
-                    }
-
-                    $target = Product::withoutGlobalScope(BranchScope::class)
-                        ->lockForUpdate()
-                        ->find($item->to_product_id);
-
-                    if (! $target || $target->branch_id !== $transfer->branch_id) {
-                        throw new \RuntimeException('A line on this delivery has no product in this branch.');
-                    }
-
-                    if ($received > 0) {
-                        $target->increment('stock', $received);
-                    }
-
-                    $item->update([
-                        'received_stock' => $received,
-                        'to_stock_after' => $target->fresh()->stock,
-                    ]);
-                }
-
-                $transfer->update([
-                    'status' => ProductTransfer::RECEIVED,
-                    'received_by' => auth()->id(),
-                    'received_at' => now(),
-                ]);
-            });
+            DB::transaction(fn () => $this->settle($productTransfer->id, $counted, all: true));
         } catch (\RuntimeException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
 
         return back()->with('success', 'Delivery received and stock added.');
+    }
+
+    /**
+     * Settle the given lines, and close the transfer if nothing is left.
+     *
+     * @param  array<int,float>  $counted  line id => quantity actually counted
+     * @param  bool  $all  settle every outstanding line, defaulting to the
+     *                     quantity sent for any not named in $counted
+     */
+    private function settle(int $transferId, array $counted, bool $all = false): void
+    {
+        // Lock first: two people confirming the same delivery at once would
+        // otherwise both add the stock.
+        $transfer = ProductTransfer::whereKey($transferId)->lockForUpdate()->first();
+
+        if ($transfer->status !== ProductTransfer::TRANSFERRED) {
+            throw new \RuntimeException('This delivery has already been received.');
+        }
+
+        if ($transfer->predatesReceiving()) {
+            throw new \RuntimeException(
+                'This transfer was sent before the receiving step existed and was already settled by hand.'
+            );
+        }
+
+        foreach ($transfer->productTransferItems as $item) {
+            // Already counted in — never twice.
+            if ($item->isReceived()) {
+                continue;
+            }
+
+            if (! $all && ! array_key_exists($item->id, $counted)) {
+                continue;
+            }
+
+            $sent = (float) $item->stock;
+            $received = $counted[$item->id] ?? $sent;
+
+            if ($received > $sent) {
+                throw new \RuntimeException('You cannot receive more than was sent.');
+            }
+
+            $this->land($transfer, $item, $received, $sent - $received);
+        }
+
+        // The delivery is done when every line has been dealt with.
+        $outstanding = $transfer->productTransferItems()->whereNull('received_at')->exists();
+
+        if (! $outstanding) {
+            $transfer->update([
+                'status' => ProductTransfer::RECEIVED,
+                'received_by' => auth()->id(),
+                'received_at' => now(),
+            ]);
+        }
+    }
+
+    /** Put the counted stock on the destination and the shortfall back home. */
+    private function land(ProductTransfer $transfer, ProductTransferItem $item, float $received, float $returned): void
+    {
+        $target = Product::withoutGlobalScope(BranchScope::class)
+            ->lockForUpdate()
+            ->find($item->to_product_id);
+
+        if (! $target || $target->branch_id !== $transfer->branch_id) {
+            throw new \RuntimeException("There is no product in this branch for {$item->product?->name}.");
+        }
+
+        if ($received > 0) {
+            $target->increment('stock', $received);
+        }
+
+        // What never arrived goes back where it came from, rather than
+        // evaporating between two branches.
+        if ($returned > 0) {
+            $source = Product::withoutGlobalScope(BranchScope::class)
+                ->lockForUpdate()
+                ->find($item->product_id);
+
+            $source?->increment('stock', $returned);
+        }
+
+        $item->update([
+            'received_stock' => $received,
+            'returned_stock' => $returned,
+            'to_stock_after' => $target->fresh()->stock,
+            'received_at' => now(),
+            'received_by' => auth()->id(),
+        ]);
+    }
+
+    /**
+     * Only the branch a delivery was sent to may take it in, and never another
+     * company's.
+     */
+    private function authorizeReceipt(?ProductTransfer $transfer): void
+    {
+        abort_unless($transfer !== null, 404);
+
+        $this->authorizeCompany($transfer);
+
+        $branchId = $this->branch->id();
+
+        // In "all branches" mode there is no single receiving branch to check
+        // against, and the company check above is what holds.
+        abort_unless($branchId === null || $transfer->branch_id === $branchId, 403);
     }
 
     public function show(ProductTransfer $productTransfer)

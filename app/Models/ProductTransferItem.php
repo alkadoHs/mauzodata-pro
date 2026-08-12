@@ -14,10 +14,25 @@ class ProductTransferItem extends Model
         'to_product_id',
         'stock',
         'received_stock',
+        // What never arrived, and went back to the sending branch.
+        'returned_stock',
         'previous_stock',
         'stock_after',
         'to_stock_after',
+        'received_at',
+        'received_by',
     ];
+
+    protected function casts(): array
+    {
+        return ['received_at' => 'datetime'];
+    }
+
+    /** A line is settled once it has been counted in — short or not. */
+    public function isReceived(): bool
+    {
+        return $this->received_at !== null;
+    }
 
     public function product(): BelongsTo
     {
@@ -39,6 +54,11 @@ class ProductTransferItem extends Model
     public function productTransfer(): BelongsTo
     {
         return $this->belongsTo(ProductTransfer::class);
+    }
+
+    public function receivedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'received_by');
     }
 
 }

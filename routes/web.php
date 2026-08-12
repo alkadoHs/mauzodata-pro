@@ -240,6 +240,8 @@ Route::middleware(['auth', 'verified'])->controller(ProductTransferController::c
     // Deliveries on their way to the branch you're working in.
     Route::get('/product-transfers/incoming', 'incoming')->name('product-transfers.incoming');
     Route::post('/product-transfers/{productTransfer}/receive', 'receive')->name('product-transfers.receive');
+    // Count in a single line; the delivery closes once the last one is done.
+    Route::post('/product-transfers/items/{item}/receive', 'receiveItem')->name('product-transfers.receive-item');
 
     Route::get('/product-transfers/{productTransfer}/show', 'show')->name('product-transfers.show');
 

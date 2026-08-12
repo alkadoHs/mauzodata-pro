@@ -134,17 +134,110 @@ class ReportController extends Controller
       ]);
     }
 
-    public function stock_transfers(): Response
+    /**
+     * What moved between branches, and what actually arrived.
+     *
+     * The point of this report is the gap: a transfer can be sent in full and
+     * counted in short, and the difference goes back to the sender. Showing
+     * sent, received and returned side by side is what lets a manager see
+     * where stock is going missing.
+     */
+    public function stock_transfers(Request $request): Response
     {
-      $dateFilter = request()->date ?? null; 
+        $request->validate([
+            'from_date' => 'nullable|date',
+            'to_date' => 'nullable|date|after_or_equal:from_date',
+        ]);
 
-      $stockTransfers = ProductTransfer::withCount('productTransferItems')->with(['branch', 'user'])->when($dateFilter, function (Builder $query) use($dateFilter) {
-         return $query->whereDate('created_at', $dateFilter);
-      })->orderByDesc('created_at')->limit(25)->get();
+        $from = $request->from_date ? Carbon::parse($request->from_date)->startOfDay() : null;
+        $to = $request->to_date ? Carbon::parse($request->to_date)->endOfDay() : null;
 
-      return Inertia::render('Reports/StockTransfers', [
-         'stockTransfers' => $stockTransfers
-      ]);
+        // No dates means the last month, not everything ever.
+        if (! $from && ! $to) {
+            $from = Carbon::now()->subMonth()->startOfDay();
+        }
+
+        $branchId = app(CurrentBranch::class)->id();
+        $companyId = auth()->user()->company_id;
+
+        $transfers = ProductTransfer::query()
+            // ProductTransfer has no branch scope of its own.
+            ->whereHas('branch', fn ($q) => $q->where('company_id', $companyId))
+            // Either side of the move is this branch's business.
+            ->when($branchId, fn ($q) => $q->where(
+                fn ($inner) => $inner->where('branch_id', $branchId)->orWhere('from_branch_id', $branchId)
+            ))
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to))
+            ->with([
+                'branch:id,name',
+                'fromBranch:id,name',
+                'user:id,name',
+                'receivedBy:id,name',
+                'productTransferItems.product:id,name,unit',
+                'productTransferItems.receivedBy:id,name',
+            ])
+            ->orderByDesc('created_at')
+            ->limit(200)
+            ->get()
+            ->map(fn (ProductTransfer $t) => $this->transferRow($t));
+
+        return Inertia::render('Reports/StockTransfers', [
+            'transfers' => $transfers,
+            'totals' => [
+                'transfers' => $transfers->count(),
+                'sent' => round($transfers->sum('sent'), 2),
+                'received' => round($transfers->sum('received'), 2),
+                'returned' => round($transfers->sum('returned'), 2),
+                'awaiting' => round($transfers->sum('awaiting'), 2),
+            ],
+            'filters' => [
+                'from_date' => $from?->toDateString(),
+                'to_date' => $to?->toDateString(),
+            ],
+            'branchLabel' => app(CurrentBranch::class)->isAll()
+                ? 'All branches'
+                : (app(CurrentBranch::class)->branch()?->name ?? '—'),
+        ]);
+    }
+
+    /** One transfer flattened into its quantities, with the lines under it. */
+    private function transferRow(ProductTransfer $transfer): array
+    {
+        $lines = $transfer->productTransferItems->map(function ($item) {
+            $sent = (float) $item->stock;
+            $received = $item->received_at ? (float) $item->received_stock : 0.0;
+            $returned = $item->received_at ? (float) $item->returned_stock : 0.0;
+
+            return [
+                'id' => $item->id,
+                'product' => $item->product?->name ?? '—',
+                'unit' => $item->product?->unit,
+                'sent' => $sent,
+                'received' => $received,
+                'returned' => $returned,
+                // Still in transit: sent, but nobody has counted it yet.
+                'awaiting' => $item->received_at ? 0.0 : $sent,
+                'received_at' => optional($item->received_at)->format('Y-m-d H:i'),
+                'received_by' => $item->receivedBy?->name,
+            ];
+        });
+
+        return [
+            'id' => $transfer->id,
+            'date' => optional($transfer->created_at)->format('Y-m-d H:i'),
+            'from' => $transfer->fromBranch?->name ?? '—',
+            'to' => $transfer->branch?->name ?? '—',
+            'sent_by' => $transfer->user?->name,
+            'received_by' => $transfer->receivedBy?->name,
+            'received_at' => optional($transfer->received_at)->format('Y-m-d H:i'),
+            'status' => $transfer->status,
+            'sent' => round($lines->sum('sent'), 2),
+            'received' => round($lines->sum('received'), 2),
+            'returned' => round($lines->sum('returned'), 2),
+            'awaiting' => round($lines->sum('awaiting'), 2),
+            'lines' => $lines,
+        ];
     }
 
     public function legacy_stock_transfer(): Response

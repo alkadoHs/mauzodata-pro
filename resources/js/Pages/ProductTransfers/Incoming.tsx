@@ -5,15 +5,19 @@ import { numberFormat } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { Head, router } from "@inertiajs/react";
 import dayjs from "dayjs";
-import { Check, PackageCheck, Truck } from "lucide-react";
+import { Check, CheckCheck, PackageCheck, Truck, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 type Item = {
     id: number;
     stock: number;
+    received_stock: number | null;
+    returned_stock: number | null;
+    received_at: string | null;
     product: { id: number; name: string; unit: string } | null;
     to_product: { id: number; name: string; unit: string; stock: number } | null;
+    received_by: { id: number; name: string } | null;
 };
 
 type Incoming = {
@@ -27,8 +31,9 @@ type Incoming = {
 };
 
 /**
- * Deliveries on their way to this branch. Confirming one adds the stock — to
- * the item the sender named, so there is nothing to pick and nothing to mistype.
+ * Deliveries on their way to this branch. A box is unpacked item by item, so
+ * each line is confirmed on its own; whatever didn't arrive goes back to the
+ * branch that sent it.
  */
 export default function IncomingTransfers({
     auth,
@@ -43,8 +48,9 @@ export default function IncomingTransfers({
                 <div>
                     <h1 className="text-2xl font-medium">Incoming stock</h1>
                     <p className="text-sm text-muted-foreground">
-                        Sent to {branchLabel} and not yet counted in. Stock is
-                        added only when you confirm.
+                        Sent to {branchLabel} and not yet counted in. Confirm
+                        each item as you unpack it — anything short goes back to
+                        the branch that sent it.
                     </p>
                 </div>
 
@@ -64,31 +70,23 @@ export default function IncomingTransfers({
 }
 
 function Delivery({ transfer }: { transfer: Incoming }) {
-    // Assume everything arrived; the receiver corrects what didn't.
-    const [counted, setCounted] = useState<Record<number, string>>(() =>
-        Object.fromEntries(
-            transfer.product_transfer_items.map((i) => [i.id, String(i.stock)])
-        )
-    );
     const [saving, setSaving] = useState(false);
+    const items = transfer.product_transfer_items;
+    const outstanding = items.filter((i) => !i.received_at);
 
-    const short = transfer.product_transfer_items.filter(
-        (i) => Number(counted[i.id]) < Number(i.stock)
-    );
-
-    const confirm = () => {
+    const confirmAll = () => {
         setSaving(true);
         router.post(
             route("product-transfers.receive", transfer.id),
             {
-                items: transfer.product_transfer_items.map((i) => ({
+                items: outstanding.map((i) => ({
                     id: i.id,
-                    received_stock: Number(counted[i.id] ?? i.stock),
+                    received_stock: Number(i.stock),
                 })),
             },
             {
                 preserveScroll: true,
-                onSuccess: () => toast.success("Stock added to this branch."),
+                onSuccess: () => toast.success("Delivery received in full."),
                 onError: (e) =>
                     toast.error(Object.values(e)[0] ?? "Could not receive."),
                 onFinish: () => setSaving(false),
@@ -106,81 +104,133 @@ function Delivery({ transfer }: { transfer: Incoming }) {
                     <p className="text-xs text-muted-foreground">
                         Sent by {transfer.user?.name ?? "—"} ·{" "}
                         {dayjs(transfer.created_at).format("DD MMM YYYY HH:mm")}{" "}
-                        · {transfer.product_transfer_items.length} item(s)
+                        · {items.length - outstanding.length} of {items.length}{" "}
+                        confirmed
                     </p>
                 </div>
                 <Button
+                    variant="outline"
                     className="gap-2"
+                    disabled={saving || outstanding.length === 0}
+                    onClick={confirmAll}
+                >
+                    <CheckCheck className="size-4" />
+                    Confirm all as sent
+                </Button>
+            </header>
+
+            <div className="divide-y">
+                {items.map((item) => (
+                    <Line key={item.id} item={item} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/** One item on the delivery, confirmed on its own. */
+function Line({ item }: { item: Item }) {
+    const sent = Number(item.stock);
+    const [countedText, setCountedText] = useState(String(sent));
+    const [saving, setSaving] = useState(false);
+
+    const counted = Number(countedText);
+    const short = !isNaN(counted) && counted < sent;
+
+    const confirm = () => {
+        if (isNaN(counted) || counted < 0 || counted > sent) {
+            toast.error(`Enter a number between 0 and ${sent}.`);
+            return;
+        }
+
+        setSaving(true);
+        router.post(
+            route("product-transfers.receive-item", item.id),
+            { received_stock: counted },
+            {
+                preserveScroll: true,
+                onSuccess: () => toast.success("Item confirmed."),
+                onError: (e) =>
+                    toast.error(Object.values(e)[0] ?? "Could not confirm."),
+                onFinish: () => setSaving(false),
+            }
+        );
+    };
+
+    if (item.received_at) {
+        const received = Number(item.received_stock ?? 0);
+        const returned = Number(item.returned_stock ?? 0);
+
+        return (
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+                <div className="min-w-0">
+                    <p className="font-medium">{item.product?.name ?? "—"}</p>
+                    <p className="text-xs text-muted-foreground">
+                        {numberFormat(received)} of {numberFormat(sent)}{" "}
+                        {item.product?.unit} counted in
+                        {item.received_by ? ` by ${item.received_by.name}` : ""}
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    {returned > 0 && (
+                        <span className="flex items-center gap-1 text-xs font-medium text-amber-600">
+                            <Undo2 className="size-3.5" />
+                            {numberFormat(returned)} returned
+                        </span>
+                    )}
+                    <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                        <Check className="size-3" /> Confirmed
+                    </span>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-wrap items-end justify-between gap-3 px-4 py-3">
+            <div className="min-w-0">
+                <p className="font-medium">{item.product?.name ?? "—"}</p>
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <PackageCheck className="size-3.5 shrink-0 text-emerald-600" />
+                    adds to {item.to_product?.name ?? "—"} (
+                    {numberFormat(item.to_product?.stock ?? 0)}{" "}
+                    {item.to_product?.unit} now)
+                </p>
+            </div>
+
+            <div className="flex items-end gap-2">
+                <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+                    Sent
+                    <span className="flex h-9 items-center px-1 text-sm text-foreground tabular-nums">
+                        {numberFormat(sent)} {item.product?.unit}
+                    </span>
+                </label>
+                <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+                    Received
+                    <Input
+                        type="number"
+                        step="any"
+                        min={0}
+                        max={sent}
+                        className="h-9 w-24 text-right tabular-nums"
+                        value={countedText}
+                        onChange={(e) => setCountedText(e.target.value)}
+                    />
+                </label>
+                <Button
+                    className="h-9 gap-2"
                     disabled={saving}
                     onClick={confirm}
                 >
                     <Check className="size-4" />
-                    {saving ? "Adding…" : "Confirm & add to stock"}
+                    Confirm
                 </Button>
-            </header>
-
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
-                            <th className="px-4 py-2 font-medium">Product</th>
-                            <th className="px-4 py-2 font-medium">Adds to</th>
-                            <th className="px-4 py-2 text-right font-medium">
-                                Sent
-                            </th>
-                            <th className="px-4 py-2 text-right font-medium">
-                                Received
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {transfer.product_transfer_items.map((item) => (
-                            <tr key={item.id} className="border-b last:border-0">
-                                <td className="px-4 py-2 font-medium">
-                                    {item.product?.name ?? "—"}
-                                </td>
-                                <td className="px-4 py-2">
-                                    <span className="flex items-center gap-1.5 text-xs">
-                                        <PackageCheck className="size-3.5 shrink-0 text-emerald-600" />
-                                        {item.to_product?.name ?? "—"}
-                                        <span className="text-muted-foreground">
-                                            ({numberFormat(
-                                                item.to_product?.stock ?? 0
-                                            )}{" "}
-                                            {item.to_product?.unit} now)
-                                        </span>
-                                    </span>
-                                </td>
-                                <td className="px-4 py-2 text-right tabular-nums">
-                                    {numberFormat(item.stock)}{" "}
-                                    {item.product?.unit}
-                                </td>
-                                <td className="px-4 py-2 text-right">
-                                    <Input
-                                        type="number"
-                                        step="any"
-                                        min={0}
-                                        max={item.stock}
-                                        className="ml-auto w-24 text-right"
-                                        value={counted[item.id] ?? ""}
-                                        onChange={(e) =>
-                                            setCounted((c) => ({
-                                                ...c,
-                                                [item.id]: e.target.value,
-                                            }))
-                                        }
-                                    />
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
             </div>
 
-            {short.length > 0 && (
-                <p className="border-t px-4 py-2 text-xs text-amber-600">
-                    {short.length} line(s) short of what was sent. Confirming
-                    records the shortfall against this delivery.
+            {short && (
+                <p className="w-full text-xs text-amber-600">
+                    {numberFormat(sent - counted)} {item.product?.unit} will go
+                    back to the sending branch.
                 </p>
             )}
         </div>
