@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Models\Product;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -44,7 +44,7 @@ class StockLedger
      *     in: float, out: float, rows: Collection, mismatches: int
      * }
      */
-    public function build(Product $product, ?Carbon $from, ?Carbon $to): array
+    public function build(Product $product, ?CarbonInterface $from, ?CarbonInterface $to): array
     {
         $movements = $this->movements($product->id, $from, $to)
             ->sortBy(['at', 'id'])
@@ -98,7 +98,7 @@ class StockLedger
      * Strictly after: a movement at exactly $to belongs inside the window, and
      * counting it on both sides would shift every balance by its quantity.
      */
-    private function netAfter(int $productId, ?Carbon $to): float
+    private function netAfter(int $productId, ?CarbonInterface $to): float
     {
         if ($to === null) {
             return 0.0;
@@ -111,7 +111,7 @@ class StockLedger
     /**
      * @return Collection<int,array<string,mixed>>
      */
-    private function movements(int $productId, ?Carbon $from, ?Carbon $to, bool $strictFrom = false): Collection
+    private function movements(int $productId, ?CarbonInterface $from, ?CarbonInterface $to, bool $strictFrom = false): Collection
     {
         $window = fn ($q, string $column) => $q
             ->when($from, fn ($qq) => $qq->where($column, $strictFrom ? '>' : '>=', $from))
