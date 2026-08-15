@@ -10,6 +10,7 @@ use App\Models\ProductTransfer;
 use App\Models\StockTransfer;
 use App\Models\User;
 use App\Support\CurrentBranch;
+use App\Support\StockLedger;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -316,77 +317,51 @@ class ReportController extends Controller
         ]);
     }
 
-    // In app/Http/Controllers/ReportController.php
-
-    public function productLedger(Product $product, Request $request)
+    /**
+     * Everything that has moved this product's stock, in order, with the
+     * balance each movement left behind — so a manager can see how the number
+     * on the screen came to be.
+     */
+    public function productLedger(Product $product, Request $request, StockLedger $ledger)
     {
         $request->validate([
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date|after_or_equal:from_date',
         ]);
-        
-        // Branch isolation enforced by Product's BranchScope on route-model binding.
-        $fromDate = $request->from_date ? Carbon::parse($request->from_date)->startOfDay() : Carbon::now()->startOfMonth();
-        $toDate = $request->to_date ? Carbon::parse($request->to_date)->endOfDay() : Carbon::now()->endOfDay();
 
-        // 1. Calculate Opening Stock
-        // Stock IN movements since the start date
-        $stockInSinceFromDate = DB::table('new_stocks')
-            ->where('product_id', $product->id)
-            ->where('created_at', '>=', $fromDate)
-            ->sum('new_stock');
-            
-        $purchasesInSinceFromDate = DB::table('purchase_order_items')
-            ->join('purchase_orders', 'purchase_order_items.purchase_order_id', '=', 'purchase_orders.id')
-            ->where('purchase_order_items.product_id', $product->id)
-            ->where('purchase_orders.status', 'received')
-            ->where('purchase_order_items.updated_at', '>=', $fromDate)
-            ->sum('purchase_order_items.quantity');
-            
-        // Stock OUT movements since the start date
-        $stockOutSinceFromDate = DB::table('order_items')
-            ->where('product_id', $product->id)
-            ->where('created_at', '>=', $fromDate)
-            ->sum('quantity');
+        // A month by default: enough to explain today's number without pulling
+        // years of sales for a fast-moving line.
+        $from = $request->from_date
+            ? Carbon::parse($request->from_date)->startOfDay()
+            : Carbon::now()->subMonth()->startOfDay();
+        $to = $request->to_date
+            ? Carbon::parse($request->to_date)->endOfDay()
+            : Carbon::now()->endOfDay();
 
-        // Calculate opening stock: Current Stock - (INs) + (OUTs)
-        $openingStock = $product->stock - ($stockInSinceFromDate + $purchasesInSinceFromDate) + $stockOutSinceFromDate;
-
-
-        // 2. Union all movements within the date range
-        $sales = DB::table('order_items')
-            ->where('product_id', $product->id)
-            ->whereBetween('created_at', [$fromDate, $toDate])
-            ->select('created_at', 'quantity as stock_out', DB::raw("NULL as stock_in, 'Sale' as type, id"));
-            
-        $newStock = DB::table('new_stocks')
-            ->where('product_id', $product->id)
-            ->whereBetween('created_at', [$fromDate, $toDate])
-            ->select('created_at', DB::raw("NULL as stock_out"), 'new_stock as stock_in', DB::raw("'New Stock' as type, id"));
-            
-        $purchases = DB::table('purchase_order_items')
-            ->join('purchase_orders', 'purchase_order_items.purchase_order_id', '=', 'purchase_orders.id')
-            ->where('purchase_order_items.product_id', $product->id)
-            ->where('purchase_orders.status', 'received')
-            ->whereBetween('purchase_order_items.updated_at', [$fromDate, $toDate])
-            ->select('purchase_order_items.updated_at as created_at', DB::raw("NULL as stock_out"), 'purchase_order_items.quantity as stock_in', DB::raw("'Purchase' as type, purchase_order_items.id"));
-
-        // Combine all movements and order them by date
-        $ledger = $purchases
-                    ->union($newStock)
-                    ->union($sales)
-                    ->orderBy('created_at')
-                    ->get();
+        // Product is branch-scoped, so route-model binding already kept this
+        // inside the branch the user is working in.
+        $built = $ledger->build($product, $from, $to);
 
         return Inertia::render('Reports/ProductLedger', [
-            'product' => $product,
-            'ledger' => $ledger,
-            'openingStock' => $openingStock,
-            'filters' => $request->only(['from_date', 'to_date']),
+            'product' => $product->only(['id', 'name', 'unit', 'stock', 'stock_alert']),
+            'ledger' => $built['rows'],
+            'summary' => [
+                'opening' => $built['opening'],
+                'closing' => $built['closing'],
+                'current' => $built['current'],
+                'in' => $built['in'],
+                'out' => $built['out'],
+                'mismatches' => $built['mismatches'],
+                'movements' => $built['rows']->count(),
+            ],
+            'filters' => [
+                'from_date' => $from->toDateString(),
+                'to_date' => $to->toDateString(),
+            ],
+            // For jumping straight to another product without going back.
+            'products' => Product::orderBy('name')->limit(500)->get(['id', 'name']),
         ]);
     }
-
-
 
     public function topProductsChart(Request $request)
     {
