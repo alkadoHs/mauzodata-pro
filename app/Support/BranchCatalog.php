@@ -58,6 +58,51 @@ class BranchCatalog
     }
 
     /**
+     * Rows in $branchId that look like $source without matching it.
+     *
+     * Exact matching is all-or-nothing: "sunland oil 20ltrs" and "sunland oil
+     * 20 ltr" are different products as far as match() is concerned, so a
+     * transfer would quietly create a second row and the stock would land
+     * somewhere nobody looks. These are the candidates worth putting in front
+     * of the sender before that happens.
+     *
+     * @return array<int,Product>
+     */
+    public function nearMatches(Product $source, int $branchId, int $limit = 3): array
+    {
+        $name = $this->normalise($source->name);
+
+        if ($name === '' || $this->match($source, $branchId)) {
+            return [];
+        }
+
+        $scored = [];
+
+        foreach ($this->catalogue($branchId) as $candidate) {
+            $other = $this->normalise($candidate->name);
+
+            if ($other === '') {
+                continue;
+            }
+
+            // One name containing the other catches the common case of a
+            // longer or shorter spelling of the same goods.
+            $contains = strlen($name) >= 4 && strlen($other) >= 4
+                && (str_contains($name, $other) || str_contains($other, $name));
+
+            similar_text($name, $other, $percent);
+
+            if ($contains || $percent >= 75) {
+                $scored[] = ['product' => $candidate, 'score' => $contains ? 100 : $percent];
+            }
+        }
+
+        usort($scored, fn ($a, $b) => $b['score'] <=> $a['score']);
+
+        return array_map(fn ($s) => $s['product'], array_slice($scored, 0, $limit));
+    }
+
+    /**
      * The row in $branchId standing for $source, creating it if the branch
      * doesn't stock it yet. Never creates a second copy of something already
      * there, and never returns a row from the wrong branch.

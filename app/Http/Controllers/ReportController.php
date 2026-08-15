@@ -204,8 +204,14 @@ class ReportController extends Controller
     /** One transfer flattened into its quantities, with the lines under it. */
     private function transferRow(ProductTransfer $transfer): array
     {
-        $lines = $transfer->productTransferItems->map(function ($item) {
-            $sent = (float) $item->stock;
+        // A pending transfer is a cart somebody is still filling — nothing has
+        // left a branch and nothing is on its way. Counting its quantities as
+        // sent or in transit reads as stock stuck somewhere, which is exactly
+        // the alarm this report should not raise.
+        $draft = $transfer->status === ProductTransfer::PENDING;
+
+        $lines = $transfer->productTransferItems->map(function ($item) use ($draft) {
+            $quantity = (float) $item->stock;
             $received = $item->received_at ? (float) $item->received_stock : 0.0;
             $returned = $item->received_at ? (float) $item->returned_stock : 0.0;
 
@@ -213,11 +219,13 @@ class ReportController extends Controller
                 'id' => $item->id,
                 'product' => $item->product?->name ?? '—',
                 'unit' => $item->product?->unit,
-                'sent' => $sent,
+                // What the line holds, dispatched or not.
+                'quantity' => $quantity,
+                'sent' => $draft ? 0.0 : $quantity,
                 'received' => $received,
                 'returned' => $returned,
                 // Still in transit: sent, but nobody has counted it yet.
-                'awaiting' => $item->received_at ? 0.0 : $sent,
+                'awaiting' => ($draft || $item->received_at) ? 0.0 : $quantity,
                 'received_at' => optional($item->received_at)->format('Y-m-d H:i'),
                 'received_by' => $item->receivedBy?->name,
             ];
@@ -232,6 +240,8 @@ class ReportController extends Controller
             'received_by' => $transfer->receivedBy?->name,
             'received_at' => optional($transfer->received_at)->format('Y-m-d H:i'),
             'status' => $transfer->status,
+            'draft' => $draft,
+            'items' => $lines->count(),
             'sent' => round($lines->sum('sent'), 2),
             'received' => round($lines->sum('received'), 2),
             'returned' => round($lines->sum('returned'), 2),

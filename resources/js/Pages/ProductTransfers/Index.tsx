@@ -14,7 +14,7 @@ import { Branch, Product } from "@/lib/schemas";
 import { numberFormat } from "@/lib/utils";
 import { PageProps, User } from "@/types";
 import { Head, router } from "@inertiajs/react";
-import { ArrowRight, PackagePlus, Send, Trash } from "lucide-react";
+import { AlertTriangle, ArrowRight, PackagePlus, Send, Trash } from "lucide-react";
 import { ChangeEvent, useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -49,6 +49,8 @@ export type TransferLine = {
     will_create: boolean;
     /** The sender pinned this line to a specific item. */
     chosen: boolean;
+    /** Similarly-named items already in the receiving branch. */
+    suggestions: DestinationProduct[];
 };
 
 type Cart = {
@@ -341,10 +343,37 @@ function DestinationCell({
             </Select>
 
             {line.will_create ? (
-                <span className="flex items-center gap-1 text-[11px] text-amber-600">
-                    <PackagePlus className="size-3 shrink-0" />
-                    New in {branchName}
-                </span>
+                line.suggestions.length > 0 ? (
+                    // The most likely cause of a duplicate: a name that differs
+                    // by a space or a word. Offer the existing row rather than
+                    // silently making a second one.
+                    <div className="rounded border border-amber-500/40 bg-amber-50 p-1.5 dark:bg-amber-500/10">
+                        <span className="flex items-start gap-1 text-[11px] text-amber-700 dark:text-amber-400">
+                            <AlertTriangle className="mt-px size-3 shrink-0" />
+                            <span>
+                                {branchName} already stocks something similar —
+                                use it instead of creating a second item?
+                            </span>
+                        </span>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                            {line.suggestions.map((s) => (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => onChange(String(s.id))}
+                                    className="rounded border border-amber-500/50 bg-background px-1.5 py-0.5 text-[11px] hover:bg-accent"
+                                >
+                                    {s.name} ({numberFormat(s.stock)} {s.unit})
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <span className="flex items-center gap-1 text-[11px] text-amber-600">
+                        <PackagePlus className="size-3 shrink-0" />
+                        New in {branchName}
+                    </span>
+                )
             ) : (
                 <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                     <ArrowRight className="size-3 shrink-0" />

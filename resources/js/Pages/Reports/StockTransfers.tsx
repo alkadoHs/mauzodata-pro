@@ -12,6 +12,8 @@ type Line = {
     id: number;
     product: string;
     unit: string | null;
+    /** What the line holds, whether or not it was ever dispatched. */
+    quantity: number;
     sent: number;
     received: number;
     returned: number;
@@ -29,6 +31,9 @@ type Transfer = {
     received_by: string | null;
     received_at: string | null;
     status: "pending" | "transferred" | "received";
+    /** Never dispatched — a cart someone left open. */
+    draft: boolean;
+    items: number;
     sent: number;
     received: number;
     returned: number;
@@ -181,10 +186,10 @@ export default function StockTransfers({
                                             <StatusChip transfer={t} />
                                         </td>
                                         <td className="px-3 py-2 text-right tabular-nums">
-                                            {numberFormat(t.sent)}
+                                            {t.draft ? "—" : numberFormat(t.sent)}
                                         </td>
                                         <td className="px-3 py-2 text-right tabular-nums">
-                                            {numberFormat(t.received)}
+                                            {t.draft ? "—" : numberFormat(t.received)}
                                         </td>
                                         <td
                                             className={cn(
@@ -211,7 +216,7 @@ export default function StockTransfers({
                                                     <thead>
                                                         <tr className="text-left text-muted-foreground">
                                                             <th className="py-1 font-medium">Product</th>
-                                                            <th className="py-1 text-right font-medium">Sent</th>
+                                                            <th className="py-1 text-right font-medium">Qty</th>
                                                             <th className="py-1 text-right font-medium">Received</th>
                                                             <th className="py-1 text-right font-medium">Returned</th>
                                                             <th className="py-1 font-medium">Confirmed</th>
@@ -222,7 +227,7 @@ export default function StockTransfers({
                                                             <tr key={l.id} className="border-t border-border/50">
                                                                 <td className="py-1.5">{l.product}</td>
                                                                 <td className="py-1.5 text-right tabular-nums">
-                                                                    {numberFormat(l.sent)} {l.unit}
+                                                                    {numberFormat(l.quantity)} {l.unit}
                                                                 </td>
                                                                 <td className="py-1.5 text-right tabular-nums">
                                                                     {l.received_at ? numberFormat(l.received) : "—"}
@@ -238,7 +243,9 @@ export default function StockTransfers({
                                                                 <td className="py-1.5 text-muted-foreground">
                                                                     {l.received_at
                                                                         ? `${l.received_at}${l.received_by ? ` · ${l.received_by}` : ""}`
-                                                                        : "awaiting"}
+                                                                        : t.draft
+                                                                          ? "not sent"
+                                                                          : "awaiting"}
                                                                 </td>
                                                             </tr>
                                                         ))}
@@ -271,8 +278,11 @@ function StatusChip({ transfer }: { transfer: Transfer }) {
 
     if (transfer.status === "pending") {
         return (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                Not sent
+            <span
+                className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                title="A transfer someone started and never sent — no stock has moved."
+            >
+                Not sent · draft
             </span>
         );
     }

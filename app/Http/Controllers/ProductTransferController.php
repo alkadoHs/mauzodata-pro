@@ -72,7 +72,18 @@ class ProductTransferController extends Controller
             return back()->withErrors(['branch_id' => 'Choose a branch other than this one.']);
         }
 
-        $this->pendingTransfer(create: true)->update(['branch_id' => $validated['branch_id']]);
+        $transfer = $this->pendingTransfer(create: true);
+        $destination = (int) $validated['branch_id'];
+
+        if ($transfer->branch_id !== $destination) {
+            // Every line was pointed at a row in the *previous* destination, so
+            // those choices are now meaningless — and left in place they would
+            // send stock to a product in the wrong branch, where nobody could
+            // ever receive it. Drop them and match afresh.
+            $transfer->productTransferItems()->update(['to_product_id' => null]);
+        }
+
+        $transfer->update(['branch_id' => $destination]);
 
         return back();
     }
@@ -207,8 +218,18 @@ class ProductTransferController extends Controller
 
                     // Fix the destination row now, while the sender is here to
                     // see it, rather than leaving it to whoever unpacks the box.
-                    $target = $item->to_product_id
+                    $chosen = $item->to_product_id
                         ? Product::withoutGlobalScope(BranchScope::class)->find($item->to_product_id)
+                        : null;
+
+                    // Only honour a choice that still belongs to the receiving
+                    // branch. destination() clears mappings when the branch
+                    // changes, so this should never fire — but a line pointed
+                    // elsewhere would strand the stock somewhere nobody can
+                    // receive it, which is worth being sure about. A target
+                    // deleted since mapping falls through here too.
+                    $target = ($chosen && $chosen->branch_id === $destination)
+                        ? $chosen
                         : $this->catalog->resolve($locked, $destination);
 
                     $locked->decrement('stock', $item->stock);
@@ -509,6 +530,16 @@ class ProductTransferController extends Controller
                     : $this->catalog->match($item->product, $destination);
             }
 
+            // About to create a new row — but if the branch already stocks
+            // something spelled almost the same, say so before a near-twin is
+            // made and the stock lands where nobody looks for it.
+            $suggestions = ($destination && $target === null && $item->product)
+                ? array_map(
+                    fn ($p) => $p->only(['id', 'name', 'unit', 'stock']),
+                    $this->catalog->nearMatches($item->product, $destination)
+                )
+                : [];
+
             return [
                 'id' => $item->id,
                 'product' => $item->product?->only(['id', 'name', 'unit', 'stock']),
@@ -518,6 +549,7 @@ class ProductTransferController extends Controller
                 // Nothing over there matches, so dispatch will create it.
                 'will_create' => $destination !== null && $target === null,
                 'chosen' => $item->to_product_id !== null,
+                'suggestions' => $suggestions,
             ];
         });
 
