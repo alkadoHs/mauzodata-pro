@@ -200,6 +200,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/credit-report', [CreditSalesReportController::class, 'index'])->name('reports.creditReport');
     Route::get('/reports/credit-report/excel', [CreditSalesReportController::class, 'excel'])->name('reports.creditReport.excel');
     Route::get('/reports/credit-report/pdf', [CreditSalesReportController::class, 'pdf'])->name('reports.creditReport.pdf');
+    // Payment history for one credit sale, loaded when its dialog opens.
+    Route::get('/reports/credit-report/{order}/payments', [CreditSalesReportController::class, 'payments'])
+        ->name('reports.creditReport.payments');
+    // A customer's full statement of credit sales and payments.
+    Route::get('/reports/credit-report/statement/{customer}', [CreditSalesReportController::class, 'statement'])
+        ->name('reports.creditReport.statement');
 
     Route::get('/reports/expenses-report', [ExpensesReportController::class, 'index'])->name('reports.expensesReport');
     Route::get('/reports/expenses-report/excel', [ExpensesReportController::class, 'excel'])->name('reports.expensesReport.excel');

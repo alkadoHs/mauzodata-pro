@@ -67,6 +67,17 @@ class SalesReport
                 ! empty($filters['user_id']) && is_numeric($filters['user_id']),
                 fn (Builder $q) => $q->where('user_id', $filters['user_id'])
             )
+            // Finding one debtor among thousands of rows. Grouped so the OR
+            // can't escape the branch scope's WHERE.
+            ->when(
+                ! empty($filters['search']),
+                fn (Builder $q) => $q->where(function (Builder $inner) use ($filters) {
+                    $term = trim($filters['search']);
+
+                    $inner->whereRelation('customer', 'name', 'like', "%{$term}%")
+                        ->orWhere('invoice_number', 'like', "%{$term}%");
+                })
+            )
             ->latest();
     }
 

@@ -106,9 +106,16 @@ type Props = {
     collections?: CollectionRow[];
     expenses?: ExpenseRow[];
     summary?: ReportSummary;
-    filters: { from_date?: string; to_date?: string; user_id?: string | number };
+    filters: {
+        from_date?: string;
+        to_date?: string;
+        user_id?: string | number;
+        search?: string;
+    };
     sellers: Seller[];
     branchLabel: string;
+    /** Credit report only: opens a row's payment history. */
+    onRowClick?: (row: ReportRow) => void;
 };
 
 const ALL_SELLERS = "all";
@@ -143,11 +150,13 @@ export default function SalesReportView({
     filters,
     sellers,
     branchLabel,
+    onRowClick,
 }: PageProps<Props>) {
     const { data, setData, processing } = useForm({
         from_date: filters.from_date || "",
         to_date: filters.to_date || "",
         user_id: filters.user_id ? String(filters.user_id) : ALL_SELLERS,
+        search: filters.search || "",
     });
 
     // Only send real values — never the "all" sentinel or empty strings, which
@@ -157,6 +166,8 @@ export default function SalesReportView({
         from_date: data.from_date || undefined,
         to_date: data.to_date || undefined,
         user_id: data.user_id !== ALL_SELLERS ? data.user_id : undefined,
+        // Carried into the export links too, so a download matches the screen.
+        search: data.search.trim() || undefined,
     });
 
     const submit: FormEventHandler = (e) => {
@@ -226,6 +237,16 @@ export default function SalesReportView({
                     onSubmit={submit}
                     className="flex flex-col gap-3 rounded-lg border bg-card p-3 sm:flex-row sm:items-end sm:flex-wrap"
                 >
+                    <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+                        Customer or receipt
+                        <Input
+                            type="search"
+                            value={data.search}
+                            placeholder="Search…"
+                            className="w-[200px]"
+                            onChange={(e) => setData("search", e.target.value)}
+                        />
+                    </label>
                     <label className="flex flex-col gap-1 text-xs text-muted-foreground">
                         From
                         <Input
@@ -357,7 +378,24 @@ export default function SalesReportView({
                                 </TableRow>
                             )}
                             {pageRows.map((row) => (
-                                <TableRow key={row.id}>
+                                <TableRow
+                                    key={row.id}
+                                    onClick={
+                                        onRowClick
+                                            ? () => onRowClick(row)
+                                            : undefined
+                                    }
+                                    className={
+                                        onRowClick
+                                            ? "cursor-pointer hover:bg-muted/50"
+                                            : undefined
+                                    }
+                                    title={
+                                        onRowClick
+                                            ? "See payment history"
+                                            : undefined
+                                    }
+                                >
                                     <TableCell className="whitespace-nowrap">
                                         {row.date}
                                     </TableCell>

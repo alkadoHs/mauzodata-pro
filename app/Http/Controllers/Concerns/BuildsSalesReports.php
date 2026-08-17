@@ -51,9 +51,12 @@ trait BuildsSalesReports
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date|after_or_equal:from_date',
             'user_id' => 'nullable|integer',
+            'search' => 'nullable|string|max:100',
         ]);
 
-        return $request->only(['from_date', 'to_date', 'user_id']);
+        // Carried into the exports too, so a downloaded file matches what the
+        // person was looking at when they pressed the button.
+        return $request->only(['from_date', 'to_date', 'user_id', 'search']);
     }
 
     /** Sellers available for the filter dropdown, limited to the active branch. */
