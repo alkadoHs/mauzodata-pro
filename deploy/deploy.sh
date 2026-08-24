@@ -171,7 +171,9 @@ REMOTE_SHA="$(git rev-parse origin/main)"
 
 if [[ "$REMOTE_SHA" == "$BEFORE_SHA" ]]; then
     note "already up to date at $BEFORE_SHA — nothing to deploy"
-    note "(the database backup above still happened and is kept)"
+    if [[ "$DRY_RUN" == "0" ]]; then
+        note "(the database backup above still happened and is kept)"
+    fi
     exit 0
 fi
 
