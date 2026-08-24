@@ -61,6 +61,21 @@ type Props<T> = {
     pdfRoute: string;
     /** Label for the seller filter — "Seller" for sales, "Spent by" for expenses. */
     sellerLabel?: string;
+    /**
+     * Extra query params merged into every filter submit and export link —
+     * for a report-specific filter (e.g. Expenses' category drill-down) that
+     * this shared shell has no UI for, but whose value must still survive an
+     * "Apply" click and show up in the downloaded file. Undefined values are
+     * dropped, so a caller can pass e.g. `{ category_id: filters.category_id }`
+     * unconditionally.
+     */
+    extraParams?: Record<string, string | number | undefined>;
+    /**
+     * Extra content rendered between the filter form and the table — for a
+     * report-specific summary (e.g. Expenses' category breakdown) that reacts
+     * to the same filters without this shared shell needing to know it exists.
+     */
+    beforeTable?: ReactNode;
 };
 
 /**
@@ -81,6 +96,8 @@ export function ReportView<T extends { id: number | string }>({
     excelRoute,
     pdfRoute,
     sellerLabel = "Seller",
+    extraParams = {},
+    beforeTable,
 }: Props<T>) {
     const { auth } = usePage<PageProps>().props;
 
@@ -96,6 +113,7 @@ export function ReportView<T extends { id: number | string }>({
         from_date: data.from_date || undefined,
         to_date: data.to_date || undefined,
         user_id: data.user_id !== ALL_SELLERS ? data.user_id : undefined,
+        ...extraParams,
     });
 
     const submit: FormEventHandler = (e) => {
@@ -204,6 +222,8 @@ export function ReportView<T extends { id: number | string }>({
                         </Button>
                     </div>
                 </form>
+
+                {beforeTable}
 
                 <div className="rounded-xl border border-border bg-card">
                     <div className="overflow-x-auto">
