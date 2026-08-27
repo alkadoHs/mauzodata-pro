@@ -13,6 +13,7 @@ import {
     ArrowRight,
     BarChart,
     Truck,
+    Landmark,
     LucideIcon,
 } from "lucide-react";
 import {
@@ -131,6 +132,7 @@ const SidebarItems = ({ user }: { user: User }) => {
                         "suppliers.*",
                         "expense-categories.*",
                         "authorization-keys.*",
+                        "fixed-assets.*",
                     ])}
                 >
                     <NavLink
@@ -176,6 +178,12 @@ const SidebarItems = ({ user }: { user: User }) => {
                                 icon={ArrowRight}
                                 label="Data migration"
                                 pattern="data-migrations.*"
+                            />
+                            <NavLink
+                                routeName="fixed-assets.index"
+                                icon={Landmark}
+                                label="Fixed Assets"
+                                pattern="fixed-assets.*"
                             />
                         </>
                     )}

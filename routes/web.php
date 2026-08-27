@@ -12,6 +12,7 @@ use App\Http\Controllers\DataMigrationController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseItemController;
+use App\Http\Controllers\FixedAssetController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NewStockController;
 use App\Http\Controllers\OrderController;
@@ -240,6 +241,17 @@ Route::middleware(['auth', 'verified'])->controller(PaymentMethodController::cla
     Route::post('/payments','store')->name('payments.store');
     Route::patch('/payments/{paymentMethod}', 'update')->name('payments.update');
     Route::delete('/payments/{paymentMethod}/delete', 'destroy')->name('payments.destroy');
+});
+
+// fixed assets — computers, printers, vehicles: what the company owns and
+// what it's worth, not what's for sale. Admin-only (the controller enforces
+// it); RemoveCommaFromInput cleans up the value field's "1,500,000" input.
+Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->controller(FixedAssetController::class)->group(function () {
+    Route::get('/fixed-assets', 'index')->name('fixed-assets.index');
+    Route::post('/fixed-assets', 'store')->name('fixed-assets.store');
+    Route::patch('/fixed-assets/{fixedAsset}', 'update')->name('fixed-assets.update');
+    Route::patch('/fixed-assets/{fixedAsset}/status', 'updateStatus')->name('fixed-assets.status');
+    Route::delete('/fixed-assets/{fixedAsset}', 'destroy')->name('fixed-assets.destroy');
 });
 
 // product transfers

@@ -224,6 +224,16 @@ export type PaymentMethod = {
     name: string;
 };
 
+export type FixedAsset = {
+    id: number;
+    name: string;
+    value: number;
+    status: "active" | "broken";
+    notes: string | null;
+    acquired_at: string | null;
+    branch: { id: number; name: string } | null;
+};
+
 export interface Inventory {
     id: number;
     name: string;
