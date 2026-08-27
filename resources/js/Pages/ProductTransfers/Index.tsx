@@ -127,7 +127,7 @@ const ProductTransferPage = ({
             <Head title="Transfer stock" />
 
             <section className="grid gap-4 lg:grid-cols-2">
-                <div className="grid content-start gap-2">
+                <div className="grid min-w-0 content-start gap-2">
                     <h1 className="text-2xl font-medium">Your stock</h1>
                     <Input
                         type="search"
@@ -139,7 +139,7 @@ const ProductTransferPage = ({
                     <DataTable columns={productsColumns} data={products} />
                 </div>
 
-                <div className="space-y-3">
+                <div className="min-w-0 space-y-3">
                     <h1 className="text-2xl font-medium">Transfer</h1>
 
                     <div className="rounded-lg border bg-card p-3">
@@ -169,7 +169,7 @@ const ProductTransferPage = ({
                     </div>
 
                     <div className="overflow-x-auto rounded-md border">
-                        <table className="w-full text-sm">
+                        <table className="w-full min-w-[34rem] text-sm">
                             <thead>
                                 <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
                                     <th className="px-3 py-2 font-medium">
