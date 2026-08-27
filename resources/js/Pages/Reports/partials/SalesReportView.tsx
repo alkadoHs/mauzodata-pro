@@ -32,6 +32,8 @@ import { FormEventHandler, useEffect, useState } from "react";
 
 export interface ReportRow {
     id: number;
+    /** The receipt number staff and customers actually recognise. */
+    invoice: string | null;
     date: string | null;
     branch: string | null;
     customer: string | null;
@@ -114,7 +116,11 @@ type Props = {
     };
     sellers: Seller[];
     branchLabel: string;
-    /** Credit report only: opens a row's payment history. */
+    /**
+     * Makes a row clickable — the credit report uses it to open payment
+     * history, the sales report to open a sale's line items. What "clicking
+     * a row" means is entirely up to whichever page supplies this.
+     */
     onRowClick?: (row: ReportRow) => void;
 };
 

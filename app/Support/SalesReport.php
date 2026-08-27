@@ -100,6 +100,10 @@ class SalesReport
 
         return [
             'id' => $order->id,
+            // The receipt number staff and customers actually recognise — the
+            // dialog that shows a sale's line items identifies it by this,
+            // not the internal id.
+            'invoice' => $order->invoice_number,
             'date' => optional($order->created_at)->format('Y-m-d H:i'),
             'branch' => $order->branch?->name,
             'customer' => $order->customer?->name ?? 'Walk-in',

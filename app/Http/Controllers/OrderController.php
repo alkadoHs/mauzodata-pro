@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -205,5 +206,32 @@ class OrderController extends Controller
         $order->delete();
 
         return redirect()->back();
+    }
+
+    /**
+     * A sale's line items — product, quantity, price and any discount —
+     * fetched on demand when a report row is clicked to show which
+     * products a sale's discount total actually came from.
+     *
+     * Screen only: the exported PDF/Excel reports show the discount total
+     * per sale as they already do, not a per-product breakdown. Order is
+     * branch-scoped, so route-model binding already refused anything
+     * outside the branch this user is working in.
+     */
+    public function items(Order $order): JsonResponse
+    {
+        $items = $order->orderItems()->with('product:id,name,unit')->get();
+
+        return response()->json([
+            'items' => $items->map(fn (OrderItem $item) => [
+                'id' => $item->id,
+                'product' => $item->product?->name ?? 'Deleted product',
+                'unit' => $item->product?->unit,
+                'quantity' => (float) $item->quantity,
+                'price' => (float) $item->price,
+                'discount' => (float) $item->discount,
+                'total' => (float) $item->total,
+            ]),
+        ]);
     }
 }

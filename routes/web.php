@@ -139,6 +139,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/orders/view', [OrderController::class, 'preview'])->name('orders.preview');
     Route::get('/orders/invoices', [OrderController::class, 'invoices'])->name('orders.invoices');
     Route::get('/orders/invoices/{invoice}', [OrderController::class, 'invoice'])->name('orders.invoice');
+    // A sale's line items, fetched into a dialog from the Sales Report — see
+    // which products a discount total actually came from.
+    Route::get('/orders/{order}/items', [OrderController::class, 'items'])->name('orders.items');
     Route::delete('/orders/items/{orderItem}', [OrderItemController::class, 'destroy'])->name('orders.items.destroy');
     Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 });
