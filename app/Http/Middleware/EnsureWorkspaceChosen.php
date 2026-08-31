@@ -38,7 +38,21 @@ class EnsureWorkspaceChosen
             return $next($request);
         }
 
-        if (! app(CurrentWorkspace::class)->mustChoose()) {
+        $workspace = app(CurrentWorkspace::class);
+
+        if (! $workspace->mustChoose()) {
+            return $next($request);
+        }
+
+        // Asking for a logistics page IS the answer. Someone who followed a
+        // link or a bookmark straight into the haulage business has already
+        // said which system they want, and bouncing them to a chooser to say
+        // it again would be asking a question they just answered. Recorded
+        // rather than merely allowed, so the menu and the switcher agree with
+        // the page from here on.
+        if ($request->routeIs('logistics.*')) {
+            $request->session()->put(CurrentWorkspace::SESSION_KEY, CurrentWorkspace::LOGISTICS);
+
             return $next($request);
         }
 

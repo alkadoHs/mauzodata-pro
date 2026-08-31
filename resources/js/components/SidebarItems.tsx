@@ -14,6 +14,8 @@ import {
     BarChart,
     Truck,
     Landmark,
+    Users2,
+    Contact,
     LucideIcon,
 } from "lucide-react";
 import {
@@ -128,7 +130,27 @@ const SidebarItems = ({ user }: { user: User }) => {
 
 /** Trucks, trips and what they earn. */
 const LogisticsNav = () => (
-    <NavLink routeName="logistics.home" icon={Truck} label="Overview" />
+    <>
+        <NavLink routeName="logistics.home" icon={Home} label="Overview" />
+        <NavLink
+            routeName="logistics.trucks.index"
+            icon={Truck}
+            label="Trucks"
+            pattern="logistics.trucks.*"
+        />
+        <NavLink
+            routeName="logistics.drivers.index"
+            icon={Contact}
+            label="Drivers"
+            pattern="logistics.drivers.*"
+        />
+        <NavLink
+            routeName="logistics.clients.index"
+            icon={Users2}
+            label="Clients"
+            pattern="logistics.clients.*"
+        />
+    </>
 );
 
 const ShopNav = ({ user }: { user: User }) => {

@@ -111,6 +111,20 @@ it('opens the system that was actually chosen', function () {
         ->assertRedirect(route('logistics.home', absolute: false));
 });
 
+it('treats a logistics link as the answer instead of asking again', function () {
+    [$company, $branch] = makeCompany();
+    $admin = makeUser($company, $branch, 'admin');
+
+    // Straight in from a bookmark, having chosen nothing this session. A shop
+    // page would ask; a logistics page has already been told.
+    $this->actingAs($admin)->get('/logistics')->assertOk();
+
+    expect(session(CurrentWorkspace::SESSION_KEY))->toBe(CurrentWorkspace::LOGISTICS);
+
+    // And the question is now settled, so the shop no longer interrupts.
+    $this->actingAs($admin)->get('/dashboard')->assertOk();
+});
+
 it('lets the admin move between the two systems', function () {
     [$company, $branch] = makeCompany();
     $admin = makeUser($company, $branch, 'admin');

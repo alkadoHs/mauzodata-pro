@@ -14,7 +14,10 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseItemController;
 use App\Http\Controllers\FixedAssetController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\Logistics\ClientController as LogisticsClientController;
+use App\Http\Controllers\Logistics\DriverController as LogisticsDriverController;
 use App\Http\Controllers\Logistics\HomeController as LogisticsHomeController;
+use App\Http\Controllers\Logistics\TruckController as LogisticsTruckController;
 use App\Http\Controllers\NewStockController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
@@ -65,11 +68,31 @@ Route::middleware('auth')->group(function () {
 
 /*
  * The logistics mini-system: a haulage business that shares a login with the
- * shop and nothing else. Every action is admin-only and scoped to the branch
- * that runs it — enforced in LogisticsController, not here.
+ * shop and nothing else. Every action is admin-only and scoped to the admin's
+ * company — enforced in LogisticsController, not here. Nothing in here is
+ * scoped by branch: the trucks are not inside one of the shop's branches.
  */
-Route::middleware(['auth', 'verified'])->prefix('logistics')->name('logistics.')->group(function () {
+Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->prefix('logistics')->name('logistics.')->group(function () {
     Route::get('/', [LogisticsHomeController::class, 'index'])->name('home');
+
+    // The fleet.
+    Route::get('/trucks', [LogisticsTruckController::class, 'index'])->name('trucks.index');
+    Route::post('/trucks', [LogisticsTruckController::class, 'store'])->name('trucks.store');
+    Route::patch('/trucks/{truck}', [LogisticsTruckController::class, 'update'])->name('trucks.update');
+    Route::delete('/trucks/{truck}', [LogisticsTruckController::class, 'destroy'])->name('trucks.destroy');
+
+    // Who drives them.
+    Route::get('/drivers', [LogisticsDriverController::class, 'index'])->name('drivers.index');
+    Route::post('/drivers', [LogisticsDriverController::class, 'store'])->name('drivers.store');
+    Route::patch('/drivers/{driver}', [LogisticsDriverController::class, 'update'])->name('drivers.update');
+    Route::patch('/drivers/{driver}/toggle', [LogisticsDriverController::class, 'toggle'])->name('drivers.toggle');
+    Route::delete('/drivers/{driver}', [LogisticsDriverController::class, 'destroy'])->name('drivers.destroy');
+
+    // Whose mizigo they carry.
+    Route::get('/clients', [LogisticsClientController::class, 'index'])->name('clients.index');
+    Route::post('/clients', [LogisticsClientController::class, 'store'])->name('clients.store');
+    Route::patch('/clients/{client}', [LogisticsClientController::class, 'update'])->name('clients.update');
+    Route::delete('/clients/{client}', [LogisticsClientController::class, 'destroy'])->name('clients.destroy');
 });
 
 Route::resource('users', UserController::class)
