@@ -98,8 +98,30 @@ LOCK_HELD=1
 APP_ENV_VALUE="$(grep -m1 '^APP_ENV=' .env | cut -d= -f2- || true)"
 [[ "$APP_ENV_VALUE" == "production" ]] || fail "APP_ENV is '$APP_ENV_VALUE', not production — refusing to run a production deploy against this"
 
+# A server deploys whichever branch it is checked out on, but only one this
+# script recognises. Most installations track main; one that runs a client's
+# custom build (masinde, which carries the logistics system on top of main)
+# tracks that instead. The allowlist is what stops a stray checkout — a
+# half-finished feature branch, a detached HEAD after a manual fix — from
+# being deployed to a live site by a script that was only asked to "deploy".
+DEPLOYABLE_BRANCHES=("main" "masinde")
+
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-[[ "$CURRENT_BRANCH" == "main" ]] || fail "on branch '$CURRENT_BRANCH', not main"
+
+branch_is_deployable() {
+    local candidate
+    for candidate in "${DEPLOYABLE_BRANCHES[@]}"; do
+        [[ "$CURRENT_BRANCH" == "$candidate" ]] && return 0
+    done
+    return 1
+}
+
+branch_is_deployable || fail "on branch '$CURRENT_BRANCH', which is not one this script deploys (${DEPLOYABLE_BRANCHES[*]}).
+If this server is meant to track a different branch, check it out by hand and
+verify the site before deploying — switching branches mid-deploy is not
+something this script will do for you."
+
+note "deploying branch '$CURRENT_BRANCH'"
 
 if [[ -n "$(git status --porcelain)" ]]; then
     fail "the working tree has local changes — a deploy must start from a clean checkout:
@@ -162,12 +184,12 @@ fi
 note "Step 2/7: git pull"
 # Fetch is read-only, so it runs for real even in a dry run — that's how a
 # dry run can accurately report what it WOULD pull.
-git fetch origin main
+git fetch origin "$CURRENT_BRANCH"
 
-git merge-base --is-ancestor "$BEFORE_SHA" origin/main \
-    || fail "local main is not an ancestor of origin/main — history has diverged, this needs a human, not this script"
+git merge-base --is-ancestor "$BEFORE_SHA" "origin/$CURRENT_BRANCH" \
+    || fail "local $CURRENT_BRANCH is not an ancestor of origin/$CURRENT_BRANCH — history has diverged, this needs a human, not this script"
 
-REMOTE_SHA="$(git rev-parse origin/main)"
+REMOTE_SHA="$(git rev-parse "origin/$CURRENT_BRANCH")"
 
 if [[ "$REMOTE_SHA" == "$BEFORE_SHA" ]]; then
     note "already up to date at $BEFORE_SHA — nothing to deploy"
@@ -183,7 +205,7 @@ if [[ "$DRY_RUN" == "1" ]]; then
     CHANGED_FILES="$(git diff --name-only "$BEFORE_SHA" "$REMOTE_SHA")"
     AFTER_SHA="$REMOTE_SHA"
 else
-    git pull --ff-only origin main
+    git pull --ff-only origin "$CURRENT_BRANCH"
     AFTER_SHA="$(git rev-parse HEAD)"
     CHANGED_FILES="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"
 fi
