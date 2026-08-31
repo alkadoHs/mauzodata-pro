@@ -14,6 +14,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseItemController;
 use App\Http\Controllers\FixedAssetController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\Logistics\HomeController as LogisticsHomeController;
 use App\Http\Controllers\NewStockController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\CreditSalesReportController;
 use App\Http\Controllers\StoreProductController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WorkspaceContextController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Middleware\RemoveCommaFromInput;
@@ -55,6 +57,19 @@ Route::middleware('auth')->group(function () {
 
     // Forced on login when a multi-branch user hasn't picked one yet.
     Route::get('/branch/choose', [BranchContextController::class, 'choose'])->name('branch.choose');
+
+    // Shop or haulage business — only ever asked of an admin who runs both.
+    Route::get('/workspace/choose', [WorkspaceContextController::class, 'choose'])->name('workspace.choose');
+    Route::post('/workspace/switch', [WorkspaceContextController::class, 'switch'])->name('workspace.switch');
+});
+
+/*
+ * The logistics mini-system: a haulage business that shares a login with the
+ * shop and nothing else. Every action is admin-only and scoped to the branch
+ * that runs it — enforced in LogisticsController, not here.
+ */
+Route::middleware(['auth', 'verified'])->prefix('logistics')->name('logistics.')->group(function () {
+    Route::get('/', [LogisticsHomeController::class, 'index'])->name('home');
 });
 
 Route::resource('users', UserController::class)

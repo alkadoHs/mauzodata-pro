@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Branch;
 use App\Support\CurrentBranch;
+use App\Support\CurrentWorkspace;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -33,6 +34,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $currentBranch = app(CurrentBranch::class);
+        $workspace = app(CurrentWorkspace::class);
         $user = $request->user();
         $canSwitch = $currentBranch->canSwitch();
 
@@ -53,6 +55,11 @@ class HandleInertiaRequests extends Middleware
                 'branches' => $canSwitch
                     ? Branch::where('company_id', $user->company_id)->orderBy('name')->get()
                     : [],
+                // Which of the two systems is on screen. Drives the whole
+                // sidebar, so it follows the page being viewed rather than
+                // only the session — see CurrentWorkspace::forRequest().
+                'workspace' => $user ? $workspace->forRequest($request) : CurrentWorkspace::SHOP,
+                'hasLogistics' => $user ? $workspace->isAvailable() : false,
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),

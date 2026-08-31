@@ -14,6 +14,11 @@ const ALL = "all";
 export function BranchSwitcher() {
     const { auth } = usePage<PageProps>().props;
 
+    // The haulage business belongs to one branch whatever the shop is pointed
+    // at, so a branch control there would change nothing on screen — worse
+    // than useless, it would suggest the trucks' figures had moved.
+    if (auth.workspace === "logistics") return null;
+
     // Sellers can't switch — show a static chip of their branch instead.
     if (!auth.canSwitchBranches) {
         if (!auth.branch) return null;

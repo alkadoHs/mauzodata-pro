@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // Multi-branch admins/managers pick their branch before anything
             // else; it no-ops for everyone else.
             \App\Http\Middleware\EnsureBranchChosen::class,
+            // Then, for the one admin who runs a haulage business alongside
+            // the shop, which of the two they are opening. No-ops for every
+            // branch that doesn't have logistics switched on — i.e. all but one.
+            \App\Http\Middleware\EnsureWorkspaceChosen::class,
         ]);
 
         $middleware->alias([

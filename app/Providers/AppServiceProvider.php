@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Support\CurrentBranch;
+use App\Support\CurrentWorkspace;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,6 +14,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(CurrentBranch::class);
+        $this->app->singleton(CurrentWorkspace::class);
     }
 
     /**

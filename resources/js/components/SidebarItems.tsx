@@ -23,8 +23,8 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "./ui/badge";
-import { Link } from "@inertiajs/react";
-import { User } from "@/types";
+import { Link, usePage } from "@inertiajs/react";
+import { PageProps, User } from "@/types";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 
@@ -109,7 +109,29 @@ const NavGroup = ({
     </Accordion>
 );
 
+/**
+ * The menu for whichever system is on screen.
+ *
+ * The shop and the haulage business share nothing, so neither does their
+ * navigation — swapping the whole menu is what keeps them from feeling like
+ * one tangled system with two halves.
+ */
 const SidebarItems = ({ user }: { user: User }) => {
+    const { auth } = usePage<PageProps>().props;
+
+    return auth.workspace === "logistics" ? (
+        <LogisticsNav />
+    ) : (
+        <ShopNav user={user} />
+    );
+};
+
+/** Trucks, trips and what they earn. */
+const LogisticsNav = () => (
+    <NavLink routeName="logistics.home" icon={Truck} label="Overview" />
+);
+
+const ShopNav = ({ user }: { user: User }) => {
     // Managers currently share the admin's menu; permissions can be narrowed later.
     const isAdminLike = user.role === "admin" || user.role === "manager";
     // Authorization keys are admin-only — a manager who could issue keys could

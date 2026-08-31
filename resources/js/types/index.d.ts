@@ -48,6 +48,10 @@ export type PageProps<
         activeBranch: number | "all" | null;
         canSwitchBranches: boolean;
         branches: Branch[];
+        /** Which of the two systems is on screen — drives the whole sidebar. */
+        workspace: "shop" | "logistics";
+        /** Whether this user has a haulage business to switch to at all. */
+        hasLogistics: boolean;
         success: string;
         error: string;
         info: string;
