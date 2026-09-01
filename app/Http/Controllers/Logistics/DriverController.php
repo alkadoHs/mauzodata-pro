@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Logistics;
 
 use App\Models\Logistics\Driver;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -41,6 +42,25 @@ class DriverController extends LogisticsController
         ]);
 
         return back()->with('success', 'Driver added.');
+    }
+
+    /**
+     * Add a driver from inside the trip form — see ClientController::quickStore
+     * for why this answers with the record instead of a redirect.
+     */
+    public function quickStore(Request $request): JsonResponse
+    {
+        $this->authorizeLogistics();
+
+        $driver = Driver::create([
+            ...$this->validated($request),
+            'company_id' => $this->companyId(),
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'driver' => ['id' => $driver->id, 'name' => $driver->name],
+        ], 201);
     }
 
     public function update(Request $request, Driver $driver): RedirectResponse

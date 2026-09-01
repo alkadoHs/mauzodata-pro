@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Logistics;
 
 use App\Models\Logistics\TripClient;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -37,6 +38,27 @@ class ClientController extends LogisticsController
         ]);
 
         return back()->with('success', 'Client added.');
+    }
+
+    /**
+     * Add a client from inside the trip form.
+     *
+     * Returns the record rather than redirecting: the caller is a dialog with
+     * a half-filled trip in it, and a redirect would throw that away to save
+     * one field.
+     */
+    public function quickStore(Request $request): JsonResponse
+    {
+        $this->authorizeLogistics();
+
+        $client = TripClient::create([
+            ...$this->validated($request),
+            'company_id' => $this->companyId(),
+        ]);
+
+        return response()->json([
+            'client' => ['id' => $client->id, 'name' => $client->name],
+        ], 201);
     }
 
     public function update(Request $request, TripClient $client): RedirectResponse

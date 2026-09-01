@@ -88,6 +88,7 @@ Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->prefix('lo
     // Who drives them.
     Route::get('/drivers', [LogisticsDriverController::class, 'index'])->name('drivers.index');
     Route::post('/drivers', [LogisticsDriverController::class, 'store'])->name('drivers.store');
+    Route::post('/drivers/quick', [LogisticsDriverController::class, 'quickStore'])->name('drivers.quick');
     Route::patch('/drivers/{driver}', [LogisticsDriverController::class, 'update'])->name('drivers.update');
     Route::patch('/drivers/{driver}/toggle', [LogisticsDriverController::class, 'toggle'])->name('drivers.toggle');
     Route::delete('/drivers/{driver}', [LogisticsDriverController::class, 'destroy'])->name('drivers.destroy');
@@ -117,6 +118,8 @@ Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->prefix('lo
     // Whose mizigo they carry.
     Route::get('/clients', [LogisticsClientController::class, 'index'])->name('clients.index');
     Route::post('/clients', [LogisticsClientController::class, 'store'])->name('clients.store');
+    // Added from inside the trip form; answers with the record, not a redirect.
+    Route::post('/clients/quick', [LogisticsClientController::class, 'quickStore'])->name('clients.quick');
     Route::patch('/clients/{client}', [LogisticsClientController::class, 'update'])->name('clients.update');
     Route::delete('/clients/{client}', [LogisticsClientController::class, 'destroy'])->name('clients.destroy');
 });

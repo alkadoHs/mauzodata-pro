@@ -240,6 +240,72 @@ it('requires a name for a client', function () {
 });
 
 // ---------------------------------------------------------------------------
+// Quick-create from inside the trip form
+// ---------------------------------------------------------------------------
+
+it('adds a client from the trip form and hands back the record', function () {
+    [$company, $admin] = registerCompany();
+
+    $response = $this->actingAs($admin)
+        ->postJson('/logistics/clients/quick', ['name' => 'Mama Neema'])
+        ->assertCreated();
+
+    $client = TripClient::firstWhere('name', 'Mama Neema');
+
+    // The caller needs the id back to select it — a redirect would be useless
+    // to a dialog holding a half-filled trip.
+    expect($response->json('client.id'))->toBe($client->id)
+        ->and($response->json('client.name'))->toBe('Mama Neema')
+        ->and($client->company_id)->toBe($company->id);
+});
+
+it('adds a driver from the trip form, active and ready to pick', function () {
+    [$company, $admin] = registerCompany();
+
+    $response = $this->actingAs($admin)
+        ->postJson('/logistics/drivers/quick', ['name' => 'Juma Hamisi'])
+        ->assertCreated();
+
+    $driver = Driver::firstWhere('name', 'Juma Hamisi');
+
+    expect($response->json('driver.id'))->toBe($driver->id)
+        ->and($driver->is_active)->toBeTrue()
+        ->and($driver->company_id)->toBe($company->id);
+});
+
+it('validates a quick-created name the same as the full form', function () {
+    [, $admin] = registerCompany();
+
+    $this->actingAs($admin)->postJson('/logistics/clients/quick', ['name' => 'A'])
+        ->assertStatus(422);
+    $this->actingAs($admin)->postJson('/logistics/drivers/quick', ['name' => ''])
+        ->assertStatus(422);
+
+    expect(TripClient::count())->toBe(0)->and(Driver::count())->toBe(0);
+});
+
+it('keeps quick-create admin-only', function (string $role) {
+    [$company, $admin] = registerCompany();
+    $other = User::create([
+        'company_id' => $company->id,
+        'branch_id' => $admin->branch_id,
+        'name' => ucfirst($role),
+        'email' => $role.'-'.uniqid().'@example.com',
+        'phone' => '070'.random_int(1000000, 9999999),
+        'role' => $role,
+        'isActive' => true,
+        'password' => 'password',
+    ]);
+
+    $this->actingAs($other)->postJson('/logistics/clients/quick', ['name' => 'Nope'])
+        ->assertForbidden();
+    $this->actingAs($other)->postJson('/logistics/drivers/quick', ['name' => 'Nope'])
+        ->assertForbidden();
+
+    expect(TripClient::count())->toBe(0)->and(Driver::count())->toBe(0);
+})->with(['manager', 'seller']);
+
+// ---------------------------------------------------------------------------
 // Non-admins
 // ---------------------------------------------------------------------------
 

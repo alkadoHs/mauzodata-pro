@@ -10,23 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { EntityCombobox } from "./EntityCombobox";
 import { Link, useForm } from "@inertiajs/react";
 import { ArrowRight, TriangleAlert } from "lucide-react";
 import { FormEventHandler, useEffect } from "react";
 import { NumericFormat } from "react-number-format";
 import { toast } from "sonner";
 import { TripDetail, TripOptions } from "./types";
-
-/** Radix Select cannot hold an empty value, so "nobody yet" needs a name. */
-const NO_DRIVER = "unassigned";
 
 export function TripFormDialog({
     open,
@@ -44,7 +35,7 @@ export function TripFormDialog({
     const form = useForm({
         truck_id: "",
         trip_client_id: "",
-        driver_id: NO_DRIVER as string,
+        driver_id: "",
         origin: "",
         destination: "",
         cargo: "",
@@ -61,7 +52,7 @@ export function TripFormDialog({
         setData({
             truck_id: trip ? String(trip.truck_id) : "",
             trip_client_id: trip ? String(trip.trip_client_id) : "",
-            driver_id: trip?.driver_id ? String(trip.driver_id) : NO_DRIVER,
+            driver_id: trip?.driver_id ? String(trip.driver_id) : "",
             origin: trip?.origin ?? "",
             destination: trip?.destination ?? "",
             cargo: trip?.cargo ?? "",
@@ -73,18 +64,16 @@ export function TripFormDialog({
         });
     }, [open, trip]);
 
-    // Nothing can be recorded without a lorry and somebody to carry for.
-    const missing = [
-        options.trucks.length === 0 ? { label: "a truck", href: "logistics.trucks.index" } : null,
-        options.clients.length === 0 ? { label: "a client", href: "logistics.clients.index" } : null,
-    ].filter(Boolean) as { label: string; href: string }[];
+    // A client can now be typed straight into its own field, so the only thing
+    // that still has to exist beforehand is a lorry.
+    const missing = (
+        options.trucks.length === 0
+            ? [{ label: "a truck", href: "logistics.trucks.index" }]
+            : []
+    ) as { label: string; href: string }[];
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        form.transform((d) => ({
-            ...d,
-            driver_id: d.driver_id === NO_DRIVER ? "" : d.driver_id,
-        }));
 
         const done = (message: string) => {
             toast.success(message);
@@ -142,37 +131,32 @@ export function TripFormDialog({
                 <form onSubmit={submit} className="space-y-4">
                     <div className="grid gap-3 sm:grid-cols-2">
                         <Field label="Truck *" error={errors.truck_id}>
-                            <Select
-                                value={data.truck_id}
-                                onValueChange={(v) => setData("truck_id", v)}
-                            >
-                                <SelectTrigger><SelectValue placeholder="Which lorry?" /></SelectTrigger>
-                                <SelectContent>
-                                    {options.trucks.map((t) => (
-                                        <SelectItem key={t.id} value={String(t.id)}>
-                                            {t.plate_number}
-                                            {t.name ? ` — ${t.name}` : ""}
-                                            {t.status !== "active" ? " (off the road)" : ""}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <EntityCombobox
+                                options={options.trucks.map((t) => ({
+                                    id: t.id,
+                                    label: t.plate_number + (t.name ? ` — ${t.name}` : ""),
+                                    hint: t.status !== "active" ? "off the road" : undefined,
+                                }))}
+                                value={data.truck_id ? Number(data.truck_id) : null}
+                                onChange={(id) => setData("truck_id", id ? String(id) : "")}
+                                placeholder="Which lorry?"
+                                searchPlaceholder="Search by plate or name…"
+                                emptyText="No truck found."
+                            />
                         </Field>
 
                         <Field label="Client *" error={errors.trip_client_id}>
-                            <Select
-                                value={data.trip_client_id}
-                                onValueChange={(v) => setData("trip_client_id", v)}
-                            >
-                                <SelectTrigger><SelectValue placeholder="Whose load?" /></SelectTrigger>
-                                <SelectContent>
-                                    {options.clients.map((c) => (
-                                        <SelectItem key={c.id} value={String(c.id)}>
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <EntityCombobox
+                                options={options.clients.map((c) => ({ id: c.id, label: c.name }))}
+                                value={data.trip_client_id ? Number(data.trip_client_id) : null}
+                                onChange={(id) => setData("trip_client_id", id ? String(id) : "")}
+                                placeholder="Whose load?"
+                                searchPlaceholder="Search or type a new name…"
+                                emptyText="No client found."
+                                createRoute="logistics.clients.quick"
+                                createResponseKey="client"
+                                createNoun="client"
+                            />
                         </Field>
                     </div>
 
@@ -212,20 +196,18 @@ export function TripFormDialog({
                             />
                         </Field>
                         <Field label="Driver" error={errors.driver_id}>
-                            <Select
-                                value={data.driver_id}
-                                onValueChange={(v) => setData("driver_id", v)}
-                            >
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={NO_DRIVER}>Not assigned yet</SelectItem>
-                                    {options.drivers.map((d) => (
-                                        <SelectItem key={d.id} value={String(d.id)}>
-                                            {d.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <EntityCombobox
+                                options={options.drivers.map((d) => ({ id: d.id, label: d.name }))}
+                                value={data.driver_id ? Number(data.driver_id) : null}
+                                onChange={(id) => setData("driver_id", id ? String(id) : "")}
+                                placeholder="Not assigned yet"
+                                searchPlaceholder="Search or type a new name…"
+                                emptyText="No driver found."
+                                noneLabel="Not assigned yet"
+                                createRoute="logistics.drivers.quick"
+                                createResponseKey="driver"
+                                createNoun="driver"
+                            />
                         </Field>
                     </div>
 
