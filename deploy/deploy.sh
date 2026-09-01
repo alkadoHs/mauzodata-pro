@@ -5,6 +5,11 @@
 # Run on the SERVER, from the project root:
 #   bash deploy/deploy.sh            # normal deploy
 #   bash deploy/deploy.sh --dry-run  # show what would happen, touch nothing
+#   bash deploy/deploy.sh --rebuild  # run migrations/build/caches even when
+#                                    # git has nothing new to pull — used
+#                                    # after moving a server to another branch
+#                                    # by hand, where the code is already
+#                                    # right but the schema and assets are not
 #
 # What today's outage taught this script, on purpose:
 #   - it never changes umask. The project directories are setgid with a
@@ -42,7 +47,20 @@ BACKUP_DIR="$HOME/backups"
 LOCK_FILE="/tmp/mauzodata-deploy.lock"
 STARTED_AT="$(date '+%Y-%m-%d %H:%M:%S')"
 DRY_RUN=0
-[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
+REBUILD=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=1 ;;
+        # Run the whole deploy even though git has nothing new to pull. The
+        # case this exists for: a server has just been moved to a different
+        # branch by hand, so the code on disk is already what we want but the
+        # schema, the built assets and the caches are still the old branch's.
+        # Without this the script would report "nothing to deploy" and leave
+        # new code running against an old database.
+        --rebuild) REBUILD=1 ;;
+        *) echo "unknown option: $arg (expected --dry-run and/or --rebuild)" >&2; exit 2 ;;
+    esac
+done
 
 # Everything temporary this run creates, cleaned up on any exit.
 CLEANUP_PATHS=()
@@ -84,7 +102,7 @@ run() {
 # Guard rails
 # ---------------------------------------------------------------------------
 
-note "mauzodata-pro deploy — started $STARTED_AT $( [[ "$DRY_RUN" == "1" ]] && echo '(DRY RUN)' )"
+note "mauzodata-pro deploy — started $STARTED_AT $( [[ "$DRY_RUN" == "1" ]] && echo '(DRY RUN)' )$( [[ "$REBUILD" == "1" ]] && echo ' (REBUILD)' )"
 
 # One deploy at a time. A stale lock (a previous run that crashed hard
 # enough to skip the trap) is reported rather than silently overridden.
@@ -191,7 +209,7 @@ git merge-base --is-ancestor "$BEFORE_SHA" "origin/$CURRENT_BRANCH" \
 
 REMOTE_SHA="$(git rev-parse "origin/$CURRENT_BRANCH")"
 
-if [[ "$REMOTE_SHA" == "$BEFORE_SHA" ]]; then
+if [[ "$REMOTE_SHA" == "$BEFORE_SHA" && "$REBUILD" == "0" ]]; then
     note "already up to date at $BEFORE_SHA — nothing to deploy"
     if [[ "$DRY_RUN" == "0" ]]; then
         note "(the database backup above still happened and is kept)"
@@ -199,7 +217,22 @@ if [[ "$REMOTE_SHA" == "$BEFORE_SHA" ]]; then
     exit 0
 fi
 
-if [[ "$DRY_RUN" == "1" ]]; then
+if [[ "$REMOTE_SHA" == "$BEFORE_SHA" ]]; then
+    # Nothing to pull, but --rebuild says the rest still needs doing.
+    note "already at $BEFORE_SHA — nothing to pull, rebuilding anyway"
+    AFTER_SHA="$BEFORE_SHA"
+    CHANGED_FILES=""
+    # The tree may have arrived by a branch checkout rather than a pull, so
+    # there is no reliable file diff to decide on. Refreshing the autoloader
+    # is seconds and removes the question of whether an optimised classmap
+    # built on the old branch knows about the new branch's classes.
+    run composer dump-autoload --optimize --no-interaction
+    REBUILT_ONLY=1
+fi
+
+if [[ "${REBUILT_ONLY:-0}" == "1" ]]; then
+    : # nothing to pull; AFTER_SHA and CHANGED_FILES are already set above
+elif [[ "$DRY_RUN" == "1" ]]; then
     note "(dry run) would fast-forward $BEFORE_SHA -> $REMOTE_SHA:"
     git log --oneline "$BEFORE_SHA..$REMOTE_SHA" | sed 's/^/     /'
     CHANGED_FILES="$(git diff --name-only "$BEFORE_SHA" "$REMOTE_SHA")"
