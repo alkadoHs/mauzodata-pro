@@ -45,7 +45,8 @@ export default function Trucks({ auth, trucks }: PageProps<{ trucks: Truck[] }>)
                 toast.success("Truck removed");
                 setDeleting(null);
             },
-            onError: () => setError("Could not remove this truck."),
+            onError: (errors) =>
+                setError(errors.truck ?? "Could not remove this truck."),
             onFinish: () => setProcessing(false),
         });
     };
@@ -75,6 +76,7 @@ export default function Trucks({ auth, trucks }: PageProps<{ trucks: Truck[] }>)
                         <TableHead>Truck</TableHead>
                         <TableHead>Make</TableHead>
                         <TableHead className="text-right">Capacity</TableHead>
+                        <TableHead className="text-right">Trips</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="w-10" />
                     </TableRow>
@@ -82,7 +84,7 @@ export default function Trucks({ auth, trucks }: PageProps<{ trucks: Truck[] }>)
                 <TableBody>
                     {shown.length === 0 && (
                         <EmptyRow
-                            colSpan={5}
+                            colSpan={6}
                             icon={TruckIcon}
                             filtered={!!filter.trim()}
                             empty="No trucks yet."
@@ -110,6 +112,9 @@ export default function Trucks({ auth, trucks }: PageProps<{ trucks: Truck[] }>)
                                 {truck.capacity_tons != null
                                     ? `${numberFormat(truck.capacity_tons)} t`
                                     : "—"}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums text-muted-foreground">
+                                {truck.trips_count > 0 ? numberFormat(truck.trips_count) : "—"}
                             </TableCell>
                             <TableCell>
                                 <StatusBadge status={truck.status} />
@@ -141,7 +146,11 @@ export default function Trucks({ auth, trucks }: PageProps<{ trucks: Truck[] }>)
                 open={!!deleting}
                 onOpenChange={(open) => !open && setDeleting(null)}
                 title={`Delete ${deleting?.plate_number ?? "this truck"}?`}
-                description="If it has simply been sold or is off the road, mark it that way instead — deleting takes it out of the register entirely."
+                description={
+                    deleting?.trips_count
+                        ? `${deleting.plate_number} has ${numberFormat(deleting.trips_count)} trip(s) recorded, so it cannot be deleted. Mark it sold or in repair instead — that keeps its journeys intact.`
+                        : "If it has simply been sold or is off the road, mark it that way instead — deleting takes it out of the register entirely."
+                }
                 processing={processing}
                 error={error}
                 onConfirm={confirmDelete}

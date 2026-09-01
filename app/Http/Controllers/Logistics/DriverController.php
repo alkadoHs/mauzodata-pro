@@ -23,6 +23,7 @@ class DriverController extends LogisticsController
         return Inertia::render('Logistics/Drivers', [
             'drivers' => Driver::where('company_id', $this->companyId())
                 // Working drivers first, then alphabetical.
+                ->withCount('trips')
                 ->orderByDesc('is_active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'phone', 'license_number', 'is_active', 'notes']),
@@ -70,6 +71,11 @@ class DriverController extends LogisticsController
     {
         $this->authorizeLogistics();
         $this->authorizeOwns($driver);
+
+        $trips = $driver->trips()->count();
+        if ($trips > 0) {
+            return back()->withErrors(['driver' => "This driver has {$trips} trip(s) recorded, so they can't be deleted. Retire them instead — that keeps their name on the journeys they drove."]);
+        }
 
         $driver->delete();
 

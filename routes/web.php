@@ -17,6 +17,8 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Logistics\ClientController as LogisticsClientController;
 use App\Http\Controllers\Logistics\DriverController as LogisticsDriverController;
 use App\Http\Controllers\Logistics\HomeController as LogisticsHomeController;
+use App\Http\Controllers\Logistics\TripController as LogisticsTripController;
+use App\Http\Controllers\Logistics\TripLedgerController as LogisticsTripLedgerController;
 use App\Http\Controllers\Logistics\TruckController as LogisticsTruckController;
 use App\Http\Controllers\NewStockController;
 use App\Http\Controllers\OrderController;
@@ -87,6 +89,20 @@ Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->prefix('lo
     Route::patch('/drivers/{driver}', [LogisticsDriverController::class, 'update'])->name('drivers.update');
     Route::patch('/drivers/{driver}/toggle', [LogisticsDriverController::class, 'toggle'])->name('drivers.toggle');
     Route::delete('/drivers/{driver}', [LogisticsDriverController::class, 'destroy'])->name('drivers.destroy');
+
+    // The journeys themselves — the profit centre everything else hangs off.
+    Route::get('/trips', [LogisticsTripController::class, 'index'])->name('trips.index');
+    Route::post('/trips', [LogisticsTripController::class, 'store'])->name('trips.store');
+    Route::get('/trips/{trip}', [LogisticsTripController::class, 'show'])->name('trips.show');
+    Route::patch('/trips/{trip}', [LogisticsTripController::class, 'update'])->name('trips.update');
+    Route::patch('/trips/{trip}/status', [LogisticsTripController::class, 'updateStatus'])->name('trips.status');
+    Route::delete('/trips/{trip}', [LogisticsTripController::class, 'destroy'])->name('trips.destroy');
+
+    // What a trip cost, and what the client paid against it.
+    Route::post('/trips/{trip}/expenses', [LogisticsTripLedgerController::class, 'storeExpense'])->name('trips.expenses.store');
+    Route::delete('/trip-expenses/{expense}', [LogisticsTripLedgerController::class, 'destroyExpense'])->name('trips.expenses.destroy');
+    Route::post('/trips/{trip}/payments', [LogisticsTripLedgerController::class, 'storePayment'])->name('trips.payments.store');
+    Route::delete('/trip-payments/{payment}', [LogisticsTripLedgerController::class, 'destroyPayment'])->name('trips.payments.destroy');
 
     // Whose mizigo they carry.
     Route::get('/clients', [LogisticsClientController::class, 'index'])->name('clients.index');

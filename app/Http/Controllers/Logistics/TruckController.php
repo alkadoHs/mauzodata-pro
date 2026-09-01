@@ -23,6 +23,7 @@ class TruckController extends LogisticsController
 
         return Inertia::render('Logistics/Trucks', [
             'trucks' => Truck::where('company_id', $this->companyId())
+                ->withCount('trips')
                 // Working trucks first, then the ones that can't take a load.
                 ->orderByRaw("FIELD(status, 'active', 'in_repair', 'sold')")
                 ->orderBy('plate_number')
@@ -35,6 +36,7 @@ class TruckController extends LogisticsController
                     'capacity_tons' => $truck->capacity_tons !== null ? (float) $truck->capacity_tons : null,
                     'status' => $truck->status,
                     'notes' => $truck->notes,
+                    'trips_count' => $truck->trips_count,
                 ]),
         ]);
     }
@@ -65,6 +67,13 @@ class TruckController extends LogisticsController
     {
         $this->authorizeLogistics();
         $this->authorizeOwns($truck);
+
+        // The foreign key would refuse this anyway; saying why, and what to do
+        // instead, is the difference between a usable app and a SQL error.
+        $trips = $truck->trips()->count();
+        if ($trips > 0) {
+            return back()->withErrors(['truck' => "This truck has {$trips} trip(s) recorded against it, so it can't be deleted. Mark it sold or in repair instead — that keeps its journeys intact."]);
+        }
 
         $truck->delete();
 

@@ -21,6 +21,7 @@ class ClientController extends LogisticsController
 
         return Inertia::render('Logistics/Clients', [
             'clients' => TripClient::where('company_id', $this->companyId())
+                ->withCount('trips')
                 ->orderBy('name')
                 ->get(['id', 'name', 'phone', 'notes']),
         ]);
@@ -52,6 +53,11 @@ class ClientController extends LogisticsController
     {
         $this->authorizeLogistics();
         $this->authorizeOwns($client);
+
+        $trips = $client->trips()->count();
+        if ($trips > 0) {
+            return back()->withErrors(['client' => "This client has {$trips} trip(s) on record, so they can't be deleted without losing that history."]);
+        }
 
         $client->delete();
 

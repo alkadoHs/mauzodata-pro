@@ -56,7 +56,8 @@ export default function Drivers({ auth, drivers }: PageProps<{ drivers: Driver[]
                 toast.success("Driver removed");
                 setDeleting(null);
             },
-            onError: () => setError("Could not remove this driver."),
+            onError: (errors) =>
+                setError(errors.driver ?? "Could not remove this driver."),
             onFinish: () => setProcessing(false),
         });
     };
@@ -84,6 +85,7 @@ export default function Drivers({ auth, drivers }: PageProps<{ drivers: Driver[]
                         <TableHead>Name</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Licence</TableHead>
+                        <TableHead className="text-right">Trips</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="w-10" />
                     </TableRow>
@@ -91,7 +93,7 @@ export default function Drivers({ auth, drivers }: PageProps<{ drivers: Driver[]
                 <TableBody>
                     {shown.length === 0 && (
                         <EmptyRow
-                            colSpan={5}
+                            colSpan={6}
                             icon={Contact}
                             filtered={!!filter.trim()}
                             empty="No drivers yet."
@@ -117,6 +119,9 @@ export default function Drivers({ auth, drivers }: PageProps<{ drivers: Driver[]
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                                 {driver.license_number ?? "—"}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums text-muted-foreground">
+                                {driver.trips_count > 0 ? driver.trips_count.toLocaleString() : "—"}
                             </TableCell>
                             <TableCell>
                                 {driver.is_active ? (
@@ -173,7 +178,11 @@ export default function Drivers({ auth, drivers }: PageProps<{ drivers: Driver[]
                 open={!!deleting}
                 onOpenChange={(open) => !open && setDeleting(null)}
                 title={`Delete ${deleting?.name ?? "this driver"}?`}
-                description="If they have simply left, retire them instead — that keeps their name on the trips they actually drove."
+                description={
+                    deleting?.trips_count
+                        ? `${deleting.name} has ${deleting.trips_count.toLocaleString()} trip(s) recorded, so they cannot be deleted. Retire them instead — that keeps their name on the journeys they drove.`
+                        : "If they have simply left, retire them instead — that keeps their name on the trips they actually drove."
+                }
                 processing={processing}
                 error={error}
                 onConfirm={confirmDelete}

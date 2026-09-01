@@ -43,7 +43,8 @@ export default function Clients({ auth, clients }: PageProps<{ clients: Client[]
                 toast.success("Client removed");
                 setDeleting(null);
             },
-            onError: () => setError("Could not remove this client."),
+            onError: (errors) =>
+                setError(errors.client ?? "Could not remove this client."),
             onFinish: () => setProcessing(false),
         });
     };
@@ -70,6 +71,7 @@ export default function Clients({ auth, clients }: PageProps<{ clients: Client[]
                     <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Phone</TableHead>
+                        <TableHead className="text-right">Trips</TableHead>
                         <TableHead>Notes</TableHead>
                         <TableHead className="w-10" />
                     </TableRow>
@@ -77,7 +79,7 @@ export default function Clients({ auth, clients }: PageProps<{ clients: Client[]
                 <TableBody>
                     {shown.length === 0 && (
                         <EmptyRow
-                            colSpan={4}
+                            colSpan={5}
                             icon={Users2}
                             filtered={!!filter.trim()}
                             empty="No clients yet."
@@ -90,6 +92,9 @@ export default function Clients({ auth, clients }: PageProps<{ clients: Client[]
                             <TableCell className="font-medium">{client.name}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                                 {client.phone ?? "—"}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums text-muted-foreground">
+                                {client.trips_count > 0 ? client.trips_count.toLocaleString() : "—"}
                             </TableCell>
                             <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
                                 {client.notes ?? "—"}
@@ -128,7 +133,11 @@ export default function Clients({ auth, clients }: PageProps<{ clients: Client[]
                 open={!!deleting}
                 onOpenChange={(open) => !open && setDeleting(null)}
                 title={`Delete ${deleting?.name ?? "this client"}?`}
-                description="They will no longer appear when recording a trip."
+                description={
+                    deleting?.trips_count
+                        ? `${deleting.name} has ${deleting.trips_count.toLocaleString()} trip(s) on record, so they cannot be deleted without losing that history.`
+                        : "They will no longer appear when recording a trip."
+                }
                 processing={processing}
                 error={error}
                 onConfirm={confirmDelete}

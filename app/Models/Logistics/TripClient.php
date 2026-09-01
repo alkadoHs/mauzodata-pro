@@ -6,6 +6,7 @@ use App\Models\Company;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Somebody whose mizigo the trucks carry.
@@ -27,5 +28,10 @@ class TripClient extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function trips(): HasMany
+    {
+        return $this->hasMany(Trip::class, 'trip_client_id');
     }
 }

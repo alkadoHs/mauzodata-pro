@@ -16,6 +16,7 @@ import {
     Landmark,
     Users2,
     Contact,
+    Route,
     LucideIcon,
 } from "lucide-react";
 import {
@@ -132,6 +133,12 @@ const SidebarItems = ({ user }: { user: User }) => {
 const LogisticsNav = () => (
     <>
         <NavLink routeName="logistics.home" icon={Home} label="Overview" />
+        <NavLink
+            routeName="logistics.trips.index"
+            icon={Route}
+            label="Trips"
+            pattern="logistics.trips.*"
+        />
         <NavLink
             routeName="logistics.trucks.index"
             icon={Truck}
