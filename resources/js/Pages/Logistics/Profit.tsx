@@ -389,7 +389,15 @@ function Line({
                     !tone && value < 0 && "text-muted-foreground"
                 )}
             >
-                {value < 0 ? `−${numberFormat(Math.abs(value))}` : numberFormat(value)}
+                {/* The deduction rows are passed a negated total, so a zero
+                    arrives here as -0. Left alone it formats as "-0", which
+                    reads as a number rather than as nothing. -0 === 0 in JS,
+                    so this comparison is what normalises it. */}
+                {value === 0
+                    ? numberFormat(0)
+                    : value < 0
+                      ? `−${numberFormat(Math.abs(value))}`
+                      : numberFormat(value)}
             </dd>
         </div>
     );
