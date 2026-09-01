@@ -1,7 +1,7 @@
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { PageProps } from "@/types";
 import { Head, Link } from "@inertiajs/react";
-import { ArrowRight, Coins, Contact, Route, Truck, Users2 } from "lucide-react";
+import { ArrowRight, Coins, Contact, Route, Truck, Users2, Wallet } from "lucide-react";
 
 /**
  * The front door of the haulage business.
@@ -60,16 +60,18 @@ export default function Home({ auth }: PageProps) {
                         title="Clients"
                         body="The people whose mizigo you carry."
                     />
-                    <div className="rounded-lg border border-dashed bg-card/50 p-4">
-                        <span className="flex items-center gap-2 font-medium text-muted-foreground">
-                            <Coins className="size-4 shrink-0" />
-                            Profit report
-                        </span>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Coming next: what the trips earned, what the running
-                            costs took, and the net profit left over.
-                        </p>
-                    </div>
+                    <Card
+                        href="logistics.running-costs.index"
+                        icon={Wallet}
+                        title="Running costs"
+                        body="Insurance, licences, servicing, salaries — what the business costs between journeys."
+                    />
+                    <Card
+                        href="logistics.profit"
+                        icon={Coins}
+                        title="Profit"
+                        body="What the trips earned, what the running costs took, and the net profit left over."
+                    />
                 </div>
             </section>
         </Authenticated>

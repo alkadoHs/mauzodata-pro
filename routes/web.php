@@ -17,6 +17,8 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Logistics\ClientController as LogisticsClientController;
 use App\Http\Controllers\Logistics\DriverController as LogisticsDriverController;
 use App\Http\Controllers\Logistics\HomeController as LogisticsHomeController;
+use App\Http\Controllers\Logistics\ProfitReportController as LogisticsProfitReportController;
+use App\Http\Controllers\Logistics\RunningCostController as LogisticsRunningCostController;
 use App\Http\Controllers\Logistics\TripController as LogisticsTripController;
 use App\Http\Controllers\Logistics\TripLedgerController as LogisticsTripLedgerController;
 use App\Http\Controllers\Logistics\TruckController as LogisticsTruckController;
@@ -89,6 +91,14 @@ Route::middleware(['auth', 'verified', RemoveCommaFromInput::class])->prefix('lo
     Route::patch('/drivers/{driver}', [LogisticsDriverController::class, 'update'])->name('drivers.update');
     Route::patch('/drivers/{driver}/toggle', [LogisticsDriverController::class, 'toggle'])->name('drivers.toggle');
     Route::delete('/drivers/{driver}', [LogisticsDriverController::class, 'destroy'])->name('drivers.destroy');
+
+    // What the business made. The question the whole thing was built for.
+    Route::get('/profit', [LogisticsProfitReportController::class, 'index'])->name('profit');
+
+    // Costs of being in business rather than of any one journey.
+    Route::get('/running-costs', [LogisticsRunningCostController::class, 'index'])->name('running-costs.index');
+    Route::post('/running-costs', [LogisticsRunningCostController::class, 'store'])->name('running-costs.store');
+    Route::delete('/running-costs/{runningCost}', [LogisticsRunningCostController::class, 'destroy'])->name('running-costs.destroy');
 
     // The journeys themselves — the profit centre everything else hangs off.
     Route::get('/trips', [LogisticsTripController::class, 'index'])->name('trips.index');

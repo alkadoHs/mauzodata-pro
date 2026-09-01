@@ -17,6 +17,8 @@ import {
     Users2,
     Contact,
     Route,
+    Wallet,
+    Coins,
     LucideIcon,
 } from "lucide-react";
 import {
@@ -157,6 +159,13 @@ const LogisticsNav = () => (
             label="Clients"
             pattern="logistics.clients.*"
         />
+        <NavLink
+            routeName="logistics.running-costs.index"
+            icon={Wallet}
+            label="Running costs"
+            pattern="logistics.running-costs.*"
+        />
+        <NavLink routeName="logistics.profit" icon={Coins} label="Profit" />
     </>
 );
 
