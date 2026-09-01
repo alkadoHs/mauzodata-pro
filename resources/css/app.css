@@ -13,67 +13,111 @@ body {
 }
 
 @layer base {
+  /*
+   * A neutral chrome, so that colour always means something.
+   *
+   * Every surface here is pure grey — zero saturation. The previous palette
+   * carried a green cast (hue 170) through the background, cards and borders,
+   * which read as a tint rather than as a decision. With the chrome neutral,
+   * the only colour on screen is colour that carries meaning: money in and
+   * money out, a status, the one accent that marks what is actionable.
+   *
+   * Surfaces are an elevation ladder, not a flat wash:
+   *
+   *     background  <  card  <  popover  <  muted / secondary
+   *
+   * The old dark theme put cards 3 points above the background, which is not
+   * enough separation to read as a raised surface — the cards looked like
+   * outlined holes rather than panels. Dark mode gets a wider ladder than
+   * light on purpose: the eye discriminates far less well between dark values
+   * than light ones, so the same numeric gap that reads clearly at the top of
+   * the scale disappears at the bottom.
+   *
+   * Dark mode is also not an inversion of light. Its background sits at 7%
+   * rather than pure black, because black next to a bright panel produces a
+   * harsh edge and makes text appear to bloom.
+   */
   :root {
-    --background: 160 20% 98.5%;
-    --foreground: 170 25% 10%;
+    /* Page sits just below pure white so cards lift off it. */
+    --background: 0 0% 97%;
+    --foreground: 0 0% 9%;
+
     --card: 0 0% 100%;
-    --card-foreground: 170 25% 10%;
+    --card-foreground: 0 0% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 170 25% 10%;
-    --primary: 243 75% 63%;
+    --popover-foreground: 0 0% 9%;
+
+    /* The one accent: what is actionable, and nothing else. */
+    --primary: 243 72% 56%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 160 16% 94%;
-    --secondary-foreground: 170 25% 14%;
-    --muted: 160 16% 94%;
-    --muted-foreground: 170 10% 42%;
-    --accent: 243 60% 94%;
-    --accent-foreground: 243 75% 30%;
-    --destructive: 8 72% 56%;
+
+    --secondary: 0 0% 94.5%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 94.5%;
+    /* 4.8:1 on card — real body text, not a whisper. */
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 0 0% 94.5%;
+    --accent-foreground: 0 0% 9%;
+
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 160 14% 88%;
-    --input: 160 14% 88%;
-    --ring: 243 75% 63%;
+
+    --border: 0 0% 89%;
+    /* A control's edge reads a step stronger than a divider between rows. */
+    --input: 0 0% 85%;
+    --ring: 243 72% 56%;
+
     --radius: 0.75rem;
 
-    /* Categorical series, fixed order — never cycled.
-       chart-1/chart-2 are the dashboard pair and are validated together against
-       the card surface (CVD ΔE 22.8 deutan / 8.8 tritan, contrast >= 3:1). */
-    --chart-1: 243 75% 63%;
+    /* Categorical series, fixed order — never cycled. */
+    --chart-1: 243 72% 56%;
     --chart-2: 162 63% 36%;
-    --chart-3: 199 89% 48%;
-    --chart-4: 38 92% 58%;
-    --chart-5: 340 75% 60%;
+    --chart-3: 199 89% 42%;
+    /* Amber has to sit this low to clear 3:1 on a white card — at 45%
+       it measured 2.63:1, which is a bar chart nobody can read. */
+    --chart-4: 38 92% 40%;
+    --chart-5: 340 70% 52%;
   }
 
   .dark {
-    --background: 170 22% 6%;
-    --foreground: 160 15% 95%;
-    --card: 170 20% 9%;
-    --card-foreground: 160 15% 95%;
-    --popover: 170 20% 9%;
-    --popover-foreground: 160 15% 95%;
-    --primary: 243 85% 72%;
-    --primary-foreground: 240 25% 10%;
-    --secondary: 170 15% 15%;
-    --secondary-foreground: 160 15% 90%;
-    --muted: 170 15% 15%;
-    --muted-foreground: 160 8% 62%;
-    --accent: 243 30% 20%;
-    --accent-foreground: 243 85% 80%;
-    --destructive: 8 65% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 170 15% 17%;
-    --input: 170 15% 17%;
-    --ring: 243 85% 72%;
+    /* Deep, not black: pure black against a lit panel bites. */
+    --background: 0 0% 7%;
+    --foreground: 0 0% 96%;
 
-    /* Dark steps are chosen for the dark surface, not flipped from light:
-       they sit in the dark lightness band (0.48–0.67) and are validated
-       against the dark card (CVD ΔE 19.8 deutan / 7.4 tritan, contrast >= 3:1). */
-    --chart-1: 243 85% 72%;
-    --chart-2: 162 63% 40%;
-    --chart-3: 199 89% 58%;
-    --chart-4: 38 92% 58%;
-    --chart-5: 340 75% 60%;
+    /* Four points above the page, and it reads — see the note above. */
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 96%;
+    /* Popovers float above cards, so they step again. */
+    --popover: 0 0% 13.5%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 243 75% 62%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 17%;
+    /* 5.4:1 on card — dark themes need this brighter than the light one. */
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 19.5%;
+    --accent-foreground: 0 0% 96%;
+
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 25%;
+    --ring: 243 75% 68%;
+
+    /* Chosen for the dark surface rather than flipped from the light one:
+       they sit high enough in lightness to hold their own against an 11%
+       card without glowing. */
+    --chart-1: 243 80% 70%;
+    --chart-2: 162 60% 48%;
+    --chart-3: 199 85% 58%;
+    --chart-4: 38 90% 60%;
+    --chart-5: 340 75% 65%;
   }
 }
-
