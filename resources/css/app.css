@@ -120,4 +120,24 @@ body {
     --chart-4: 38 90% 60%;
     --chart-5: 340 75% 65%;
   }
+
+  /*
+   * Tailwind's `border` utility sets a width, not a colour — the colour comes
+   * from borderColor.DEFAULT, which ships as gray-200 (#e5e7eb). Seventy-six
+   * places in this app write a bare `border`, so every one of them was drawing
+   * a near-white hairline that ignored --border entirely. Invisible on the old
+   * light-ish surfaces; on a dark page it looked like the cards had been
+   * outlined in chalk.
+   *
+   * Pointing the default at the token is what makes --border mean anything.
+   */
+  * {
+    @apply border-border;
+  }
+
+  /* The page itself, so an overscroll or a short page shows the theme's
+     background rather than the browser's white. */
+  body {
+    @apply bg-background text-foreground;
+  }
 }
