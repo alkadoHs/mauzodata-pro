@@ -107,6 +107,14 @@ export default function Authenticated({
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="flex flex-col">
+                            {/* The switcher is hidden in the header on small
+                                screens — there is no room beside the search
+                                box — so without it here an admin on a phone
+                                could not reach the other system at all.
+                                Switching systems is navigation, and this is
+                                where navigation lives on a phone. */}
+                            <WorkspaceSwitcher className="mt-4 flex w-full [&>button]:flex-1" />
+
                             {/* The sheet is a fixed inset-y-0 panel, so the nav
                                 needs its own scroll area or anything past the
                                 fold is unreachable. Mirrors the desktop rail. */}
@@ -129,7 +137,7 @@ export default function Authenticated({
                             </div>
                         </form>
                     </div>
-                    <WorkspaceSwitcher />
+                    <WorkspaceSwitcher className="hidden sm:flex" />
                     <BranchSwitcher />
                     <ModeToggle />
                     <DropdownMenu>

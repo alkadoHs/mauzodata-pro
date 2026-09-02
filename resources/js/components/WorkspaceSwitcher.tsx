@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { PageProps } from "@/types";
 import { router, usePage } from "@inertiajs/react";
 import { Store, Truck } from "lucide-react";
@@ -7,8 +8,12 @@ import { Store, Truck } from "lucide-react";
  *
  * Hidden entirely for anyone who only has the shop, which is everyone bar the
  * one admin who runs both — no dead control, no hint of a system they don't have.
+ *
+ * The caller decides where it sits and how wide it is, because it appears in
+ * two places that want different things: a compact control in the desktop
+ * header, and a full-width one at the top of the mobile menu.
  */
-export function WorkspaceSwitcher() {
+export function WorkspaceSwitcher({ className }: { className?: string }) {
     const { auth } = usePage<PageProps>().props;
 
     if (!auth.hasLogistics) return null;
@@ -23,7 +28,12 @@ export function WorkspaceSwitcher() {
     };
 
     return (
-        <div className="hidden sm:flex h-9 items-center gap-0.5 rounded-md border border-input bg-background p-0.5">
+        <div
+            className={cn(
+                "h-9 items-center gap-0.5 rounded-md border border-input bg-background p-0.5",
+                className
+            )}
+        >
             <Tab
                 label="Shop"
                 icon={Store}
